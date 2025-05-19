@@ -15,10 +15,10 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class SolidBlockEntityComputer extends BlockEntity implements ClientEntityEvents.Load {
+public class LargeEntityComputer extends BlockEntity implements ClientEntityEvents.Load {
     public Computer computer;
 
-    public SolidBlockEntityComputer(BlockPos pos, BlockState state) {
+    public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BlockRegistery.fetchBlockEntityType("large_computer"), pos, state);
         computer = new Computer(this);
     }
@@ -65,7 +65,7 @@ public class SolidBlockEntityComputer extends BlockEntity implements ClientEntit
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
-            if (be instanceof SolidBlockEntityComputer computerBlock) {
+            if (be instanceof LargeEntityComputer computerBlock) {
                 computerBlock.computer.Tick();
             }
         }

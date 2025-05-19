@@ -18,8 +18,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-public class SolidBlockComputer extends HorizontalFacingBlock implements BlockEntityProvider {
-    public SolidBlockComputer(Settings settings) {
+public class LargeBlockComputer extends HorizontalFacingBlock implements BlockEntityProvider {
+    public LargeBlockComputer(Settings settings) {
         super(settings);
         setDefaultState(getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
     }
@@ -36,7 +36,7 @@ public class SolidBlockComputer extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SolidBlockEntityComputer(pos, state);
+        return new LargeEntityComputer(pos, state);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class SolidBlockComputer extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BlockRegistery.fetchBlockEntityType("large_computer") ? SolidBlockEntityComputer::tick : null;
+        return type == BlockRegistery.fetchBlockEntityType("large_computer") ? LargeEntityComputer::tick : null;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class SolidBlockComputer extends HorizontalFacingBlock implements BlockEn
         super.onPlaced(world, pos, state, placer, itemStack);
         if (!world.isClient()) {
             BlockEntity be = world.getBlockEntity(pos);
-            if (be instanceof SolidBlockEntityComputer computer) {
+            if (be instanceof LargeEntityComputer computer) {
                 computer.AssignPointers(world, itemStack);
             }
         }
@@ -65,7 +65,7 @@ public class SolidBlockComputer extends HorizontalFacingBlock implements BlockEn
         ActionResult allowed;
         if (!world.isClient){
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof SolidBlockEntityComputer computer) {
+            if (blockEntity instanceof LargeEntityComputer computer) {
                 allowed = computer.onUse(player);
             }else{
                 allowed = ActionResult.SUCCESS;

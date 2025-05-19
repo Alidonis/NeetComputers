@@ -1,7 +1,7 @@
 package com.redtoast.neet;
 
-import com.redtoast.blocks.SolidBlockComputer;
-import com.redtoast.blocks.SolidBlockEntityComputer;
+import com.redtoast.blocks.LargeBlockComputer;
+import com.redtoast.blocks.LargeEntityComputer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -42,8 +42,8 @@ public class NeetComputers implements ModInitializer {
 
 		//register stuff
 		BlockRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new SolidBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.METAL));
-		BlockRegistery.register("large_computer",largeComputer, SolidBlockEntityComputer::new,true);
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.METAL));
+		BlockRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,true);
 	}
 
 	public static void updateServer(MinecraftServer server) {

@@ -1,2 +1,4 @@
-package com.redtoast.blocks;public class LargeComputerModel {
+package com.redtoast.blocks;
+
+public class LargeComputerModel {
 }
