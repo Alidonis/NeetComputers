@@ -18,7 +18,7 @@ public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
         Vector2i size = graphics.getSize();
         for (int x = 0; x < size.x(); x++) {
             for (int y = 0; y < size.y(); y++) {
-                context.fill(x*3,y*3,x*3+3,y*3+3,0xFF000000 | graphics.get(x,y));
+                context.fill(x,y,x+1,y+1,0xFF000000 | graphics.get(x,y));
             }
         }
         context.draw();
