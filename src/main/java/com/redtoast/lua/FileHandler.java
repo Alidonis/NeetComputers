@@ -2,9 +2,7 @@ package com.redtoast.lua;
 
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
-import org.luaj.vm2.ast.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

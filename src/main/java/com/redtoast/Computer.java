@@ -2,7 +2,7 @@ package com.redtoast;
 
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
-import com.redtoast.lua.FileSpace;
+import com.redtoast.lua.IDFactory;
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -104,9 +104,9 @@ public class Computer {
     public void Load(MinecraftServer GameServer){
         if (!loaded){
             assert GameServer != null;
-            FileSpace.getServerState(GameServer);
-            FileSpace.PointerIteration++;
-            pointer = FileSpace.PointerIteration;
+            IDFactory.getServerState(GameServer);
+            IDFactory.PointerIteration++;
+            pointer = IDFactory.PointerIteration;
             ROM = -1;
             isOn = false;
             Load();
