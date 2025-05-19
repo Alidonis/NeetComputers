@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "neetcomputers:block/large_computer"},
+    "facing=east":  { "model": "neetcomputers:block/large_computer", "y":  90},
+    "facing=south": { "model": "neetcomputers:block/large_computer", "y": 180},
+    "facing=west":  { "model": "neetcomputers:block/large_computer", "y": 270}
+  }
+}

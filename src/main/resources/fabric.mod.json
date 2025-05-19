@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "neetcomputers",
+	"version": "${version}",
+	"name": "Neet Computers",
+	"description": "A flexable and dependable alterative to Computer Craft or Open Computers",
+	"authors": [
+		"Red Toast"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MIT",
+	"icon": "Large_Computer_Upscaled.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+          "com.redtoast.neet.NeetComputers"
+		],
+		"client": [
+          "com.redtoast.neet.NeetComputersClient"
+		]
+	},
+	"mixins": [
+		"modid.mixins.json",
+		{
+			"config": "modid.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.20.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

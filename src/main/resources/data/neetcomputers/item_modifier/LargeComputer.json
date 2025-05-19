@@ -1,0 +1,16 @@
+{
+  "function": "copy_components",
+  "source": "block_entity",
+  "ops": [
+    {
+      "source": "filePointer",
+      "target": "filePointer",
+      "op": "replace"
+    },
+    {
+      "source": "ROMpointer",
+      "target": "ROMpointer",
+      "op": "replace"
+    }
+  ]
+}
