@@ -108,9 +108,7 @@ public class LargeComputerModel implements UnbakedModel, BakedModel, FabricBaked
         QuadEmitter emitter = builder.getEmitter();
 
         for(int i = 0; i < 5 + graphics.getAmount(); i++) {
-            // Add a new face to the mesh
-            // Set the sprite of the face, must be called after .square()
-            // We haven't specified any UV coordinates, so we want to use the whole texture. BAKE_LOCK_UV does exactly that.
+
 
 
             emitter.spriteBake(sprites[0], 0);
