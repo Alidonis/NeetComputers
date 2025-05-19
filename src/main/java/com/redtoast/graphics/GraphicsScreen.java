@@ -2,6 +2,7 @@ package com.redtoast.graphics;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import org.joml.Vector2i;
@@ -13,8 +14,9 @@ public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
         this.handler = handler;
     }
 
+
     @Override
-    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         RGBGraphicsArray graphics = handler.getGraphics();
         Vector2i size = graphics.getSize();
         int x1 = context.getScaledWindowWidth()/2 - size.x()*2;
@@ -26,4 +28,7 @@ public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
         }
         context.draw();
     }
+
+    @Override
+    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {}
 }

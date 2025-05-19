@@ -190,13 +190,13 @@ public class Computer {
                     Start();
                 }
                 step();
-                /*for (PlayerEntity p : world.getPlayers()) {
+                for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp.computer == this) {
-                        PacketByteBuf temp = PacketByteBufs.empty();
+                        PacketByteBuf temp = PacketByteBufs.create();
                         Graphics.writeScreenToPacketBuf(temp);
                         ServerPlayNetworking.send((ServerPlayerEntity) p, NeetComputers.SCREEN_PACKET_ID, temp);
                     }
-                }*/
+                }
             }
         }
     }
