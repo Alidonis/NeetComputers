@@ -69,7 +69,7 @@ public class Computer {
     public Computer(BlockEntity Parent){
         parent = new AnyEntity(Parent);
         uuid = UUID.randomUUID();
-        Graphics = new RGBGraphicsArray(640,480);
+        Graphics = new RGBGraphicsArray(64,48);
     }
 
     public boolean isLoaded(){return loaded;}
