@@ -1,5 +1,6 @@
 package com.redtoast;
 
+import com.redtoast.graphics.BianaryGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
@@ -31,6 +32,10 @@ public class Computer {
             return root.pointer;
         }
         return 0;
+    }
+
+    public BianaryGraphicsArray getBianaryGraphics() {
+        return null;
     }
 
     private static class AnyEntity{
