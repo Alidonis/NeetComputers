@@ -33,4 +33,8 @@ public class RGBGraphicsArray {
     public Vector2i getSize(){
         return new Vector2i(sizex,sizey);
     }
+
+    public int getAmount(){
+        return sizex * sizey;
+    }
 }
