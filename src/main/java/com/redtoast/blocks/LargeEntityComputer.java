@@ -32,7 +32,7 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
     public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BlockRegistery.fetchBlockEntityType("large_computer"), pos, state);
         computer = new Computer(this);
-        computer.
+        graphics = computer.getGraphics();
     }
 
     public void AssignPointers(World world, ItemStack itemStack){
@@ -89,7 +89,8 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         buf.writeInt(y);
         buf.writeInt(size.x());
         for (int i=0; i < y; i++) {
-            buf.writeIntArray(graphics.pixels[y]);
+            System.out.println("Writing data: "+i);
+            buf.writeIntArray(graphics.pixels[i]);
         }
     }
 

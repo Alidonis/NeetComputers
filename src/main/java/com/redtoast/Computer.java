@@ -1,6 +1,7 @@
 package com.redtoast;
 
 import com.redtoast.graphics.BianaryGraphicsArray;
+import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
@@ -24,6 +25,7 @@ public class Computer {
     private AnyEntity parent;
     private UUID uuid;
     private FileHandler FS;
+    private RGBGraphicsArray Graphics;
 
     public boolean IsOn(){return isOn;}
     public int getPointer(String rootName){
@@ -36,6 +38,10 @@ public class Computer {
 
     public BianaryGraphicsArray getBianaryGraphics() {
         return null;
+    }
+
+    public RGBGraphicsArray getGraphics() {
+        return Graphics;
     }
 
     private static class AnyEntity{
@@ -63,6 +69,7 @@ public class Computer {
     public Computer(BlockEntity Parent){
         parent = new AnyEntity(Parent);
         uuid = UUID.randomUUID();
+        Graphics = new RGBGraphicsArray(640,480);
     }
 
     public boolean isLoaded(){return loaded;}
