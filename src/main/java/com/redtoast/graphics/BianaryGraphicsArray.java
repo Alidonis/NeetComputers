@@ -7,24 +7,20 @@ public class BianaryGraphicsArray {
     private int sizex, sizey;
 
     public BianaryGraphicsArray(int sizeX, int sizeY){
-        array = new boolean[sizeX][sizeY];
+        array = new boolean[sizeY][sizeX];
         sizex = sizeX;
         sizey = sizeY;
     }
 
     public boolean get(int x, int y){
-        return array[x][y];
+        return array[y][x];
     }
 
     public void set(int x, int y, boolean state){
-        array[x][y] = state;
+        array[y][x] = state;
     }
 
     public Vector2i getSize(){
         return new Vector2i(sizex,sizey);
-    }
-
-    public int getAmount(){
-        return sizex * sizey;
     }
 }

@@ -2,13 +2,19 @@ package com.redtoast.neet;
 
 import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
+import com.redtoast.graphics.GraphicsScreenHandler;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
@@ -19,7 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 
 public class NeetComputers implements ModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
+	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = Registry.register(Registries.SCREEN_HANDLER, Identifier.of("neet", "graphical"), new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
+	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static ResourceManager datahandling;
 	public static Path worldPath;
 
