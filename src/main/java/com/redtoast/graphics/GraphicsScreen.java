@@ -7,18 +7,21 @@ import net.minecraft.text.Text;
 import org.joml.Vector2i;
 
 public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
-    private RGBGraphicsArray graphics;
+    private GraphicsScreenHandler handler;
     public GraphicsScreen(GraphicsScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-        graphics = handler.getGraphics();
+        this.handler = handler;
     }
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        RGBGraphicsArray graphics = handler.getGraphics();
         Vector2i size = graphics.getSize();
+        int x1 = context.getScaledWindowWidth()/2 - size.x()*2;
+        int y1 = context.getScaledWindowHeight()/2 - size.y()*2;;
         for (int x = 0; x < size.x(); x++) {
             for (int y = 0; y < size.y(); y++) {
-                context.fill(x,y,x+1,y+1,0xFF000000 | graphics.get(x,y));
+                context.fill(x1+x*4,y1+y*4,x1+x*4+4,y1+y*4+4,0xFF000000 | graphics.get(x,y));
             }
         }
         context.draw();

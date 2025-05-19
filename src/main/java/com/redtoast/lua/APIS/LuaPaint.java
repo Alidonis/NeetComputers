@@ -4,6 +4,7 @@ import com.redtoast.Computer;
 import com.redtoast.graphics.GraphicsInterface;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.LuaAPI;
+import org.luaj.vm2.LuaValue;
 
 public class LuaPaint extends LuaAPI {
     private Computer computer;
@@ -15,6 +16,34 @@ public class LuaPaint extends LuaAPI {
         graphicsArray = comp.getGraphics();
         graphics = new GraphicsInterface(graphicsArray);
 
+        Rules.Rule ValidNumber = arg -> true;
 
+        register("setPixel", new LuaFunction() {
+            @Override
+            public LuaValue main(LuaValue[] args) {
+                int x = args[0].toint();
+                int y = args[1].toint();
+                int oldColor = graphicsArray.get(x,y);
+                graphicsArray.set(x,y,args[2].toint());
+                return LuaValue.valueOf(oldColor);
+            }
+
+            @Override
+            public Rules getRules() {
+                return new Rules(ValidNumber,"valid number").add(ValidNumber,"valid number").add(ValidNumber,"valid number");
+            }
+        });
+
+        register("getHexColor", new LuaFunction() {
+            @Override
+            public LuaValue main(LuaValue[] args) {
+                return LuaValue.valueOf(RGBGraphicsArray.rgbToDecimal(args[0].toint(),args[1].toint(),args[2].toint()));
+            }
+
+            @Override
+            public Rules getRules() {
+                return new Rules(ValidNumber,"valid number").add(ValidNumber,"valid number").add(ValidNumber,"valid number");
+            }
+        });
     }
 }

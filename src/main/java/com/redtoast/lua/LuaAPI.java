@@ -94,7 +94,7 @@ public class LuaAPI {
         }
         public LuaValue[] check(Varargs args, LuaFuncClass func){
             if (!(args.narg()>=rules.size()-optional && (args.narg()<=rules.size() || packed))){
-                return new LuaValue[]{LuaValue.error(func.name + " expected " + (rules.size() - optional) + "arguments, got " + args.narg())};
+                return new LuaValue[]{LuaValue.error(func.name + " expected " + (rules.size() - optional) + " arguments, got " + args.narg())};
             }
             LuaValue[] values = new LuaValue[rules.size()];
             LuaValue[] pack = new LuaValue[args.narg() - rules.size()];

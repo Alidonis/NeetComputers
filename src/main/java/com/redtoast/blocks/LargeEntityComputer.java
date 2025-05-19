@@ -77,21 +77,14 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof LargeEntityComputer computerBlock) {
-                computerBlock.computer.Tick();
+                computerBlock.computer.Tick(world);
             }
         }
     }
 
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf buf) {
-        Vector2i size = graphics.getSize();
-        int y = size.y();
-        buf.writeInt(y);
-        buf.writeInt(size.x());
-        for (int i=0; i < y; i++) {
-            System.out.println("Writing data: "+i);
-            buf.writeIntArray(graphics.pixels[i]);
-        }
+        graphics.writeScreenToPacketBuf(buf);
     }
 
     @Override
@@ -101,6 +94,6 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        return new GraphicsScreenHandler(syncId,graphics);
+        return new GraphicsScreenHandler(syncId,graphics,this);
     }
 }

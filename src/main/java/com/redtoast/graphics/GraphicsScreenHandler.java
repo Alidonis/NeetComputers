@@ -1,5 +1,6 @@
 package com.redtoast.graphics;
 
+import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -10,21 +11,21 @@ import net.minecraft.screen.ScreenHandler;
 
 public class GraphicsScreenHandler extends ScreenHandler {
     private RGBGraphicsArray graphics;
+    public LargeEntityComputer comp;
 
     public GraphicsScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(NeetComputers.GRAPHICS_SCREEN_HANDLER, syncId);
-        int y = buf.readInt();
-        int x = buf.readInt();
-        int[][] arr = new int[y][x];
-        for (int i=0; i < y; i++) {
-            arr[i] = buf.readIntArray(x);
-        }
-        graphics = new RGBGraphicsArray(arr);
+        graphics = RGBGraphicsArray.fromPacket(buf);
     }
 
-    public GraphicsScreenHandler(int syncId, RGBGraphicsArray arr) {
+    public GraphicsScreenHandler(int syncId, RGBGraphicsArray arr, LargeEntityComputer a) {
         super(NeetComputers.GRAPHICS_SCREEN_HANDLER, syncId);
         graphics = arr;
+        comp = a;
+    }
+
+    public void updateGraphics(RGBGraphicsArray graphics) {
+        this.graphics = graphics;
     }
 
     public RGBGraphicsArray getGraphics() {

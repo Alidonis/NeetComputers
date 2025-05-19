@@ -1,15 +1,23 @@
 package com.redtoast;
 
 import com.redtoast.graphics.BianaryGraphicsArray;
+import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersClient;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.World;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -69,7 +77,7 @@ public class Computer {
     public Computer(BlockEntity Parent){
         parent = new AnyEntity(Parent);
         uuid = UUID.randomUUID();
-        Graphics = new RGBGraphicsArray(64*3,48*3);
+        Graphics = new RGBGraphicsArray(64,48);
     }
 
     public boolean isLoaded(){return loaded;}
@@ -172,7 +180,7 @@ public class Computer {
         }
     }
 
-    public void Tick(){
+    public void Tick(World world){
         if (loaded){
             if (NeetComputers.worldPath!=null && FS==null){
                 FS = new FileHandler(pointer,ROM,"null");
@@ -182,6 +190,13 @@ public class Computer {
                     Start();
                 }
                 step();
+                /*for (PlayerEntity p : world.getPlayers()) {
+                    if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp.computer == this) {
+                        PacketByteBuf temp = PacketByteBufs.empty();
+                        Graphics.writeScreenToPacketBuf(temp);
+                        ServerPlayNetworking.send((ServerPlayerEntity) p, NeetComputers.SCREEN_PACKET_ID, temp);
+                    }
+                }*/
             }
         }
     }

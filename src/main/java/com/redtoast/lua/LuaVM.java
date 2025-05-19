@@ -2,6 +2,7 @@ package com.redtoast.lua;
 
 import com.redtoast.Computer;
 import com.redtoast.lua.APIS.LuaFS;
+import com.redtoast.lua.APIS.LuaPaint;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
@@ -94,6 +95,7 @@ public class LuaVM {
         ROMpointer = ROMPointer;
         files = Files;
         addAPI(new LuaFS(this));
+        addAPI(new LuaPaint(parent));
         env = getGlobals();
         if (files.exists("rom/startup.lua")){
             threads.add(new Thread(this, files.readFile("rom/startup.lua"),ROMPointer,"startup.lua"));

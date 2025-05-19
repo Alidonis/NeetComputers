@@ -1,5 +1,6 @@
 package com.redtoast.graphics;
 
+import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 
 public class RGBGraphicsArray {
@@ -28,6 +29,26 @@ public class RGBGraphicsArray {
     public static int rgbToDecimal(int red, int green, int blue) {
         //using formula from https://stackoverflow.com/a/18037185
         return (red << 16) & 0xFF0000 | (green << 8) & 0x00FF00 | blue & 0x0000FF;
+    }
+
+    public void writeScreenToPacketBuf(PacketByteBuf buf) {
+        Vector2i size = this.getSize();
+        int y = size.y();
+        buf.writeInt(y);
+        buf.writeInt(size.x());
+        for (int i=0; i < y; i++) {
+            buf.writeIntArray(this.pixels[i]);
+        }
+    }
+
+    public static RGBGraphicsArray fromPacket(PacketByteBuf buf) {
+        int y = buf.readInt();
+        int x = buf.readInt();
+        int[][] arr = new int[y][x];
+        for (int i=0; i < y; i++) {
+            arr[i] = buf.readIntArray(x);
+        }
+        return new RGBGraphicsArray(arr);
     }
 
     public Vector2i getSize(){

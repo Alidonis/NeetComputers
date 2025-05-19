@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 
 public class NeetComputers implements ModInitializer {
-	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = Registry.register(Registries.SCREEN_HANDLER, Identifier.of("neet", "graphical"), new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
+	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = Registry.register(Registries.SCREEN_HANDLER, Identifier.of("neetcomputers", "graphical"), new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
+	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static ResourceManager datahandling;
 	public static Path worldPath;
