@@ -16,9 +16,7 @@ public class LuaPaint extends LuaAPI {
         graphicsArray = comp.getGraphics();
         graphics = new GraphicsInterface(graphicsArray);
 
-        Rules.Rule ValidNumber = arg -> true;
-
-        register("setPixel", new LuaFunction() {
+        set("setPixel", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 int x = args[0].toint();
@@ -30,11 +28,11 @@ public class LuaPaint extends LuaAPI {
 
             @Override
             public Rules getRules() {
-                return new Rules(ValidNumber,"valid number").add(ValidNumber,"valid number").add(ValidNumber,"valid number");
+                return new Rules("number").add("number").add("number");
             }
         });
 
-        register("getHexColor", new LuaFunction() {
+        set("getHexColor", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 return LuaValue.valueOf(RGBGraphicsArray.rgbToDecimal(args[0].toint(),args[1].toint(),args[2].toint()));
@@ -42,7 +40,7 @@ public class LuaPaint extends LuaAPI {
 
             @Override
             public Rules getRules() {
-                return new Rules(ValidNumber,"valid number").add(ValidNumber,"valid number").add(ValidNumber,"valid number");
+                return new Rules("number").add("number").add("number");
             }
         });
     }

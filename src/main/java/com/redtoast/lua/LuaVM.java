@@ -172,7 +172,7 @@ public class LuaVM {
         global.set("openThread", new newThreadFunc(this));
 
         for (int x = 0; x < APIS.size(); x++){
-            global.set(APIS.get(x).name,APIS.get(x).table);
+            APIS.get(x).insertSelf(global);
         }
 
         return global;

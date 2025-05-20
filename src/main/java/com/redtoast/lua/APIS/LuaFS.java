@@ -3,7 +3,6 @@ package com.redtoast.lua.APIS;
 import com.redtoast.lua.LuaAPI;
 import com.redtoast.lua.LuaVM;
 import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.ast.Str;
 
 public class LuaFS extends LuaAPI {
     public LuaFS(LuaVM vm) {
@@ -17,7 +16,7 @@ public class LuaFS extends LuaAPI {
             }
         };
 
-        register("isRootPath", new LuaFunction() {
+        set("isRootPath", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
 
@@ -30,7 +29,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("isReadOnly", new LuaFunction() {
+        set("isReadOnly", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 String path = args[0].toString().replace('\\','/');
@@ -48,7 +47,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("exists", new LuaFunction() {
+        set("exists", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 return LuaValue.valueOf(vm.files.exists(args[0].toString()));
@@ -59,7 +58,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("isDir", new LuaFunction() {
+        set("isDir", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 String path = args[0].toString();
@@ -74,7 +73,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("readAll", new LuaFunction() {
+        set("readAll", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 String path = args[0].toString();
@@ -89,7 +88,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("makeDir", new LuaFunction() {
+        set("makeDir", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 String path = args[0].toString();
@@ -105,7 +104,7 @@ public class LuaFS extends LuaAPI {
                 return new Rules(ValidPath,"valid path");
             }
         });
-        register("getFiles", new LuaFunction() {
+        set("getFiles", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
                 String path = args[0].toString();
