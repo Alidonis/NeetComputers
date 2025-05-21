@@ -1,8 +1,10 @@
 package com.redtoast.neet;
 
 import com.redtoast.blocks.LargeComputerRenderer;
+import com.redtoast.graphics.GraphicsScreenHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -14,8 +16,11 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
@@ -151,6 +156,10 @@ public class BlockRegistery {
     }
     public static <BlockClass extends Block> void register(String address, BlockClass block){
         register(address,block,false);
+    }
+
+    public static <BaseHandler, CustomHandler extends BaseHandler> CustomHandler register(String address, @NotNull Registry<BaseHandler> base, CustomHandler custom ){
+        return Registry.register(base, Identifier.of(Namespace, address), custom);
     }
 
     @FunctionalInterface

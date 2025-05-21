@@ -1,13 +1,12 @@
 package com.redtoast;
 
-import com.redtoast.graphics.BianaryGraphicsArray;
+import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
 import com.redtoast.neet.NeetComputers;
-import com.redtoast.neet.NeetComputersClient;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
@@ -34,6 +33,7 @@ public class Computer {
     private AnyEntity parent;
     private UUID uuid;
     private FileHandler FS;
+    private BinaryGraphicsArray BinGraphics;
     private RGBGraphicsArray Graphics;
 
     public boolean IsOn(){return isOn;}
@@ -45,8 +45,14 @@ public class Computer {
         return 0;
     }
 
-    public BianaryGraphicsArray getBianaryGraphics() {
-        return null;
+    public BinaryGraphicsArray getBinaryGraphics() {
+        return BinGraphics;
+    }
+    public void setBinaryGraphics(BinaryGraphicsArray graphics) {
+        BinGraphics = graphics;
+    }
+    public void drawBinaryGraphics(){
+
     }
 
     public RGBGraphicsArray getGraphics() {

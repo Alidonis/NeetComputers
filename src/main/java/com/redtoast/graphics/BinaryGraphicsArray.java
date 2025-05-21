@@ -3,16 +3,16 @@ package com.redtoast.graphics;
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 
-public class BianaryGraphicsArray {
+public class BinaryGraphicsArray {
     private boolean[][] pixels;
     private int sizex, sizey;
 
-    public BianaryGraphicsArray(int sizeX, int sizeY){
+    public BinaryGraphicsArray(int sizeX, int sizeY){
         pixels = new boolean[sizeY][sizeX];
         sizex = sizeX;
         sizey = sizeY;
     }
-    private BianaryGraphicsArray(boolean[][] pixel){
+    private BinaryGraphicsArray(boolean[][] pixel){
         pixels = pixel;
         sizey = pixel.length;
         sizex = pixel[0].length;
@@ -58,20 +58,20 @@ public class BianaryGraphicsArray {
     public void writeScreenToPacketBuf(PacketByteBuf buf) {
         Vector2i size = this.getSize();
         int y = size.y();
-        buf.writeInt(y);
-        buf.writeInt(size.x());
+        buf.writeShort(y);
+        buf.writeShort(size.x());
         for (int i=0; i < y; i++) {
-            buf.writeInt(boolArrayToByte(pixels[i]));
+            buf.writeShort(boolArrayToByte(pixels[i]));
         }
     }
 
-    public static BianaryGraphicsArray fromPacket(PacketByteBuf buf) {
-        int y = buf.readInt();
-        int x = buf.readInt();
+    public static BinaryGraphicsArray fromPacket(PacketByteBuf buf) {
+        int y = buf.readShort();
+        int x = buf.readShort();
         boolean[][] array = new boolean[y][x];
         for (int i=0; i < y; i++) {
-            array[y] = ByteToBoolArray(buf.readInt(),x);
+            array[y] = ByteToBoolArray(buf.readShort(),x);
         }
-        return new BianaryGraphicsArray(array);
+        return new BinaryGraphicsArray(array);
     }
 }
