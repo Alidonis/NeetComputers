@@ -10,6 +10,7 @@ import com.redtoast.neet.NeetComputers;
 import com.redtoast.neet.NeetComputersClient;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -70,6 +71,9 @@ public class Computer {
                     return;
                 case 1:
                     blockEntity.markDirty();
+                    if (blockEntity.getWorld() != null && !blockEntity.getWorld().isClient) {
+                        blockEntity.getWorld().updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), Block.NOTIFY_ALL);
+                    }
             }
         }
     }

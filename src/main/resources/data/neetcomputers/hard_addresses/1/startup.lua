@@ -1,2 +1,3 @@
-print("comin to you live from neet os")
-openThread(fs.readAll("user/startup.lua"))
+while true do
+    sleep(5)
+end

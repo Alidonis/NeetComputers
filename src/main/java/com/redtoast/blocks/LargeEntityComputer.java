@@ -6,6 +6,7 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.BlockRegistery;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -78,6 +79,10 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof LargeEntityComputer computerBlock) {
                 computerBlock.computer.Tick(world);
+                BlockState current = world.getBlockState(blockPos);
+                if (current.get(LargeBlockComputer.ON) != computerBlock.computer.IsOn()) {
+                    world.setBlockState(blockPos, current.with(LargeBlockComputer.ON, computerBlock.computer.IsOn()), Block.NOTIFY_ALL);
+                }
             }
         }
     }
@@ -89,7 +94,7 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("computer menu?!?!?!?!?!?!?!");
+        return Text.literal("Large Computer");
     }
 
     @Override

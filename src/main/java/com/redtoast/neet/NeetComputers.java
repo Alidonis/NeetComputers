@@ -3,17 +3,19 @@ package com.redtoast.neet;
 import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.blocks.LargeComputerRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
+import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.BlockSoundGroup;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Properties;
 
 public class NeetComputers implements ModInitializer {
 	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = Registry.register(Registries.SCREEN_HANDLER, Identifier.of("neetcomputers", "graphical"), new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
@@ -50,8 +53,8 @@ public class NeetComputers implements ModInitializer {
 
 		//register stuff
 		BlockRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.METAL));
-		BlockRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,true);
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.METAL).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
+		BlockRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,LargeComputerRenderer::new,true);
 	}
 
 	public static void updateServer(MinecraftServer server) {

@@ -1,10 +1,15 @@
 package com.redtoast.neet;
 
+import com.redtoast.blocks.LargeComputerRenderer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -112,6 +117,25 @@ public class BlockRegistery {
             add(address,new Registered(block, blockEntity));
         }
     }
+    public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor, RendererConstructor<BlockEntityClass> renderer, boolean AutoRegisterItem){
+        Registry.register(Registries.BLOCK, Identifier.of(Namespace, address), block);
+        BlockItem blockItem = null;
+        if (AutoRegisterItem){
+            blockItem = new BlockItem(block, new Item.Settings());
+            Registry.register(Registries.ITEM, Identifier.of(Namespace, address), blockItem);
+        }
+        BlockEntityType<BlockEntityClass> blockEntity = FabricBlockEntityTypeBuilder.create(constructor::create,block).build();
+        Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(Namespace, address+"_entity"), blockEntity);
+        if (AutoRegisterItem){
+            add(address,new Registered(block, blockItem, blockEntity));
+        }else{
+            add(address,new Registered(block, blockEntity));
+        }
+        BlockEntityRendererFactories.register(blockEntity, renderer::create);
+    }
+    public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor, RendererConstructor<BlockEntityClass> renderer){
+        register(address,block,constructor,renderer,false);
+    }
     public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor){
         register(address,block,constructor,false);
     }
@@ -132,5 +156,9 @@ public class BlockRegistery {
     @FunctionalInterface
     public interface BlockEntityConstructor<BlockEntityClass extends BlockEntity> {
         BlockEntityClass create(BlockPos blockPos, BlockState blockState);
+    }
+    @FunctionalInterface
+    public interface RendererConstructor<BlockEntityClass extends BlockEntity>{
+        BlockEntityRenderer<BlockEntityClass> create(BlockEntityRendererFactory.Context ctx);
     }
 }

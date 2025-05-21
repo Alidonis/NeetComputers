@@ -1,23 +1,29 @@
 package com.redtoast.graphics;
 
+import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 
 public class BianaryGraphicsArray {
-    private boolean[][] array;
+    private boolean[][] pixels;
     private int sizex, sizey;
 
     public BianaryGraphicsArray(int sizeX, int sizeY){
-        array = new boolean[sizeY][sizeX];
+        pixels = new boolean[sizeY][sizeX];
         sizex = sizeX;
         sizey = sizeY;
     }
+    private BianaryGraphicsArray(boolean[][] pixel){
+        pixels = pixel;
+        sizey = pixel.length;
+        sizex = pixel[0].length;
+    }
 
     public boolean get(int x, int y){
-        return array[y][x];
+        return pixels[y][x];
     }
 
     public void set(int x, int y, boolean state){
-        array[y][x] = state;
+        pixels[y][x] = state;
     }
 
     public Vector2i getSize(){
@@ -26,5 +32,46 @@ public class BianaryGraphicsArray {
 
     public int getAmount(){
         return sizex * sizey;
+    }
+
+    private static int boolArrayToByte(boolean[] array){
+        int buffer = 0;
+        for (int i = 0; i < 8; i++){
+            buffer = buffer << 1;
+            if (array[i]){
+                buffer += 1;
+            }
+        }
+        return buffer;
+    }
+
+    private static boolean[] ByteToBoolArray(int _byte, int size){
+        int buffer = _byte;
+        boolean[] array = new boolean[size];
+        for (int i = 0; i < size; i++){
+            array[i] = buffer%2==1;
+            buffer = buffer >> 1;
+        }
+        return array;
+    }
+
+    public void writeScreenToPacketBuf(PacketByteBuf buf) {
+        Vector2i size = this.getSize();
+        int y = size.y();
+        buf.writeInt(y);
+        buf.writeInt(size.x());
+        for (int i=0; i < y; i++) {
+            buf.writeInt(boolArrayToByte(pixels[i]));
+        }
+    }
+
+    public static BianaryGraphicsArray fromPacket(PacketByteBuf buf) {
+        int y = buf.readInt();
+        int x = buf.readInt();
+        boolean[][] array = new boolean[y][x];
+        for (int i=0; i < y; i++) {
+            array[y] = ByteToBoolArray(buf.readInt(),x);
+        }
+        return new BianaryGraphicsArray(array);
     }
 }
