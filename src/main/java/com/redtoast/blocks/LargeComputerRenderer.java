@@ -15,11 +15,15 @@ import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix4f;
 
 public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityComputer> {
+    float clock;
     public LargeComputerRenderer(BlockEntityRendererFactory.Context context) {
+        clock = 0;
     }
 
     @Override
     public void render(LargeEntityComputer entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        clock += tickDelta;
+        clock %= 1;
         BlockState state = entity.getCachedState();
 
         if (!state.get(LargeBlockComputer.ON)) {
@@ -48,6 +52,10 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         vc.vertex(mat, x2, y1, z).color(255, 255, 255, 255).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x2, y2, z).color(255, 255, 255, 255).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x1, y2, z).color(255, 255, 255, 255).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+
+        if (entity.computer.getBinaryGraphics()!=null){
+
+        }
 
         matrices.pop();
     }

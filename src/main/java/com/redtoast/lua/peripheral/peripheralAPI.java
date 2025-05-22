@@ -1,6 +1,7 @@
-package com.redtoast.lua;
+package com.redtoast.lua.peripheral;
 
 import com.redtoast.Computer;
+import com.redtoast.lua.LuaAPI;
 import net.minecraft.block.entity.BlockEntity;
 
 public class peripheralAPI extends LuaAPI {

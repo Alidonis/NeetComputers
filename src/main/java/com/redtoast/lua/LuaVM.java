@@ -3,6 +3,8 @@ package com.redtoast.lua;
 import com.redtoast.Computer;
 import com.redtoast.lua.APIS.LuaFS;
 import com.redtoast.lua.APIS.LuaPaint;
+import com.redtoast.lua.APIS.LuaPeripherals;
+import com.redtoast.lua.peripheral.peripheralWrapper;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
@@ -11,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 
-public class LuaVM {
+public abstract class LuaVM {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
     private static final Logger luaLogger = LoggerFactory.getLogger("NeetComputers:luaVM");
     private final LinkedList<LuaAPI> APIS = new LinkedList<>();
@@ -79,12 +81,8 @@ public class LuaVM {
                 step();
             }
         }
-        public void yield(){
-            parent.LuaCoro.get("yield").invoke(LuaValue.NIL);
-        }
-        public boolean isDead(){
-            return kill;
-        }
+        public void yield(){parent.LuaCoro.get("yield").invoke(LuaValue.NIL);}
+        public boolean isDead(){return kill;}
     }
 
     public LinkedList<Thread> threads = new LinkedList<>();
@@ -96,6 +94,12 @@ public class LuaVM {
         files = Files;
         addAPI(new LuaFS(this));
         addAPI(new LuaPaint(parent));
+        addAPI(new LuaPeripherals() {
+            @Override
+            public LinkedList<peripheralWrapper> getParentsPeripherals() {
+                return getPeripherals();
+            }
+        });
         env = getGlobals();
         if (files.exists("rom/startup.lua")){
             threads.add(new Thread(this, files.readFile("rom/startup.lua"),ROMPointer,"startup.lua"));
@@ -104,6 +108,8 @@ public class LuaVM {
             kill=true;
         }
     }
+
+    public abstract LinkedList<peripheralWrapper> getPeripherals();
 
     public void addAPI(LuaAPI api){
         APIS.add(api);

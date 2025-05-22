@@ -6,6 +6,7 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
+import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -19,13 +20,12 @@ import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
+import java.util.LinkedList;
 import java.util.UUID;
 
 public class Computer {
@@ -39,7 +39,10 @@ public class Computer {
     private UUID uuid;
     private FileHandler FS;
     private BinaryGraphicsArray BinGraphics;
+    private boolean doesBinaryGraphics = false;
+    private short clock = 0;
     private RGBGraphicsArray Graphics;
+    private final LinkedList<peripheralWrapper> peripherals = new LinkedList<>();
 
     public boolean IsOn(){return isOn;}
     public int getPointer(String rootName){
@@ -55,10 +58,13 @@ public class Computer {
     }
     public void setBinaryGraphics(BinaryGraphicsArray graphics) {
         BinGraphics = graphics;
+        doesBinaryGraphics = true;
     }
     public void broadcastGraphics(){
+        if (!doesBinaryGraphics) return;
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeBlockPos(parent.getLocation());
+        getBinaryGraphics().writeScreenToPacketBuf(buf);
         assert NeetComputers.BINARY_SCREEN_PACKET != null;
 
         CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NeetComputers.BINARY_SCREEN_PACKET, buf);
@@ -70,17 +76,35 @@ public class Computer {
         }
     }
 
+    public boolean attachPeripheral(peripheralWrapper peripheral){
+        for (com.redtoast.lua.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
+            if (peripheralWrapper.uuid.equals(peripheral.uuid)) {
+                return false;
+            }
+        }
+        peripherals.add(peripheral);
+        return true;
+    }
+
+    public boolean detachPeripheral(UUID uuid){
+        for (int i = 0; i < peripherals.size(); i++){
+            if (peripherals.get(i).uuid.equals(uuid)){
+                peripherals.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
 
     private static class AnyEntity{
         public int type;
-        private Entity entity;
         private BlockEntity blockEntity;
         public AnyEntity(Entity parentEntity){
             type = 0;
-            entity = parentEntity;
         }
         public AnyEntity(BlockEntity parentEntity){
             type = 1;
@@ -185,7 +209,12 @@ public class Computer {
 
     public void Start(){
         if (!isOn && loaded){
-            VM = new LuaVM(this,FS,pointer,ROM);
+            VM = new LuaVM(this, FS, pointer, ROM) {
+                @Override
+                public LinkedList<peripheralWrapper> getPeripherals() {
+                    return peripherals;
+                }
+            };
             isOn = true;
             markDirty();
         }
@@ -193,7 +222,12 @@ public class Computer {
 
     public void staticStart(){
         if (isOn && VM==null){
-            VM = new LuaVM(this,FS,pointer,ROM);
+            VM = new LuaVM(this, FS, pointer, ROM) {
+                @Override
+                public LinkedList<peripheralWrapper> getPeripherals() {
+                    return peripherals;
+                }
+            };
         }
     }
 
@@ -241,6 +275,9 @@ public class Computer {
                     }
                 }
             }
+            if (clock%5==0 && doesBinaryGraphics) broadcastGraphics();
+            clock += 1;
+            clock %= 1;
         }
     }
 }

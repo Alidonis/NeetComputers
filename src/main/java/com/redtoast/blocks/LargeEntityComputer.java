@@ -1,9 +1,12 @@
 package com.redtoast.blocks;
 
 import com.redtoast.Computer;
+import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.BlockRegistery;
+import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
@@ -24,7 +27,6 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
 
 public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory, ClientEntityEvents.Load {
     public Computer computer;
@@ -33,6 +35,8 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
     public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BlockRegistery.fetchBlockEntityType("large_computer"), pos, state);
         computer = new Computer(this);
+        computer.setBinaryGraphics(new BinaryGraphicsArray(12,11));
+        computer.attachPeripheral(new peripheralWrapper(new ProjectorAPI(this)));
         graphics = computer.getGraphics();
     }
 

@@ -13,6 +13,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
+import org.luaj.vm2.LuaValue;
+
+import java.util.Objects;
 
 public class NeetComputersClient implements ClientModInitializer {
 	@Override
@@ -30,6 +33,7 @@ public class NeetComputersClient implements ClientModInitializer {
 			});
 		});
         assert NeetComputers.BINARY_SCREEN_PACKET != null;
+
         ClientPlayNetworking.registerGlobalReceiver(NeetComputers.BINARY_SCREEN_PACKET, (client, handler, buf, responseSender) -> {
 			assert client.player != null;
 			BlockPos pos = buf.readBlockPos();
@@ -40,8 +44,7 @@ public class NeetComputersClient implements ClientModInitializer {
 				BlockEntity be = client.world.getBlockEntity(pos);
 				if (be instanceof LargeEntityComputer computer) {
 					computer.computer.setBinaryGraphics(graphics);
-					BlockState state = client.world.getBlockState(pos);
-					client.world.setBlockState(pos, state.with(LargeBlockComputer.ON, computer.computer.IsOn()), Block.NOTIFY_ALL);
+					Objects.requireNonNull(computer.getWorld()).updateListeners(pos, computer.getCachedState(), computer.getCachedState(), 3);
 				}
 			});
 		});

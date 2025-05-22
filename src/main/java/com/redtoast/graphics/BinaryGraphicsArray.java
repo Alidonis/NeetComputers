@@ -19,6 +19,12 @@ public class BinaryGraphicsArray {
     }
 
     public boolean get(int x, int y){
+        if (x<0 || y<0){
+            return true;
+        }
+        if (x>sizex-1 || y>sizey-1){
+            return true;
+        }
         return pixels[y][x];
     }
 
@@ -69,8 +75,8 @@ public class BinaryGraphicsArray {
         int y = buf.readShort();
         int x = buf.readShort();
         boolean[][] array = new boolean[y][x];
-        for (int i=0; i < y; i++) {
-            array[y] = ByteToBoolArray(buf.readShort(),x);
+        for (int i = 0; i < y; i++) {
+            array[i] = ByteToBoolArray(buf.readShort(),x);
         }
         return new BinaryGraphicsArray(array);
     }
