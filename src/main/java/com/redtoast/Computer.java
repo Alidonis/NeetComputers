@@ -15,8 +15,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -51,8 +56,18 @@ public class Computer {
     public void setBinaryGraphics(BinaryGraphicsArray graphics) {
         BinGraphics = graphics;
     }
-    public void drawBinaryGraphics(){
+    public void broadcastGraphics(){
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeBlockPos(parent.getLocation());
+        assert NeetComputers.BINARY_SCREEN_PACKET != null;
 
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NeetComputers.BINARY_SCREEN_PACKET, buf);
+
+        if (parent.getWorld() instanceof ServerWorld serverWorld) {
+            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+                player.networkHandler.sendPacket(packet);
+            }
+        }
     }
 
     public RGBGraphicsArray getGraphics() {
@@ -81,6 +96,24 @@ public class Computer {
                         blockEntity.getWorld().updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), Block.NOTIFY_ALL);
                     }
             }
+        }
+        public BlockPos getLocation(){
+            switch (type){
+                case 0:
+                    return null;
+                case 1:
+                    return blockEntity.getPos();
+            }
+            return null;
+        }
+        public World getWorld(){
+            switch (type){
+                case 0:
+                    return null;
+                case 1:
+                    return blockEntity.getWorld();
+            }
+            return null;
         }
     }
 
