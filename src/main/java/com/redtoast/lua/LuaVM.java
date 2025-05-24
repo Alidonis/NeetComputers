@@ -155,19 +155,17 @@ public abstract class LuaVM {
         LuaDebug = global.get("debug");
         LuaCoro = global.get("coroutine");
 
-        global.set( "collectgarbage", LuaValue.NIL );
-        global.set( "dofile", LuaValue.NIL );
-        global.set( "loadfile", LuaValue.NIL );
-        global.set( "module", LuaValue.NIL );
-        global.set( "require", LuaValue.NIL );
-        global.set( "package", LuaValue.NIL );
-        global.set( "io", LuaValue.NIL );
-        global.set( "os", LuaValue.NIL );
-        //global.set( "print", LuaValue.NIL );
-        global.set( "luajava", LuaValue.NIL );
-        global.set( "debug", LuaValue.NIL );
-        global.set( "newproxy", LuaValue.NIL );
-        global.set( "__inext", LuaValue.NIL );
+        global.set("package",LuaValue.NIL);
+        global.set("os",LuaValue.NIL);
+        global.set("require",LuaValue.NIL);
+        global.set("debug",LuaValue.NIL);
+        global.set("io",LuaValue.NIL);
+        global.set("file",LuaValue.NIL);
+        global.set("load",LuaValue.NIL);
+        global.set("luajava",LuaValue.NIL);
+        global.set("dofile",LuaValue.NIL);
+        global.set("loadfile",LuaValue.NIL);
+
         global.set("openThread", new newThreadFunc(this));
 
         for (int x = 0; x < APIS.size(); x++){
