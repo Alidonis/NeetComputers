@@ -154,7 +154,7 @@ public abstract class LuaVM {
         Globals global = JsePlatform.debugGlobals();
         LuaDebug = global.get("debug");
         LuaCoro = global.get("coroutine");
-        // Remove globals we don't want to expose
+
         global.set( "collectgarbage", LuaValue.NIL );
         global.set( "dofile", LuaValue.NIL );
         global.set( "loadfile", LuaValue.NIL );
