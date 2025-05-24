@@ -215,7 +215,11 @@ public class Computer {
 
     public void Start(){
         if (!isOn && loaded){
-            BinGraphics = new BinaryGraphicsArray(BinGraphics.getSize().x, BinGraphics.getSize().y);
+            for (int x = 0; x < BinGraphics.getSize().x; x++){
+                for (int y = 0; y < BinGraphics.getSize().y; y++){
+                    BinGraphics.set(x,y,false);
+                }
+            }
             VM = new LuaVM(this, FS, pointer, ROM) {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {

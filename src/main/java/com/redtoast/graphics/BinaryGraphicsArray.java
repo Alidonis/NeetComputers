@@ -13,10 +13,14 @@ public class BinaryGraphicsArray {
         sizex = sizeX;
         sizey = sizeY;
     }
-    private BinaryGraphicsArray(boolean[][] pixel){
+    public BinaryGraphicsArray(boolean[][] pixel){
         pixels = pixel;
         sizey = pixel.length;
         sizex = pixel[0].length;
+    }
+
+    public BinaryGraphicsArray blankClone(){
+        return new BinaryGraphicsArray(sizex,sizey);
     }
 
     public boolean get(int x, int y){
