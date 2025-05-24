@@ -7,6 +7,7 @@ import com.redtoast.lua.APIS.LuaPeripherals;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.OneArgFunction;
+import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,21 @@ public abstract class LuaVM {
     public FileHandler files;
     public Computer parent;
 
+    private static class clockIn extends ZeroArgFunction {
+        private final LuaVM VM;
+        public clockIn(LuaVM vm){
+            super();
+            VM = vm;
+        }
+
+        @Override
+        public LuaValue call() {
+            VM.thread.ticket--;
+            VM.thread.yield();
+            return LuaValue.NIL;
+        }
+    }
+
     private static class Thread{
         private LuaVM parent;
         private LuaThread coroutine;
@@ -38,13 +54,14 @@ public abstract class LuaVM {
         private String source;
         public int sleepfor = 0;
         public long lastSlept;
+        public short ticket = 0;
         public Thread(LuaVM parentVM, String script, int point, String name){
             try{
                 parent = parentVM;
                 source = name+'-'+System.currentTimeMillis()+parent.threads.size();
                 chunk = parent.env.load(script, source);
                 coroutine = new LuaThread(parent.env, chunk);
-                parent.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,parentVM.LuaCoro.get("yield"),LuaValue.NIL,LuaValue.valueOf(35)});
+                parent.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(parentVM),LuaValue.NIL,LuaValue.valueOf(1000)});
                 pointer = point;
             } catch (Exception e) {
                 debug.error("Script {} at {} failed to compile", name, point);
@@ -54,7 +71,6 @@ public abstract class LuaVM {
         }
 
         private boolean step(){
-
             Varargs result = coroutine.resume(LuaValue.NIL);
             if (!result.arg1().toboolean()){
                 kill = true;
@@ -72,12 +88,10 @@ public abstract class LuaVM {
             return false;
         }
         public void tick(){
-            if (sleepfor>0){
-                sleepfor -= (int) (System.currentTimeMillis()-lastSlept);
-                if (sleepfor <= 0){
-                    sleepfor = 0;
-                }
-            }else{
+            if (kill) return;
+            ticket += 29;
+            while (ticket>0){
+                if (kill) return;
                 step();
             }
         }
@@ -115,26 +129,6 @@ public abstract class LuaVM {
         APIS.add(api);
     }
 
-    private static class sleepFunc extends OneArgFunction {
-        private final LuaVM vm;
-        public sleepFunc(LuaVM VM){
-            super();
-            vm = VM;
-        }
-        @Override
-        public LuaValue call(LuaValue arg) {
-            if (!arg.isnumber()){
-                return LuaValue.error("Number expected, got "+arg.typename());
-            }
-            if (arg.todouble()<0){
-                return LuaValue.error("Provided number can not be negitive");
-            }
-            vm.thread.lastSlept = System.currentTimeMillis();
-            vm.thread.sleepfor = (int)Math.round(arg.todouble() * 1000d);
-            vm.thread.yield();
-            return LuaValue.NIL;
-        }
-    }
     private static class newThreadFunc extends OneArgFunction {
         private final LuaVM VM;
         public newThreadFunc(LuaVM vm){
@@ -150,7 +144,7 @@ public abstract class LuaVM {
                 return LuaValue.error("Maximum threads created");
             }
             VM.threads.add(new Thread(VM,arg.toString(),0,"null"));
-            Thread thread = VM.threads.get(VM.threads.size()-1);
+            Thread thread = VM.threads.getLast();
             return LuaValue.NIL;
         }
     }
@@ -174,7 +168,6 @@ public abstract class LuaVM {
         global.set( "debug", LuaValue.NIL );
         global.set( "newproxy", LuaValue.NIL );
         global.set( "__inext", LuaValue.NIL );
-        global.set( "sleep", new sleepFunc(this));
         global.set("openThread", new newThreadFunc(this));
 
         for (int x = 0; x < APIS.size(); x++){
