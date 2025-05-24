@@ -19,6 +19,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -50,7 +51,13 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         }
     }
 
-    public ActionResult onUse(PlayerEntity player){
+    public ActionResult onUse(PlayerEntity player, BlockState state){
+        if (!player.isSneaking() && !player.isUsingItem() && computer.IsOn()){
+            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
+            if (screenHandlerFactory != null) {
+                player.openHandledScreen(screenHandlerFactory);
+            }
+        }
         if (player.isSneaking()){
             computer.Stop();
         }else{

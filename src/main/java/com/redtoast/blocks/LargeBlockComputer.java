@@ -70,14 +70,9 @@ public class LargeBlockComputer extends HorizontalFacingBlock implements BlockEn
         if (!world.isClient){
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof LargeEntityComputer computer) {
-                allowed = computer.onUse(player);
+                allowed = computer.onUse(player, state);
             }else{
                 allowed = ActionResult.SUCCESS;
-            }
-            NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-            if (screenHandlerFactory != null) {
-                // With this call the server will request the client to open the appropriate Screenhandler
-                player.openHandledScreen(screenHandlerFactory);
             }
         }else{
             allowed = ActionResult.SUCCESS;

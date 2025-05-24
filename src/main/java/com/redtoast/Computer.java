@@ -163,6 +163,9 @@ public class Computer {
             ROM = nbt.getInt("ROMPointer");
             if (nbt.contains("isOn")){
                 isOn = nbt.getBoolean("isOn");
+                if (isOn && doesBinaryGraphics && nbt.contains("screen")){
+                    BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
+                }
             }else{
                 isOn = false;
             }
@@ -204,11 +207,15 @@ public class Computer {
         nbt.putInt("UserPointer", pointer);
         nbt.putInt("ROMPointer",ROM);
         nbt.putBoolean("isOn",isOn);
+        if (isOn && doesBinaryGraphics){
+            nbt.put("screen", BinGraphics.writeScreenToNBT());
+        }
         return nbt;
     }
 
     public void Start(){
         if (!isOn && loaded){
+            BinGraphics = new BinaryGraphicsArray(BinGraphics.getSize().x, BinGraphics.getSize().y);
             VM = new LuaVM(this, FS, pointer, ROM) {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {

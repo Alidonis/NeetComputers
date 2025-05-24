@@ -1,11 +1,12 @@
 package com.redtoast.graphics;
 
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 
 public class BinaryGraphicsArray {
-    private boolean[][] pixels;
-    private int sizex, sizey;
+    private final boolean[][] pixels;
+    private final int sizex, sizey;
 
     public BinaryGraphicsArray(int sizeX, int sizeY){
         pixels = new boolean[sizeY][sizeX];
@@ -42,10 +43,10 @@ public class BinaryGraphicsArray {
 
     private static int boolArrayToByte(boolean[] array){
         int buffer = 0;
-        for (int i = 0; i < 8; i++){
+        for (int i = 0; i < array.length; i++){
             buffer = buffer << 1;
             if (array[i]){
-                buffer += 1;
+                buffer++;
             }
         }
         return buffer;
@@ -55,7 +56,7 @@ public class BinaryGraphicsArray {
         int buffer = _byte;
         boolean[] array = new boolean[size];
         for (int i = 0; i < size; i++){
-            array[i] = buffer%2==1;
+            array[size-i-1] = buffer%2==1;
             buffer = buffer >> 1;
         }
         return array;
@@ -77,6 +78,27 @@ public class BinaryGraphicsArray {
         boolean[][] array = new boolean[y][x];
         for (int i = 0; i < y; i++) {
             array[i] = ByteToBoolArray(buf.readShort(),x);
+        }
+        return new BinaryGraphicsArray(array);
+    }
+
+    public NbtCompound writeScreenToNBT(){
+        Vector2i size = this.getSize();
+        NbtCompound nbt = new NbtCompound();
+        nbt.putShort("sizeX", (short) size.x);
+        nbt.putShort("sizeY", (short) size.y);
+        for (int i=0; i < size.y; i++) {
+            nbt.putShort(""+i, (short) boolArrayToByte(pixels[i]));
+        }
+        return nbt;
+    }
+
+    public static BinaryGraphicsArray fromNbt(NbtCompound nbt){
+        int x = nbt.getShort("sizeX");
+        int y = nbt.getShort("sizeY");
+        boolean[][] array = new boolean[y][x];
+        for (int i = 0; i < y; i++) {
+            array[i] = ByteToBoolArray(nbt.getShort(""+i),x);
         }
         return new BinaryGraphicsArray(array);
     }

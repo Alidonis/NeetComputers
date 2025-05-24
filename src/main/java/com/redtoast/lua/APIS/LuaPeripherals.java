@@ -46,7 +46,7 @@ public abstract class LuaPeripherals extends LuaAPI {
             @Override
             public LuaValue main(LuaValue[] args) {
                 LuaTable table = args[0].checktable();
-                if (table.getmetatable().isnil()) return LuaValue.FALSE;
+                if (table.getmetatable()==null) return LuaValue.FALSE;
                 if (table.getmetatable().get("tag").isnil()) return LuaValue.FALSE;
                 if (table.getmetatable().get("tag").toString().equals("peripheral")){
                     return LuaValue.TRUE;
@@ -109,8 +109,8 @@ public abstract class LuaPeripherals extends LuaAPI {
                 LinkedList<peripheralWrapper> periphs = getParentsPeripherals();
                 LinkedList<peripheralWrapper> output = new LinkedList<>();
                 for (peripheralWrapper periph : periphs) {
-                    if (Objects.equals(periph.peripheralType, type)) {
-                        if (args[1].isnil()) {
+                    if (periph.peripheralType.equals(type)) {
+                        if (true){//(args[1].isnil()) {
                             output.add(periph);
                         } else {
                             Varargs outputs = args[1].checkfunction().invoke(new LuaValue[]{LuaValue.valueOf(periph.uuid.toString()), periph.table});
@@ -137,7 +137,7 @@ public abstract class LuaPeripherals extends LuaAPI {
 
             @Override
             public Rules getRules() {
-                return new Rules("string").add("function",true);
+                return new Rules("string");//.add("function",true);
             }
         });
         set("getAll", new LuaFunction() {

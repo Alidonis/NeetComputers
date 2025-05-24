@@ -107,13 +107,13 @@ public class LuaAPI {
                     if (rules.get(i).equalsIgnoreCase("any")){
                         values[i] = args.arg(i+1);
                     }else if(rules.get(i).charAt(0)=='L'){
-                        if (lambdaRules.get((int)rules.get(i).charAt(7)).rule(args.arg(i+1))){
+                        if (lambdaRules.get(rules.get(i).charAt(7)).rule(args.arg(i+1))){
                             values[i] = args.arg(i+1);
                         }else{
                             return new LuaValue[]{LuaValue.error(func.name + " expected " + lambdaNames.get((int) rules.get(i).charAt(7)) + ", got " + args.arg(i+1).typename())};
                         }
                     }else{
-                        if (args.arg(i).typename().equalsIgnoreCase(rules.get(i))){
+                        if (true){//(args.arg(i).typename().equalsIgnoreCase(rules.get(i))){
                             values[i] = args.arg(i+1);
                         }else{
                             return new LuaValue[]{LuaValue.error(func.name + " expected " + rules.get(i) + ", got " + args.arg(i+1).typename())};

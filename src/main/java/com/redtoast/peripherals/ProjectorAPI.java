@@ -13,9 +13,8 @@ public class ProjectorAPI extends peripheralAPI {
     public ProjectorAPI(LargeEntityComputer blockEntity) {
         super("projector", blockEntity, blockEntity.computer);
         computer = blockEntity.computer;
-        graphics = blockEntity.computer.getBinaryGraphics();
-        sizex = graphics.getSize().x;
-        sizey = graphics.getSize().y;
+        int sizex = computer.getBinaryGraphics().getSize().x, sizey = computer.getBinaryGraphics().getSize().y;
+        graphics = new BinaryGraphicsArray(sizex, sizey);
 
         set("drawPixel", new LuaFunction() {
             @Override
@@ -23,13 +22,25 @@ public class ProjectorAPI extends peripheralAPI {
                 int x = args[0].toint();
                 int y = args[1].toint();
                 if (x<1 || y<1 || x>sizex || y>sizey) return LuaValue.error("values not in allowed range");
-                graphics.set(x,y,true);
+                graphics.set(x-1,y-1,true);
                 return LuaValue.NIL;
             }
 
             @Override
             public Rules getRules() {
-                return new Rules("integer").add("integer");
+                return new Rules("number").add("number");
+            }
+        });
+
+        set("getSize", new LuaFunction() {
+            @Override
+            public LuaValue main(LuaValue[] args) {
+                return LuaValue.listOf(new LuaValue[]{LuaValue.valueOf(sizex), LuaValue.valueOf(sizey)});
+            }
+
+            @Override
+            public Rules getRules() {
+                return new Rules();
             }
         });
 
@@ -40,21 +51,22 @@ public class ProjectorAPI extends peripheralAPI {
                 int y1 = args[1].toint();
                 int x2 = args[2].toint();
                 int y2 = args[3].toint();
-                if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) return LuaValue.error("values not in allowed range");
+                if (x1 < 1 || x2 < 1 || y1 < 1 || y2 < 1 || x1 > sizex || x2 > sizex || y1 > sizey || y2 > sizey)
+                    return LuaValue.error("values not in allowed range");
                 //equation from here:
                 //https://www3.cs.stonybrook.edu/~cse328/2021-lecture-notes/line-drawing.pdf
                 int dy = y2 - y1;
                 int dx = x2 - x1;
-                for (int i = Math.min(x1,x2); i < Math.max(x1,x2);i++){
-                    int y = (int) Math.round(y1+(i-x1)*((double)dy/dx));
-                    graphics.set(i,y,true);
+                for (int i = Math.min(x1, x2); i <= Math.max(x1, x2); i++) {
+                    int y = (int) Math.round(y1 + (i - x1) * ((double) dy / dx));
+                    graphics.set(i - 1, y - 1, true);
                 }
                 return LuaValue.NIL;
             }
 
             @Override
             public Rules getRules() {
-                return new Rules("integer").add("integer").add("integer").add("integer");
+                return new Rules("number").add("number").add("number").add("number");
             }
         });
 
@@ -66,11 +78,9 @@ public class ProjectorAPI extends peripheralAPI {
                 int x2 = args[2].toint();
                 int y2 = args[3].toint();
                 if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) return LuaValue.error("values not in allowed range");
-                //equation from here:
-                //https://www3.cs.stonybrook.edu/~cse328/2021-lecture-notes/line-drawing.pdf
-                for (int x = Math.min(x1,x2); x < Math.max(x1,x2); x++){
-                    for (int y = Math.min(y1,y2); y < Math.max(y1,y2); y++){
-                        graphics.set(x,y,true);
+                for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
+                    for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
+                        graphics.set(x-1,y-1,true);
                     }
                 }
                 return LuaValue.NIL;
@@ -78,14 +88,14 @@ public class ProjectorAPI extends peripheralAPI {
 
             @Override
             public Rules getRules() {
-                return new Rules("integer").add("integer").add("integer").add("integer");
+                return new Rules("number").add("number").add("number").add("number");
             }
         });
 
         set("draw", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
-                computer.broadcastGraphics();
+                computer.setBinaryGraphics(graphics);
                 return LuaValue.NIL;
             }
 
@@ -98,7 +108,7 @@ public class ProjectorAPI extends peripheralAPI {
         set("clear", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
-                computer.setBinaryGraphics(new BinaryGraphicsArray(sizex,sizey));
+                graphics = new BinaryGraphicsArray(sizex,sizey);
                 return LuaValue.NIL;
             }
 
