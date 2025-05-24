@@ -1,6 +1,7 @@
 package com.redtoast.lua;
 
 import com.redtoast.Computer;
+import com.redtoast.lua.APIS.LuaBios;
 import com.redtoast.lua.APIS.LuaFS;
 import com.redtoast.lua.APIS.LuaPaint;
 import com.redtoast.lua.APIS.LuaPeripherals;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
+import java.util.UUID;
 
 public abstract class LuaVM {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
@@ -45,7 +47,7 @@ public abstract class LuaVM {
         }
     }
 
-    private static class Thread{
+    public static class Thread{
         private LuaVM parent;
         private LuaThread coroutine;
         private LuaValue chunk;
@@ -55,8 +57,10 @@ public abstract class LuaVM {
         public int sleepfor = 0;
         public long lastSlept;
         public short ticket = 0;
+        public UUID uuid;
         public Thread(LuaVM parentVM, String script, int point, String name){
             try{
+                uuid = UUID.randomUUID();
                 parent = parentVM;
                 source = name+'-'+System.currentTimeMillis()+parent.threads.size();
                 chunk = parent.env.load(script, source);
@@ -68,6 +72,10 @@ public abstract class LuaVM {
                 debug.error(e.toString());
                 kill=true;
             }
+        }
+
+        public void Kill(){
+            kill = true;
         }
 
         private boolean step(){
@@ -114,6 +122,22 @@ public abstract class LuaVM {
                 return getPeripherals();
             }
         });
+        addAPI(new LuaBios(parent, this) {
+            @Override
+            public LinkedList<Thread> getThreads() {
+                return threads;
+            }
+
+            @Override
+            public Thread getThread() {
+                return thread;
+            }
+
+            @Override
+            public void addThread(Thread t) {
+                threads.add(t);
+            }
+        });
         env = getGlobals();
         if (files.exists("rom/startup.lua")){
             threads.add(new Thread(this, files.readFile("rom/startup.lua"),ROMPointer,"startup.lua"));
@@ -128,27 +152,6 @@ public abstract class LuaVM {
     public void addAPI(LuaAPI api){
         APIS.add(api);
     }
-
-    private static class newThreadFunc extends OneArgFunction {
-        private final LuaVM VM;
-        public newThreadFunc(LuaVM vm){
-            super();
-            VM = vm;
-        }
-        @Override
-        public LuaValue call(LuaValue arg) {
-            if (!arg.isstring()){
-                return LuaValue.error("String expected, got "+arg.typename());
-            }
-            if (VM.maxthreads==VM.threads.size()){
-                return LuaValue.error("Maximum threads created");
-            }
-            VM.threads.add(new Thread(VM,arg.toString(),0,"null"));
-            Thread thread = VM.threads.getLast();
-            return LuaValue.NIL;
-        }
-    }
-
 
     private Globals getGlobals(){
         Globals global = JsePlatform.debugGlobals();
@@ -165,8 +168,6 @@ public abstract class LuaVM {
         global.set("luajava",LuaValue.NIL);
         global.set("dofile",LuaValue.NIL);
         global.set("loadfile",LuaValue.NIL);
-
-        global.set("openThread", new newThreadFunc(this));
 
         for (int x = 0; x < APIS.size(); x++){
             APIS.get(x).insertSelf(global);

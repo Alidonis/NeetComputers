@@ -13,6 +13,11 @@ public abstract class LuaPeripherals extends LuaAPI {
     public LuaPeripherals() {
         super("peripherals");
 
+        LuaTable metaUUID = new LuaTable();
+        metaUUID.set("hasUUID", LuaValue.TRUE);
+        metaUUID.set("UUID_source", "peripheral");
+        metaUUID.set("tag","uuid");
+
         Rules.Rule validPeripheral = new Rules.Rule() {
             @Override
             public boolean rule(LuaValue arg) {
@@ -64,7 +69,9 @@ public abstract class LuaPeripherals extends LuaAPI {
             @Override
             public LuaValue main(LuaValue[] args) {
                 LuaTable peripheral = args[0].checktable();
-                return peripheral.getmetatable().get("uuid");
+                LuaValue uuid = LuaValue.valueOf(peripheral.getmetatable().get("uuid").toString());
+                uuid.setmetatable(metaUUID);
+                return uuid;
             }
 
             @Override
@@ -146,6 +153,7 @@ public abstract class LuaPeripherals extends LuaAPI {
                 LuaValue[] uuids = new LuaValue[getParentsPeripherals().size()];
                 for (int i = 0; i < getParentsPeripherals().size(); i++){
                     uuids[i] = LuaValue.valueOf(getParentsPeripherals().get(i).uuid.toString());
+                    uuids[i].setmetatable(metaUUID);
                 }
                 return LuaValue.listOf(uuids);
             }
