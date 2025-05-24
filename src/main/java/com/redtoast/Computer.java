@@ -31,14 +31,14 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 public class Computer {
-    private static Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
+    private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     private LuaVM VM;
     private int pointer = 0;
     private boolean loaded = false;
     private int ROM = -1;
     private boolean isOn = false;
-    private AnyEntity parent;
-    private UUID uuid;
+    private final AnyEntity parent;
+    private UUID uuid = null;
     private FileHandler FS;
     private BinaryGraphicsArray BinGraphics;
     private boolean doesBinaryGraphics = false;
@@ -154,6 +154,8 @@ public class Computer {
         Graphics = new RGBGraphicsArray(64,48);
     }
 
+    public UUID getUuid() {return uuid;}
+
     public boolean isLoaded(){return loaded;}
     private void Load(){
         loaded = true;
@@ -163,6 +165,7 @@ public class Computer {
         if (isOn){
             Start();
         }
+        if (uuid==null) uuid = UUID.randomUUID();
     }
     public void Load(NbtCompound nbt){
         if (!loaded){
@@ -172,6 +175,9 @@ public class Computer {
                 isOn = nbt.getBoolean("isOn");
                 if (isOn && doesBinaryGraphics && nbt.contains("screen")){
                     BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
+                }
+                if (nbt.contains("ComputerID")){
+                    uuid = nbt.getUuid("ComputerID");
                 }
             }else{
                 isOn = false;
@@ -217,6 +223,7 @@ public class Computer {
         if (isOn && doesBinaryGraphics){
             nbt.put("screen", BinGraphics.writeScreenToNBT());
         }
+        if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         return nbt;
     }
 
