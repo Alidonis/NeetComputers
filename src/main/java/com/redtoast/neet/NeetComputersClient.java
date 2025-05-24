@@ -1,6 +1,5 @@
 package com.redtoast.neet;
 
-import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreen;
@@ -8,12 +7,9 @@ import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
-import org.luaj.vm2.LuaValue;
 
 import java.util.Objects;
 

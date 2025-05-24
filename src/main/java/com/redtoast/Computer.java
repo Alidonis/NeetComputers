@@ -6,6 +6,7 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
+import com.redtoast.lua.events.LuaEvent;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -22,6 +23,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.joml.Vector2i;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -43,6 +45,7 @@ public class Computer {
     private short clock = 0;
     private RGBGraphicsArray Graphics;
     private final LinkedList<peripheralWrapper> peripherals = new LinkedList<>();
+    public Vector2i mousePos;
 
     public boolean IsOn(){return isOn;}
     public int getPointer(String rootName){
@@ -94,6 +97,10 @@ public class Computer {
             }
         }
         return false;
+    }
+
+    public void queueEvent(LuaEvent event) {
+        System.out.println("Queued event! "+event.getName()+" "+event.getValue());
     }
 
     public RGBGraphicsArray getGraphics() {
