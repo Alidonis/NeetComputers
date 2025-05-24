@@ -7,6 +7,7 @@ import com.redtoast.lua.FileHandler;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
 import com.redtoast.lua.events.LuaEvent;
+import com.redtoast.lua.peripheral.peripheralAPI;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -23,6 +24,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -44,8 +46,9 @@ public class Computer {
     private boolean doesBinaryGraphics = false;
     private short clock = 0;
     private RGBGraphicsArray Graphics;
-    private final LinkedList<peripheralWrapper> peripherals = new LinkedList<>();
+    private LinkedList<peripheralWrapper> peripherals;
     public Vector2i mousePos;
+    private ComputerSpecs specs;
 
     public boolean IsOn(){return isOn;}
     public int getPointer(String rootName){
@@ -56,13 +59,15 @@ public class Computer {
         return 0;
     }
 
-    public BinaryGraphicsArray getBinaryGraphics() {
+    public @Nullable BinaryGraphicsArray getBinaryGraphics() {
+        if (!doesBinaryGraphics) return null;
         return BinGraphics;
     }
     public void setBinaryGraphics(BinaryGraphicsArray graphics) {
+        if (!doesBinaryGraphics) return;
         BinGraphics = graphics;
-        doesBinaryGraphics = true;
     }
+    public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public void broadcastGraphics(){
         if (!doesBinaryGraphics) return;
         PacketByteBuf buf = PacketByteBufs.create();
@@ -86,6 +91,18 @@ public class Computer {
             }
         }
         peripherals.add(peripheral);
+        return true;
+    }
+    public boolean attachPeripheral(peripheralAPI peripheral){
+        if (peripherals == null){
+            peripherals = new LinkedList<>();
+        }
+        for (com.redtoast.lua.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
+            if (peripheralWrapper.uuid.equals(new peripheralWrapper(peripheral).uuid)) {
+                return false;
+            }
+        }
+        peripherals.add(new peripheralWrapper(peripheral));
         return true;
     }
 
@@ -148,10 +165,12 @@ public class Computer {
         }
     }
 
-    public Computer(BlockEntity Parent){
+    public Computer(BlockEntity Parent, ComputerSpecs specifications){
         parent = new AnyEntity(Parent);
-        uuid = UUID.randomUUID();
         Graphics = new RGBGraphicsArray(128,96);
+        specs = specifications;
+        doesBinaryGraphics = specifications.doesGraphics;
+        BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
     }
 
     public UUID getUuid() {return uuid;}
@@ -239,6 +258,11 @@ public class Computer {
                 public LinkedList<peripheralWrapper> getPeripherals() {
                     return peripherals;
                 }
+
+                @Override
+                public ComputerSpecs getSpecifications() {
+                    return specs;
+                }
             };
             isOn = true;
             markDirty();
@@ -251,6 +275,11 @@ public class Computer {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {
                     return peripherals;
+                }
+
+                @Override
+                public ComputerSpecs getSpecifications() {
+                    return specs;
                 }
             };
         }

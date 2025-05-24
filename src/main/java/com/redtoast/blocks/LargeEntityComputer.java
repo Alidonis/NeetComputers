@@ -1,10 +1,9 @@
 package com.redtoast.blocks;
 
 import com.redtoast.Computer;
-import com.redtoast.graphics.BinaryGraphicsArray;
+import com.redtoast.ComputerSpecs;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.BlockRegistery;
 import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
@@ -35,9 +34,12 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
     public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BlockRegistery.fetchBlockEntityType("large_computer"), pos, state);
-        computer = new Computer(this);
-        computer.setBinaryGraphics(new BinaryGraphicsArray(12,11));
-        computer.attachPeripheral(new peripheralWrapper(new ProjectorAPI(this)));
+        computer = new Computer(this, new ComputerSpecs()
+            .setGraphics(12,11)
+            .setIPS(580000, 500)
+            .setMaxCores(6)
+        );
+        computer.attachPeripheral(new ProjectorAPI(this));
         graphics = computer.getGraphics();
     }
 

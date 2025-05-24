@@ -3,7 +3,6 @@ package com.redtoast.lua.APIS;
 import com.redtoast.Computer;
 import com.redtoast.lua.LuaAPI;
 import com.redtoast.lua.LuaVM;
-import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
 import java.util.LinkedList;
@@ -12,13 +11,12 @@ import java.util.UUID;
 public abstract class LuaBios extends LuaAPI {
     Computer computer;
     LuaVM vm;
-    int maxThreadCount = 6;
 
     public abstract LinkedList<LuaVM.Thread> getThreads();
     public abstract LuaVM.Thread getThread();
     public abstract void addThread(LuaVM.Thread thread);
 
-    public LuaBios(Computer parent, LuaVM VM) {
+    public LuaBios(Computer parent, LuaVM VM, int maxThreadCount) {
         super("bios");
         computer = parent;
         vm = VM;
@@ -38,48 +36,12 @@ public abstract class LuaBios extends LuaAPI {
         set("getUUID", new LuaFunction() {
             @Override
             public LuaValue main(LuaValue[] args) {
-                LuaValue uuid = LuaValue.valueOf(computer.getUuid().toString());
-                LuaTable metadata = new LuaTable();
-                metadata.set("tag","uuid");
-                metadata.set("hasUUID", LuaValue.TRUE);
-                metadata.set("UUID_source", "computer");
-                uuid.setmetatable(metadata);
-                return uuid;
+                return LuaValue.valueOf(computer.getUuid().toString());
             }
 
             @Override
             public Rules getRules() {
                 return new Rules();
-            }
-        });
-
-        set("testUUID", new LuaFunction() {
-            @Override
-            public LuaValue main(LuaValue[] args) {
-                LuaValue uuid = args[0];
-                if (uuid.getmetatable()==null) return LuaValue.NIL;
-                if (uuid.getmetatable().get("hasUUID").isnil()) return LuaValue.FALSE;
-                return LuaValue.TRUE;
-            }
-
-            @Override
-            public Rules getRules() {
-                return new Rules("string");
-            }
-        });
-
-        set("UUIDSource", new LuaFunction() {
-            @Override
-            public LuaValue main(LuaValue[] args) {
-                LuaValue uuid = args[0];
-                if (uuid.getmetatable()==null) return LuaValue.NIL;
-                if (uuid.getmetatable().get("hasUUID").isnil()) return LuaValue.NIL;
-                return LuaValue.valueOf(uuid.getmetatable().get("UUID_source").toString());
-            }
-
-            @Override
-            public Rules getRules() {
-                return new Rules("string");
             }
         });
 
@@ -114,14 +76,8 @@ public abstract class LuaBios extends LuaAPI {
                 LuaValue text = args[0];
                 LuaVM.Thread thread = new LuaVM.Thread(vm,text.toString(),0,"null");
                 UUID uuid = thread.uuid;
-                LuaTable metadata = new LuaTable();
-                metadata.set("tag","uuid");
-                metadata.set("hasUUID", LuaValue.TRUE);
-                metadata.set("UUID_source", "thread");
-                LuaValue uuidTagged = LuaValue.valueOf(uuid.toString());
-                uuidTagged.setmetatable(metadata);
                 addThread(thread);
-                return uuidTagged;
+                return LuaValue.valueOf(uuid.toString());
             }
 
             @Override
@@ -134,13 +90,7 @@ public abstract class LuaBios extends LuaAPI {
             @Override
             public LuaValue main(LuaValue[] args) {
                 UUID uuid = getThread().uuid;
-                LuaTable metadata = new LuaTable();
-                metadata.set("tag","uuid");
-                metadata.set("hasUUID", LuaValue.TRUE);
-                metadata.set("UUID_source", "thread");
-                LuaValue uuidTagged = LuaValue.valueOf(uuid.toString());
-                uuidTagged.setmetatable(metadata);
-                return uuidTagged;
+                return LuaValue.valueOf(uuid.toString());
             }
 
             @Override

@@ -1,13 +1,13 @@
 package com.redtoast.lua;
 
 import com.redtoast.Computer;
+import com.redtoast.ComputerSpecs;
 import com.redtoast.lua.APIS.LuaBios;
 import com.redtoast.lua.APIS.LuaFS;
 import com.redtoast.lua.APIS.LuaPaint;
 import com.redtoast.lua.APIS.LuaPeripherals;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import org.luaj.vm2.*;
-import org.luaj.vm2.lib.OneArgFunction;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
@@ -24,9 +24,6 @@ public abstract class LuaVM {
     public LuaValue LuaDebug;
     public LuaValue LuaCoro;
     public Thread thread;
-    private int pointer;
-    private int ROMpointer;
-    public int maxthreads = 3;
     private boolean kill = false;
     private static final Logger errorLog = LoggerFactory.getLogger("NeetComputers:errors");
     public FileHandler files;
@@ -54,8 +51,6 @@ public abstract class LuaVM {
         private boolean kill = false;
         private int pointer;
         private String source;
-        public int sleepfor = 0;
-        public long lastSlept;
         public short ticket = 0;
         public UUID uuid;
         public Thread(LuaVM parentVM, String script, int point, String name){
@@ -65,7 +60,7 @@ public abstract class LuaVM {
                 source = name+'-'+System.currentTimeMillis()+parent.threads.size();
                 chunk = parent.env.load(script, source);
                 coroutine = new LuaThread(parent.env, chunk);
-                parent.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(parentVM),LuaValue.NIL,LuaValue.valueOf(1000)});
+                parent.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(parentVM),LuaValue.NIL,LuaValue.valueOf(parentVM.getSpecifications().BatchSize)});
                 pointer = point;
             } catch (Exception e) {
                 debug.error("Script {} at {} failed to compile", name, point);
@@ -97,8 +92,8 @@ public abstract class LuaVM {
         }
         public void tick(){
             if (kill) return;
-            ticket += 29;
-            while (ticket>0){
+            ticket += (short) parent.getSpecifications().Batches;
+            while (ticket>0) {
                 if (kill) return;
                 step();
             }
@@ -111,8 +106,6 @@ public abstract class LuaVM {
 
     public LuaVM(Computer Parent, FileHandler Files, int filePointer, int ROMPointer){
         parent = Parent;
-        pointer = filePointer;
-        ROMpointer = ROMPointer;
         files = Files;
         addAPI(new LuaFS(this));
         addAPI(new LuaPaint(parent));
@@ -122,7 +115,7 @@ public abstract class LuaVM {
                 return getPeripherals();
             }
         });
-        addAPI(new LuaBios(parent, this) {
+        addAPI(new LuaBios(parent, this, getSpecifications().MaxCores) {
             @Override
             public LinkedList<Thread> getThreads() {
                 return threads;
@@ -148,6 +141,7 @@ public abstract class LuaVM {
     }
 
     public abstract LinkedList<peripheralWrapper> getPeripherals();
+    public abstract ComputerSpecs getSpecifications();
 
     public void addAPI(LuaAPI api){
         APIS.add(api);

@@ -11,7 +11,7 @@ public class ProjectorAPI extends peripheralAPI {
     BinaryGraphicsArray graphics;
     int sizex, sizey;
     public ProjectorAPI(LargeEntityComputer blockEntity) {
-        super("projector", blockEntity, blockEntity.computer);
+        super("holographicScreen", blockEntity, blockEntity.computer);
         computer = blockEntity.computer;
         int sizex = computer.getBinaryGraphics().getSize().x, sizey = computer.getBinaryGraphics().getSize().y;
         graphics = new BinaryGraphicsArray(sizex, sizey);

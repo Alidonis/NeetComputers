@@ -1,7 +1,6 @@
 package com.redtoast.lua.peripheral;
 
 import org.luaj.vm2.LuaTable;
-import org.luaj.vm2.LuaValue;
 
 import java.util.UUID;
 
@@ -16,8 +15,6 @@ public class peripheralWrapper {
         LuaTable metadata = new LuaTable();
         metadata.set("tag","peripheral");
         metadata.set("uuid", uuid.toString());
-        metadata.set("hasUUID", LuaValue.TRUE);
-        metadata.set("UUID_source", "peripheral");
         metadata.set("type", peripheralType);
         table.setmetatable(metadata);
     }
