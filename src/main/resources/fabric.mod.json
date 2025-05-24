@@ -1,18 +1,19 @@
 {
 	"schemaVersion": 1,
 	"id": "neetcomputers",
-	"version": "${version}",
+	"version": "beta 0.1",
 	"name": "Neet Computers",
-	"description": "A flexable and dependable alterative to Computer Craft or Open Computers",
+	"description": "A powerful, feature-packed, versatile mod that adds fully functional turing complete lua computers to minecraft",
 	"authors": [
-		"Red Toast"
+		"Red Toast",
+		"Wind Clan"
 	],
 	"contact": {
-		"homepage": "",
+		"homepage": "https://github.com/redtoast/NeetComputers",
 		"sources": ""
 	},
 	"license": "MIT",
-	"icon": "Large_Computer_Upscaled.png",
+	"icon": "icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
