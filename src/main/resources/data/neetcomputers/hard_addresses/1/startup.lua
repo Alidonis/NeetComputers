@@ -1,6 +1,9 @@
 if fs.exists("user/script.lua") then
     file = fs.readAll("user/script.lua")
-    bios.createThread(file)
+    local success, response = pcall(bios.createThread,file)
+    if not (success) then
+        print("Failed to start user startup! err="..response)
+    end
 end
 while true do
     --sleep(5)

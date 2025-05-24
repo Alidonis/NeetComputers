@@ -151,7 +151,7 @@ public class Computer {
     public Computer(BlockEntity Parent){
         parent = new AnyEntity(Parent);
         uuid = UUID.randomUUID();
-        Graphics = new RGBGraphicsArray(64,48);
+        Graphics = new RGBGraphicsArray(128,96);
     }
 
     public UUID getUuid() {return uuid;}
