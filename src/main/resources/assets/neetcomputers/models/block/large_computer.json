@@ -3,7 +3,7 @@
 	"textures": {
 		"0": "neetcomputers:block/large_computer_uv",
 		"1": "neetcomputers:block/front_off_uv",
-		"particle": "neetcomputers:block/particle_base"
+		"particle": "neetcomputers:block/partical_base"
 	},
 	"elements": [
 		{
