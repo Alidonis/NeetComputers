@@ -1,6 +1,6 @@
 if fs.exists("user/script.lua") then
     file = fs.readAll("user/script.lua")
-    openThread(file)
+    bois.createThread(file)
 end
 while true do
     --sleep(5)
