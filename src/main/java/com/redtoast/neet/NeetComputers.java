@@ -5,6 +5,7 @@ import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.blocks.LargeComputerRenderer;
+import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.lua.events.MouseMoveEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -68,6 +69,10 @@ public class NeetComputers implements ModInitializer {
 		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(16));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);
 		BulkRegistery.register(peripheralCableItem, group);
+
+		Item networkingCableItem = new networkingCable(new FabricItemSettings().maxCount(16));
+		BulkRegistery.register("networking_cable", networkingCableItem);
+		BulkRegistery.register(networkingCableItem, group);
 
 		ServerPlayNetworking.registerGlobalReceiver(MOUSE_MOVE_PACKET_ID, (server, player, handler, buf, responseSender) -> {
 			if (player.currentScreenHandler instanceof GraphicsScreenHandler) {

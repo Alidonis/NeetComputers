@@ -1,5 +1,6 @@
 {
   "block.neetcomputers.large_computer": "Large computer",
   "item.neetcomputers.peripheral_cable": "Peripheral Cable",
-  "itemGroup.main_item_group": "Neet Computers"
+  "item.neetcomputers.networking_cable": "Networking Cable",
+  "itemGroup.neetcomputers.main_item_group": "Neet Computers"
 }

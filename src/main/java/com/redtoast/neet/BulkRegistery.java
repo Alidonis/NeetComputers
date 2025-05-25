@@ -173,7 +173,7 @@ public class BulkRegistery {
         RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id);
 
         ItemGroup group = FabricItemGroup.builder()
-            .displayName(Text.translatable("itemGroup." + address))
+            .displayName(Text.translatable("itemGroup."+Namespace+'.' + address))
             .icon(() -> new ItemStack(item))
             .entries((enabledFeatures, entries) -> {
                 entries.add(item);
