@@ -40,6 +40,7 @@ public class FileHandler {
                 pathClass.toFile().mkdir();
                 pathClass = pathClass.resolve(pth);
                 pathClass.toFile().mkdir();
+                pathClass = pathClass.normalize();
             }
         }
     }
@@ -190,6 +191,7 @@ public class FileHandler {
                 String[] filesnames2 = new String[i];
                 for (int x = 0; x < i; x++){
                     filesnames2[x] = filenames[x];
+                    System.out.println(filesnames2[x]);
                 }
                 return filesnames2;
             }else{
@@ -351,6 +353,30 @@ public class FileHandler {
                     if (!(letter=='-' || letter=='_' || (letter==' ' && x< chars.length-1) || (i==parts.length-1 && letter=='.' && i!=0))){
                         return false;
                     }
+                }
+            }
+        }
+        rootDir root = findRoot(path);
+        if (root!=null){
+            if (root.pointer>=0){
+                String npath = deObjectivify(path).replace('\\', '/');
+                if (!npath.equals("")){
+                    npath = npath.substring(1);
+                }
+                npath = deObjectivify(npath).replace('\\','/');
+                Path spath = root.pathClass.resolve(npath).normalize();
+                try {
+                    if (!spath.startsWith(root.pathClass)) {
+                        return false;
+                    }
+                    if (!spath.toFile().exists()){
+                        return true;
+                    }
+                    if (!spath.toRealPath().startsWith(root.pathClass.toRealPath())){
+                        return false;
+                    }
+                }catch (Exception e){
+                    return false;
                 }
             }
         }

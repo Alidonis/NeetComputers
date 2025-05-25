@@ -12,9 +12,6 @@ import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
@@ -23,23 +20,25 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.UUID;
 
-public class Computer {
+public abstract class Computer {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     private LuaVM VM;
     private int pointer = 0;
     private boolean loaded = false;
     private int ROM = -1;
     private boolean isOn = false;
-    private final AnyEntity parent;
     private UUID uuid = null;
     private FileHandler FS;
     private BinaryGraphicsArray BinGraphics;
@@ -50,6 +49,13 @@ public class Computer {
     public Vector2i mousePos;
     private ComputerSpecs specs;
 
+    public Computer(ComputerSpecs specifications){
+        Graphics = new RGBGraphicsArray(128,96);
+        specs = specifications;
+        doesBinaryGraphics = specifications.doesGraphics;
+        BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
+    }
+
     public boolean IsOn(){return isOn;}
     public int getPointer(String rootName){
         FileHandler.rootDir root = FS.findRoot(rootName);
@@ -58,6 +64,10 @@ public class Computer {
         }
         return 0;
     }
+
+    public abstract void saveNBT();
+    public abstract World getWorld();
+    public abstract void refreshGraphics();
 
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         if (!doesBinaryGraphics) return null;
@@ -68,21 +78,6 @@ public class Computer {
         BinGraphics = graphics;
     }
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
-    public void broadcastGraphics(){
-        if (!doesBinaryGraphics) return;
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(parent.getLocation());
-        getBinaryGraphics().writeScreenToPacketBuf(buf);
-        assert NeetComputers.BINARY_SCREEN_PACKET != null;
-
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NeetComputers.BINARY_SCREEN_PACKET, buf);
-
-        if (parent.getWorld() instanceof ServerWorld serverWorld) {
-            for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                player.networkHandler.sendPacket(packet);
-            }
-        }
-    }
 
     public boolean attachPeripheral(peripheralWrapper peripheral){
         for (com.redtoast.lua.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
@@ -124,55 +119,6 @@ public class Computer {
         return Graphics;
     }
 
-    private static class AnyEntity{
-        public int type;
-        private BlockEntity blockEntity;
-        public AnyEntity(Entity parentEntity){
-            type = 0;
-        }
-        public AnyEntity(BlockEntity parentEntity){
-            type = 1;
-            blockEntity = parentEntity;
-        }
-        public void markDirty(){
-            switch (type){
-                case 0:
-                    return;
-                case 1:
-                    blockEntity.markDirty();
-                    if (blockEntity.getWorld() != null && !blockEntity.getWorld().isClient) {
-                        blockEntity.getWorld().updateListeners(blockEntity.getPos(), blockEntity.getCachedState(), blockEntity.getCachedState(), Block.NOTIFY_ALL);
-                    }
-            }
-        }
-        public BlockPos getLocation(){
-            switch (type){
-                case 0:
-                    return null;
-                case 1:
-                    return blockEntity.getPos();
-            }
-            return null;
-        }
-        public World getWorld(){
-            switch (type){
-                case 0:
-                    return null;
-                case 1:
-                    return blockEntity.getWorld();
-            }
-            return null;
-        }
-    }
-
-    public Computer(BlockEntity Parent, ComputerSpecs specifications){
-        parent = new AnyEntity(Parent);
-        Graphics = new RGBGraphicsArray(128,96);
-        specs = specifications;
-        doesBinaryGraphics = specifications.doesGraphics;
-        BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
-    }
-
     public UUID getUuid() {return uuid;}
 
     public boolean isLoaded(){return loaded;}
@@ -185,6 +131,7 @@ public class Computer {
             Start();
         }
         if (uuid==null) uuid = UUID.randomUUID();
+        NeetComputers.computerMap.put(uuid, this);
     }
     public void Load(NbtCompound nbt){
         if (!loaded){
@@ -265,7 +212,7 @@ public class Computer {
                 }
             };
             isOn = true;
-            markDirty();
+            saveNBT();
         }
     }
 
@@ -289,12 +236,8 @@ public class Computer {
         if (isOn && loaded){
             VM=null;
             isOn=false;
-            markDirty();
+            saveNBT();
         }
-    }
-
-    private void markDirty(){
-        parent.markDirty();
     }
 
     private void step(){
@@ -329,7 +272,7 @@ public class Computer {
                     }
                 }
             }
-            if (clock%5==0 && doesBinaryGraphics) broadcastGraphics();
+            if (clock%5==0 && doesBinaryGraphics) refreshGraphics();
             clock += 1;
             clock %= 1;
         }

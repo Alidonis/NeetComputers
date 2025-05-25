@@ -5,8 +5,10 @@ import com.redtoast.ComputerSpecs;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.NeetComputers;
 import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -18,10 +20,12 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
@@ -34,11 +38,39 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
     public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BulkRegistery.fetchBlockEntityType("large_computer"), pos, state);
-        computer = new Computer(this, new ComputerSpecs()
-            .setGraphics(12,11)
-            .setIPS(580000, 500)
-            .setMaxCores(6)
-        );
+        BlockEntity be = this;
+        computer = new Computer(new ComputerSpecs()
+                .setGraphics(12, 11)
+                .setIPS(580000, 500)
+                .setMaxCores(6)
+        ) {
+            @Override
+            public void saveNBT() {
+                markDirty();
+            }
+
+            @Override
+            public World getWorld() {
+                return be.getWorld();
+            }
+
+            @Override
+            public void refreshGraphics() {
+                if (!hasBinaryGraphics() || !isLoaded()) return;
+                PacketByteBuf buf = PacketByteBufs.create();
+                buf.writeBlockPos(be.getPos());
+                getBinaryGraphics().writeScreenToPacketBuf(buf);
+                assert NeetComputers.BINARY_SCREEN_PACKET != null;
+
+                CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NeetComputers.BINARY_SCREEN_PACKET, buf);
+
+                if (getWorld() instanceof ServerWorld serverWorld) {
+                    for (ServerPlayerEntity player : serverWorld.getPlayers()) {
+                        player.networkHandler.sendPacket(packet);
+                    }
+                }
+            }
+        };
         computer.attachPeripheral(new ProjectorAPI(this));
         graphics = computer.getGraphics();
     }

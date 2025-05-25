@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Hashtable;
+import java.util.UUID;
 
 public class NeetComputers implements ModInitializer {
 	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
@@ -39,6 +41,7 @@ public class NeetComputers implements ModInitializer {
 	public static final Identifier MOUSE_MOVE_PACKET_ID = Identifier.of("neetcomputers","mouse_packet");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
+	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath;
 
