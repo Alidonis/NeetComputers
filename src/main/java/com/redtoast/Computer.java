@@ -15,21 +15,15 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Position;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.UUID;
 
 public abstract class Computer {
@@ -67,7 +61,7 @@ public abstract class Computer {
 
     public abstract void saveNBT();
     public abstract World getWorld();
-    public abstract void refreshGraphics();
+    public abstract void refreshBinaryGraphics();
 
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         if (!doesBinaryGraphics) return null;
@@ -272,7 +266,7 @@ public abstract class Computer {
                     }
                 }
             }
-            if (clock%5==0 && doesBinaryGraphics) refreshGraphics();
+            if (clock%5==0 && doesBinaryGraphics) refreshBinaryGraphics();
             clock += 1;
             clock %= 1;
         }
