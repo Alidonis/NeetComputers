@@ -4,7 +4,7 @@ import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.neet.BlockRegistery;
+import com.redtoast.neet.BulkRegistery;
 import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -33,7 +33,7 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
     public RGBGraphicsArray graphics;
 
     public LargeEntityComputer(BlockPos pos, BlockState state) {
-        super(BlockRegistery.fetchBlockEntityType("large_computer"), pos, state);
+        super(BulkRegistery.fetchBlockEntityType("large_computer"), pos, state);
         computer = new Computer(this, new ComputerSpecs()
             .setGraphics(12,11)
             .setIPS(580000, 500)

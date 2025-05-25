@@ -1,6 +1,6 @@
 package com.redtoast.blocks;
 
-import com.redtoast.neet.BlockRegistery;
+import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -50,7 +50,7 @@ public class LargeBlockComputer extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BlockRegistery.fetchBlockEntityType("large_computer") ? LargeEntityComputer::tick : null;
+        return type == BulkRegistery.fetchBlockEntityType("large_computer") ? LargeEntityComputer::tick : null;
     }
 
     @Override

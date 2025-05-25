@@ -1,10 +1,8 @@
 package com.redtoast.neet;
 
-import com.redtoast.blocks.LargeComputerRenderer;
-import com.redtoast.graphics.GraphicsScreenHandler;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -12,20 +10,21 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
+import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
+import java.util.function.Function;
 
-public class BlockRegistery {
+public class BulkRegistery {
     private static class Registered{
         public Block block;
         public BlockEntityType<?> blockEntity;
@@ -46,6 +45,7 @@ public class BlockRegistery {
         public Registered(Block b){
             block = b;
         }
+        public Registered(Item i){item = i;}
     }
     private static final LinkedList<String> keys = new LinkedList<>();
     private static final LinkedList<Registered> value = new LinkedList<>();
@@ -160,6 +160,33 @@ public class BlockRegistery {
 
     public static <BaseHandler, CustomHandler extends BaseHandler> CustomHandler register(String address, @NotNull Registry<BaseHandler> base, CustomHandler custom ){
         return Registry.register(base, Identifier.of(Namespace, address), custom);
+    }
+
+    public static <ItemClass extends Item> void register(String address, ItemClass item){
+        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Namespace, address));
+        Registry.register(Registries.ITEM, itemKey, item);
+        add(address, new Registered(item));
+    }
+
+    public static RegistryKey<ItemGroup> registerGroup(String address, Item item){
+        Identifier id = new Identifier(Namespace, address);
+        RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id);
+
+        ItemGroup group = FabricItemGroup.builder()
+            .displayName(Text.translatable("itemGroup." + address))
+            .icon(() -> new ItemStack(item))
+            .entries((enabledFeatures, entries) -> {
+                entries.add(item);
+            })
+            .build();
+
+        Registry.register(Registries.ITEM_GROUP, groupKey, group);
+
+        return groupKey;
+    }
+
+    public static <ItemClass extends Item> void register(ItemClass item, RegistryKey<ItemGroup> group){
+        ItemGroupEvents.modifyEntriesEvent(group).register((itemGroup) -> itemGroup.add(item));
     }
 
     @FunctionalInterface
