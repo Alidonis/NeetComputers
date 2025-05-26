@@ -41,6 +41,7 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         BlockEntity be = this;
         computer = new Computer(new ComputerSpecs()
                 .setGraphics(12, 11)
+                .setColorGraphics(192,108)
                 .setIPS(580000, 500)
                 .setMaxCores(6)
         ) {

@@ -7,6 +7,8 @@ public class ComputerSpecs {
     public boolean doesGraphics = false;
     public int GraphicsSizeX = 0;
     public int GraphicsSizeY = 0;
+    public int ColorGraphicsSizeX = 0;
+    public int ColorGraphicsSizeY = 0;
     public ComputerSpecs setMaxCores(int cores){
         MaxCores = cores;
         return this;
@@ -21,6 +23,11 @@ public class ComputerSpecs {
         doesGraphics = true;
         GraphicsSizeX = SizeX;
         GraphicsSizeY = SizeY;
+        return this;
+    }
+    public ComputerSpecs setColorGraphics(int SizeX, int SizeY){
+        ColorGraphicsSizeX = SizeX;
+        ColorGraphicsSizeY = SizeY;
         return this;
     }
 }

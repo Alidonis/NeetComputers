@@ -45,7 +45,7 @@ public abstract class Computer {
     private ComputerSpecs specs;
 
     public Computer(ComputerSpecs specifications){
-        Graphics = new RGBGraphicsArray(128,96);
+        Graphics = new RGBGraphicsArray(specifications.ColorGraphicsSizeX,specifications.ColorGraphicsSizeY);
         specs = specifications;
         doesBinaryGraphics = specifications.doesGraphics;
         BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
