@@ -28,6 +28,7 @@ import java.util.UUID;
 
 public abstract class Computer {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
+    private static final Logger errer = LoggerFactory.getLogger("NeetComputers:error");
     private LuaVM VM;
     private int pointer = 0;
     private boolean loaded = false;
@@ -106,7 +107,11 @@ public abstract class Computer {
     }
 
     public void queueEvent(LuaEvent event) {
+        if (getWorld().isClient()){
 
+        }else{
+
+        }
     }
 
     public RGBGraphicsArray getGraphics() {
