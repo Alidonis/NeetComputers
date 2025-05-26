@@ -93,7 +93,7 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
     private void drawPixel(int x, int y, VertexConsumer vc, Matrix4f mat, int overlay, Sprite sprite, LargeEntityComputer entity){
         float x1 = x / 16f, x2 = 1f / 16f + x1;
         float y1 = y / 16f, y2 = 1f / 16f + y1;
-        float z1 = 1f, z2 = 15f / 16f;
+        float z1 = 15.5f / 16f, z2 = 15f / 16f;
         float offsetX = 2f / 16f, offsetY = 3f / 16f;
         Vec3i rgb = getPixel(x, y);
         BinaryGraphicsArray graphics = entity.computer.getBinaryGraphics();

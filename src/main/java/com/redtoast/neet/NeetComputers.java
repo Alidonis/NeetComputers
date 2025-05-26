@@ -5,6 +5,7 @@ import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.blocks.LargeComputerRenderer;
+import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -66,6 +67,10 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,LargeComputerRenderer::new,true);
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
+
+		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(16));
+		BulkRegistery.register("mobile_computer", modelComputer);
+		BulkRegistery.register(modelComputer, group);
 
 		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(16));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);
