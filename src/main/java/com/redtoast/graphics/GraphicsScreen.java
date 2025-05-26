@@ -55,10 +55,10 @@ public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
         for (int x = 0; x < size.x(); x++) {
             for (int y = 0; y < size.y(); y++) {
                 //context.fill(x1+x*4,y1+y*4,x1+x*4+4,y1+y*4+4,0xFF000000 | graphics.get(x,y));
-                buffer.vertex(transformationMatrix, x1+x*screenMult, y1+y*screenMult, 5).color(0xFF000000 | graphics.get(x,y)).next();
-                buffer.vertex(transformationMatrix, x1+x*screenMult, y1+y*screenMult+screenMult, 5).color(0xFF000000 | graphics.get(x,y)).next();
-                buffer.vertex(transformationMatrix, x1+x*screenMult+screenMult, y1+y*screenMult, 5).color(0xFF000000 | graphics.get(x,y)).next();
-                buffer.vertex(transformationMatrix, x1+x*screenMult+screenMult, y1+y*screenMult+screenMult, 5).color(0xFF000000 | graphics.get(x,y)).next();
+                buffer.vertex(transformationMatrix, x1+x*screenMult, y1+y*screenMult, 9999).color(0xFF000000 | graphics.get(x,y)).next();
+                buffer.vertex(transformationMatrix, x1+x*screenMult, y1+y*screenMult+screenMult, 9999).color(0xFF000000 | graphics.get(x,y)).next();
+                buffer.vertex(transformationMatrix, x1+x*screenMult+screenMult, y1+y*screenMult, 9999).color(0xFF000000 | graphics.get(x,y)).next();
+                buffer.vertex(transformationMatrix, x1+x*screenMult+screenMult, y1+y*screenMult+screenMult, 9999).color(0xFF000000 | graphics.get(x,y)).next();
             }
         }
         RenderSystem.setShader(GameRenderer::getPositionColorProgram);
