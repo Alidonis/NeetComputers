@@ -10,7 +10,7 @@ import org.luaj.vm2.LuaValue;
 import java.util.LinkedList;
 import java.util.UUID;
 
-public abstract class LuaBios extends LuaAPI {
+public abstract class LuaChip extends LuaAPI {
     Computer computer;
     LuaVM vm;
 
@@ -18,8 +18,8 @@ public abstract class LuaBios extends LuaAPI {
     public abstract LuaVM.Thread getThread();
     public abstract void addThread(LuaVM.Thread thread);
 
-    public LuaBios(Computer parent, LuaVM VM, int maxThreadCount) {
-        super("bios");
+    public LuaChip(Computer parent, LuaVM VM, int maxThreadCount) {
+        super("chip");
         computer = parent;
         vm = VM;
 
@@ -119,6 +119,8 @@ public abstract class LuaBios extends LuaAPI {
                 return new Rules("string");
             }
         });
+
+
 
         set("shutdown", new LuaFunction() {
             @Override

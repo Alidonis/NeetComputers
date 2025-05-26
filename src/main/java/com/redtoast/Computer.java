@@ -10,6 +10,7 @@ import com.redtoast.lua.IDFactory;
 import com.redtoast.lua.peripheral.peripheralAPI;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
@@ -108,7 +109,9 @@ public abstract class Computer {
 
     public void queueEvent(LuaEvent event) {
         if (getWorld().isClient()){
-
+            PacketByteBuf buf = PacketByteBufs.create();
+            event.writeToPacket(buf);
+            ClientPlayNetworking.send(NeetComputers.EVENT_PACKET, buf);
         }else{
 
         }

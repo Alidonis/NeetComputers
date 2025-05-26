@@ -2,7 +2,7 @@ package com.redtoast.lua;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
-import com.redtoast.lua.APIS.LuaBios;
+import com.redtoast.lua.APIS.LuaChip;
 import com.redtoast.lua.APIS.LuaFS;
 import com.redtoast.lua.APIS.LuaPaint;
 import com.redtoast.lua.APIS.LuaPeripherals;
@@ -115,7 +115,7 @@ public abstract class LuaVM {
                 return getPeripherals();
             }
         });
-        addAPI(new LuaBios(parent, this, getSpecifications().MaxCores) {
+        addAPI(new LuaChip(parent, this, getSpecifications().MaxCores) {
             @Override
             public LinkedList<Thread> getThreads() {
                 return threads;
