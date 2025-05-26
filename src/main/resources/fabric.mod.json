@@ -21,6 +21,9 @@
 		],
 		"client": [
           "com.redtoast.neet.NeetComputersClient"
+		],
+		"rei_client": [
+			"com.redtoast.neet.NeetComputersREI"
 		]
 	},
 	"mixins": [
