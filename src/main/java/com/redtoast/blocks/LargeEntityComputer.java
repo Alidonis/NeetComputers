@@ -56,7 +56,6 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
             @Override
             public void refreshBinaryGraphics() {
-                if (!hasBinaryGraphics() || !isLoaded()) return;
                 PacketByteBuf buf = PacketByteBufs.create();
                 buf.writeBlockPos(be.getPos());
                 getBinaryGraphics().writeScreenToPacketBuf(buf);

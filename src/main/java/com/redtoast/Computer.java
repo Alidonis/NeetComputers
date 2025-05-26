@@ -4,9 +4,9 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.FileHandler;
+import com.redtoast.lua.LuaEvent;
 import com.redtoast.lua.LuaVM;
 import com.redtoast.lua.IDFactory;
-import com.redtoast.lua.events.LuaEvent;
 import com.redtoast.lua.peripheral.peripheralAPI;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
@@ -106,7 +106,7 @@ public abstract class Computer {
     }
 
     public void queueEvent(LuaEvent event) {
-        System.out.println("Queued event! "+event.getName()+" "+event.getValue());
+
     }
 
     public RGBGraphicsArray getGraphics() {
@@ -266,7 +266,7 @@ public abstract class Computer {
                     }
                 }
             }
-            if (clock%5==0 && doesBinaryGraphics) refreshBinaryGraphics();
+            if (clock%5==0 && doesBinaryGraphics && loaded) refreshBinaryGraphics();
             clock += 1;
             clock %= 1;
         }

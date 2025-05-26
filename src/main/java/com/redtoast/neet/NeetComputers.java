@@ -7,7 +7,6 @@ import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.blocks.LargeComputerRenderer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
-import com.redtoast.lua.events.MouseMoveEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -27,7 +26,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
-import org.joml.Vector2i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +36,7 @@ import java.util.UUID;
 public class NeetComputers implements ModInitializer {
 	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
 	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
-	public static final Identifier MOUSE_MOVE_PACKET_ID = Identifier.of("neetcomputers","mouse_packet");
+	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
@@ -77,14 +75,8 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register("networking_cable", networkingCableItem);
 		BulkRegistery.register(networkingCableItem, group);
 
-		ServerPlayNetworking.registerGlobalReceiver(MOUSE_MOVE_PACKET_ID, (server, player, handler, buf, responseSender) -> {
-			if (player.currentScreenHandler instanceof GraphicsScreenHandler) {
-				Computer c = ((GraphicsScreenHandler) player.currentScreenHandler).comp.computer;
-				int mouseX = buf.readInt();
-				int mouseY = buf.readInt();
-				c.mousePos = new Vector2i(mouseX,mouseY);
-				c.queueEvent(new MouseMoveEvent(mouseX,mouseY));
-			}
+		ServerPlayNetworking.registerGlobalReceiver(EVENT_PACKET, (server, player, handler, buf, responseSender) -> {
+
 		});
 	}
 

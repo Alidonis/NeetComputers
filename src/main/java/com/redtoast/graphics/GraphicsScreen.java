@@ -45,10 +45,7 @@ public class GraphicsScreen extends HandledScreen<GraphicsScreenHandler> {
         }
         if (!(mouseX == mousePos.x && mouseY == mousePos.y) && inBounds) {
             mousePos = new Vector2i(mouseX,mouseY);
-            PacketByteBuf a = PacketByteBufs.create();
-            a.writeInt(mouseX);
-            a.writeInt(mouseY);
-            ClientPlayNetworking.send(NeetComputers.MOUSE_MOVE_PACKET_ID,a);
+
         }
         Matrix4f transformationMatrix = context.getMatrices().peek().getPositionMatrix();
         Tessellator tessellator = Tessellator.getInstance();
