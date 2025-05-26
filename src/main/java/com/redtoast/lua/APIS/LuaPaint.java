@@ -4,6 +4,8 @@ import com.redtoast.Computer;
 import com.redtoast.graphics.GraphicsInterface;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.lua.LuaAPI;
+import com.redtoast.lua.LuaFunction;
+import com.redtoast.lua.Rules;
 import org.luaj.vm2.LuaValue;
 
 public class LuaPaint extends LuaAPI {

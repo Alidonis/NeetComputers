@@ -3,6 +3,8 @@ package com.redtoast.peripherals;
 import com.redtoast.Computer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
+import com.redtoast.lua.LuaFunction;
+import com.redtoast.lua.Rules;
 import com.redtoast.lua.peripheral.peripheralAPI;
 import org.luaj.vm2.LuaValue;
 

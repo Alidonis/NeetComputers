@@ -1,7 +1,9 @@
 package com.redtoast.lua.APIS;
 
 import com.redtoast.lua.LuaAPI;
+import com.redtoast.lua.LuaFunction;
 import com.redtoast.lua.LuaVM;
+import com.redtoast.lua.Rules;
 import org.luaj.vm2.LuaValue;
 
 public class LuaFS extends LuaAPI {

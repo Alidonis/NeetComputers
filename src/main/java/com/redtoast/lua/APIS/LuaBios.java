@@ -2,7 +2,9 @@ package com.redtoast.lua.APIS;
 
 import com.redtoast.Computer;
 import com.redtoast.lua.LuaAPI;
+import com.redtoast.lua.LuaFunction;
 import com.redtoast.lua.LuaVM;
+import com.redtoast.lua.Rules;
 import org.luaj.vm2.LuaValue;
 
 import java.util.LinkedList;

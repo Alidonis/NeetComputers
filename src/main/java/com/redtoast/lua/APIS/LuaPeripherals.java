@@ -1,6 +1,8 @@
 package com.redtoast.lua.APIS;
 
 import com.redtoast.lua.LuaAPI;
+import com.redtoast.lua.LuaFunction;
+import com.redtoast.lua.Rules;
 import com.redtoast.lua.peripheral.peripheralWrapper;
 import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
