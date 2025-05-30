@@ -1,25 +1,29 @@
-package com.redtoast.lua;
+package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
-import com.redtoast.lua.APIS.LuaChip;
-import com.redtoast.lua.APIS.LuaFS;
-import com.redtoast.lua.APIS.LuaPaint;
-import com.redtoast.lua.APIS.LuaPeripherals;
-import com.redtoast.lua.peripheral.peripheralWrapper;
+import com.redtoast.simulation.APIS.ChipAPI;
+import com.redtoast.simulation.APIS.FSAPI;
+import com.redtoast.simulation.APIS.PaintAPI;
+import com.redtoast.simulation.APIS.PeripheralsAPI;
+import com.redtoast.simulation.LangAPI.LangAPI;
+import com.redtoast.simulation.peripheral.peripheralWrapper;
 import org.luaj.vm2.*;
+import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.lib.ZeroArgFunction;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
 
 public abstract class LuaVM {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
     private static final Logger luaLogger = LoggerFactory.getLogger("NeetComputers:luaVM");
-    private final LinkedList<LuaAPI> APIS = new LinkedList<>();
+    private static final LuaTranslater Lua = new LuaTranslater();
+    private final LinkedList<LangAPI> APIS = new LinkedList<>();
     public Globals env;
     public LuaValue LuaDebug;
     public LuaValue LuaCoro;
@@ -28,6 +32,7 @@ public abstract class LuaVM {
     private static final Logger errorLog = LoggerFactory.getLogger("NeetComputers:errors");
     public FileHandler files;
     public Computer parent;
+    public Hashtable<String, LuaFunction> eventTable = new Hashtable<>();
 
     private static class clockIn extends ZeroArgFunction {
         private final LuaVM VM;
@@ -107,15 +112,15 @@ public abstract class LuaVM {
     public LuaVM(Computer Parent, FileHandler Files, int filePointer, int ROMPointer){
         parent = Parent;
         files = Files;
-        addAPI(new LuaFS(this));
-        addAPI(new LuaPaint(parent));
-        addAPI(new LuaPeripherals() {
+        addAPI(new FSAPI(this));
+        addAPI(new PaintAPI(parent));
+        addAPI(new PeripheralsAPI() {
             @Override
             public LinkedList<peripheralWrapper> getParentsPeripherals() {
                 return getPeripherals();
             }
         });
-        addAPI(new LuaChip(parent, this, getSpecifications().MaxCores) {
+        addAPI(new ChipAPI(parent, this, getSpecifications().MaxCores) {
             @Override
             public LinkedList<Thread> getThreads() {
                 return threads;
@@ -130,6 +135,11 @@ public abstract class LuaVM {
             public void addThread(Thread t) {
                 threads.add(t);
             }
+
+            @Override
+            public void registerEvent(String event, LuaFunction func) {
+                eventTable.put(event, func);
+            }
         });
         env = getGlobals();
         if (files.exists("rom/startup.lua")){
@@ -141,9 +151,10 @@ public abstract class LuaVM {
     }
 
     public abstract LinkedList<peripheralWrapper> getPeripherals();
+    public abstract LinkedList<EventGeneric> getEvents();
     public abstract ComputerSpecs getSpecifications();
 
-    public void addAPI(LuaAPI api){
+    public void addAPI(LangAPI api){
         APIS.add(api);
     }
 
@@ -164,7 +175,7 @@ public abstract class LuaVM {
         global.set("loadfile",LuaValue.NIL);
 
         for (int x = 0; x < APIS.size(); x++){
-            APIS.get(x).insertSelf(global);
+            Lua.InductAPI(APIS.get(x), global);
         }
 
         return global;

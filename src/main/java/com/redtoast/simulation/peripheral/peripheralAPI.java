@@ -1,10 +1,10 @@
-package com.redtoast.lua.peripheral;
+package com.redtoast.simulation.peripheral;
 
 import com.redtoast.Computer;
-import com.redtoast.lua.LuaAPI;
+import com.redtoast.simulation.LangAPI.LangAPI;
 import net.minecraft.block.entity.BlockEntity;
 
-public class peripheralAPI extends LuaAPI {
+public class peripheralAPI extends LangAPI {
     private BlockEntity parent;
     private Computer computer;
     public <BlockEntityClass extends BlockEntity> peripheralAPI(String name, BlockEntityClass Parent, Computer host) {

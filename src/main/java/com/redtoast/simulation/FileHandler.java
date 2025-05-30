@@ -1,4 +1,4 @@
-package com.redtoast.lua;
+package com.redtoast.simulation;
 
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.resource.Resource;

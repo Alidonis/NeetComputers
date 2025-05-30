@@ -8,6 +8,7 @@ import com.redtoast.blocks.LargeComputerRenderer;
 import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
+import com.redtoast.simulation.EventGeneric;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -40,6 +41,10 @@ public class NeetComputers implements ModInitializer {
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
+
+	//internal config
+	public static final String version = "NeetComputers 0.1 beta";
+
 	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath;
@@ -81,7 +86,9 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register(networkingCableItem, group);
 
 		ServerPlayNetworking.registerGlobalReceiver(EVENT_PACKET, (server, player, handler, buf, responseSender) -> {
-
+			UUID uuid = buf.readUuid();
+			EventGeneric event = EventGeneric.fromPacket(buf);
+			computerMap.get(uuid).queueEvent(event);
 		});
 	}
 

@@ -3,12 +3,12 @@ package com.redtoast;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.lua.FileHandler;
-import com.redtoast.lua.LuaEvent;
-import com.redtoast.lua.LuaVM;
-import com.redtoast.lua.IDFactory;
-import com.redtoast.lua.peripheral.peripheralAPI;
-import com.redtoast.lua.peripheral.peripheralWrapper;
+import com.redtoast.simulation.FileHandler;
+import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.LuaVM;
+import com.redtoast.simulation.IDFactory;
+import com.redtoast.simulation.peripheral.peripheralAPI;
+import com.redtoast.simulation.peripheral.peripheralWrapper;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -43,6 +43,7 @@ public abstract class Computer {
     private RGBGraphicsArray Graphics;
     private LinkedList<peripheralWrapper> peripherals;
     public Vector2i mousePos;
+    private final LinkedList<EventGeneric> eventQue = new LinkedList<>();
     private ComputerSpecs specs;
 
     public Computer(ComputerSpecs specifications){
@@ -76,7 +77,7 @@ public abstract class Computer {
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
 
     public boolean attachPeripheral(peripheralWrapper peripheral){
-        for (com.redtoast.lua.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
+        for (com.redtoast.simulation.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
             if (peripheralWrapper.uuid.equals(peripheral.uuid)) {
                 return false;
             }
@@ -88,7 +89,7 @@ public abstract class Computer {
         if (peripherals == null){
             peripherals = new LinkedList<>();
         }
-        for (com.redtoast.lua.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
+        for (com.redtoast.simulation.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
             if (peripheralWrapper.uuid.equals(new peripheralWrapper(peripheral).uuid)) {
                 return false;
             }
@@ -107,9 +108,10 @@ public abstract class Computer {
         return false;
     }
 
-    public void queueEvent(LuaEvent event) {
+    public void queueEvent(EventGeneric event) {
         if (getWorld().isClient()){
             PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeUuid(uuid);
             event.writeToPacket(buf);
             ClientPlayNetworking.send(NeetComputers.EVENT_PACKET, buf);
         }else{
@@ -209,6 +211,11 @@ public abstract class Computer {
                 }
 
                 @Override
+                public LinkedList<EventGeneric> getEvents() {
+                    return eventQue;
+                }
+
+                @Override
                 public ComputerSpecs getSpecifications() {
                     return specs;
                 }
@@ -224,6 +231,11 @@ public abstract class Computer {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {
                     return peripherals;
+                }
+
+                @Override
+                public LinkedList<EventGeneric> getEvents() {
+                    return eventQue;
                 }
 
                 @Override

@@ -1,4 +1,4 @@
-package com.redtoast.lua;
+package com.redtoast.simulation;
 
 import net.minecraft.network.PacketByteBuf;
 import org.luaj.vm2.LuaValue;
@@ -6,10 +6,10 @@ import org.luaj.vm2.Varargs;
 
 import java.util.LinkedList;
 
-public class LuaEvent {
+public class EventGeneric {
     private String Name;
     private Varargs args;
-    public LuaEvent(String name, Varargs values){
+    public EventGeneric(String name, Varargs values){
         Name = name;
         args = values;
     }
@@ -81,7 +81,7 @@ public class LuaEvent {
         return packet;
     }
 
-    public static LuaEvent fromPacket(PacketByteBuf packet){
+    public static EventGeneric fromPacket(PacketByteBuf packet){
         String name = packet.readString();
         short argCount = packet.readShort();
         int types = packet.readInt();
@@ -114,6 +114,6 @@ public class LuaEvent {
             valuesArray[i] = value;
             i++;
         }
-        return new LuaEvent(name, LuaValue.varargsOf(valuesArray));
+        return new EventGeneric(name, LuaValue.varargsOf(valuesArray));
     }
 }

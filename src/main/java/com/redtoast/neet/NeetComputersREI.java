@@ -14,7 +14,7 @@ public class NeetComputersREI  implements REIClientPlugin {
         zones.register(GraphicsScreen.class, screen -> {
             // screen is OurScreen
             // returns the list of rectangle
-            return List.of(new Rectangle(0,0,Integer.MAX_VALUE,Integer.MAX_VALUE));
+            return List.of(new Rectangle(0,0,-99999,99999));
         });
     }
 }

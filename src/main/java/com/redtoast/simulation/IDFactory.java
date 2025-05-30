@@ -1,4 +1,4 @@
-package com.redtoast.lua;
+package com.redtoast.simulation;
 
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;

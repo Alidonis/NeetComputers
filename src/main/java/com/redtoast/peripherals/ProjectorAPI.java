@@ -3,9 +3,12 @@ package com.redtoast.peripherals;
 import com.redtoast.Computer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.lua.LuaFunction;
-import com.redtoast.lua.Rules;
-import com.redtoast.lua.peripheral.peripheralAPI;
+import com.redtoast.simulation.LangAPI.LambdaFunction;
+import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
+import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
+import com.redtoast.simulation.LangAPI.Value;
+import com.redtoast.simulation.LangAPI.VarType;
+import com.redtoast.simulation.peripheral.peripheralAPI;
 import org.luaj.vm2.LuaValue;
 
 public class ProjectorAPI extends peripheralAPI {
@@ -18,43 +21,43 @@ public class ProjectorAPI extends peripheralAPI {
         int sizex = computer.getBinaryGraphics().getSize().x, sizey = computer.getBinaryGraphics().getSize().y;
         graphics = new BinaryGraphicsArray(sizex, sizey);
 
-        set("drawPixel", new LuaFunction() {
+        set("drawPixel", new LambdaFunction() {
             @Override
-            public LuaValue main(LuaValue[] args) {
-                int x = args[0].toint();
-                int y = args[1].toint();
-                if (x<1 || y<1 || x>sizex || y>sizey) return LuaValue.error("values not in allowed range");
+            public Value main(FunctionInput args) {
+                int x = args.get(0).toInt();
+                int y = args.get(1).toInt();
+                if (x<1 || y<1 || x>sizex || y>sizey) return Value.asError("values not in allowed range");
                 graphics.set(x-1,y-1,true);
-                return LuaValue.NIL;
+                return Value.NULL;
             }
 
             @Override
-            public Rules getRules() {
-                return new Rules("number").add("number");
-            }
-        });
-
-        set("getSize", new LuaFunction() {
-            @Override
-            public LuaValue main(LuaValue[] args) {
-                return LuaValue.listOf(new LuaValue[]{LuaValue.valueOf(sizex), LuaValue.valueOf(sizey)});
-            }
-
-            @Override
-            public Rules getRules() {
-                return new Rules();
+            public ParameterRules getRules() {
+                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER);
             }
         });
 
-        set("drawLine", new LuaFunction() {
+        set("getSize", new LambdaFunction() {
             @Override
-            public LuaValue main(LuaValue[] args) {
-                int x1 = args[0].toint();
-                int y1 = args[1].toint();
-                int x2 = args[2].toint();
-                int y2 = args[3].toint();
+            public Value main(FunctionInput args) {
+                return Value.toList(new Value[]{new Value(sizex), new Value(sizey)});
+            }
+
+            @Override
+            public ParameterRules getRules() {
+                return new ParameterRules();
+            }
+        });
+
+        set("drawLine", new LambdaFunction() {
+            @Override
+            public Value main(FunctionInput args) {
+                int x1 = args.get(0).toInt();
+                int y1 = args.get(1).toInt();
+                int x2 = args.get(2).toInt();
+                int y2 = args.get(3).toInt();
                 if (x1 < 1 || x2 < 1 || y1 < 1 || y2 < 1 || x1 > sizex || x2 > sizex || y1 > sizey || y2 > sizey)
-                    return LuaValue.error("values not in allowed range");
+                    return Value.asError("values not in allowed range");
                 //equation from here:
                 //https://www3.cs.stonybrook.edu/~cse328/2021-lecture-notes/line-drawing.pdf
                 int dy = y2 - y1;
@@ -63,60 +66,60 @@ public class ProjectorAPI extends peripheralAPI {
                     int y = (int) Math.round(y1 + (i - x1) * ((double) dy / dx));
                     graphics.set(i - 1, y - 1, true);
                 }
-                return LuaValue.NIL;
+                return Value.NULL;
             }
 
             @Override
-            public Rules getRules() {
-                return new Rules("number").add("number").add("number").add("number");
+            public ParameterRules getRules() {
+                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER);
             }
         });
 
-        set("drawRec", new LuaFunction() {
+        set("drawRec", new LambdaFunction() {
             @Override
-            public LuaValue main(LuaValue[] args) {
-                int x1 = args[0].toint();
-                int y1 = args[1].toint();
-                int x2 = args[2].toint();
-                int y2 = args[3].toint();
-                if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) return LuaValue.error("values not in allowed range");
+            public Value main(FunctionInput args) {
+                int x1 = args.get(0).toInt();
+                int y1 = args.get(1).toInt();
+                int x2 = args.get(2).toInt();
+                int y2 = args.get(3).toInt();
+                if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) return Value.asError("values not in allowed range");
                 for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
                     for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
                         graphics.set(x-1,y-1,true);
                     }
                 }
-                return LuaValue.NIL;
+                return Value.NULL;
             }
 
             @Override
-            public Rules getRules() {
-                return new Rules("number").add("number").add("number").add("number");
+            public ParameterRules getRules() {
+                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER);
             }
         });
 
-        set("draw", new LuaFunction() {
+        set("draw", new LambdaFunction() {
             @Override
-            public LuaValue main(LuaValue[] args) {
+            public Value main(FunctionInput args) {
                 computer.setBinaryGraphics(graphics);
-                return LuaValue.NIL;
+                return Value.NULL;
             }
 
             @Override
-            public Rules getRules() {
-                return new Rules();
+            public ParameterRules getRules() {
+                return new ParameterRules();
             }
         });
 
-        set("clear", new LuaFunction() {
+        set("clear", new LambdaFunction() {
             @Override
-            public LuaValue main(LuaValue[] args) {
+            public Value main(FunctionInput args) {
                 graphics = new BinaryGraphicsArray(sizex,sizey);
-                return LuaValue.NIL;
+                return Value.NULL;
             }
 
             @Override
-            public Rules getRules() {
-                return new Rules();
+            public ParameterRules getRules() {
+                return new ParameterRules();
             }
         });
     }
