@@ -58,21 +58,45 @@ public class Value<Type> {
 
     public Integer toInt(){
         if (instanceOf(VarType.NUMBER)){
-            return (int) value;
+            switch (type){
+                case INT:
+                    return (Integer) value;
+                case DOUBLE:
+                    return ((Double) value).intValue();
+                case FLOAT:
+                    return ((Float) value).intValue();
+            }
+            return null;
         }else{
             return null;
         }
     }
     public Double toDouble(){
         if (instanceOf(VarType.NUMBER)){
-            return (double) value;
+            switch (type){
+                case INT:
+                    return ((Integer) value).doubleValue();
+                case DOUBLE:
+                    return (Double) value;
+                case FLOAT:
+                    return ((Float) value).doubleValue();
+            }
+            return null;
         }else{
             return null;
         }
     }
     public Float toFloat(){
         if (instanceOf(VarType.NUMBER)){
-            return (float) value;
+            switch (type){
+                case INT:
+                    return ((Integer) value).floatValue();
+                case DOUBLE:
+                    return ((Double) value).floatValue();
+                case FLOAT:
+                    return (Float) value;
+            }
+            return null;
         }else{
             return null;
         }
