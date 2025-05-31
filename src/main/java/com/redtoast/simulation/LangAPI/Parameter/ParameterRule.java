@@ -17,8 +17,8 @@ public class ParameterRule {
         nullable = optional;
         mode = false;
     }
-    public ParameterRule(VarType filter2){
-        type = filter2;
+    public ParameterRule(VarType filter){
+        type = filter;
         mode = true;
     }
     public ParameterRule(VarType filter, boolean optional){
@@ -37,11 +37,11 @@ public class ParameterRule {
             return Value.VarName(type);
         }
     }
-    public boolean check(Value value2){
+    public boolean check(Value value){
         if (!mode){
-            return func.rule(value2);
+            return func.rule(value);
         }else{
-            return value2.instanceOf(type);
+            return value.instanceOf(type);
         }
     }
 }

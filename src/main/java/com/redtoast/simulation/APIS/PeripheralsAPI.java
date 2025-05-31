@@ -107,7 +107,7 @@ public abstract class PeripheralsAPI extends LangAPI {
                 LinkedList<peripheralWrapper> periphs = getParentsPeripherals();
                 for (int i = 0; i < periphs.size(); i++){
                     if (Objects.equals(periphs.get(i).uuid.toString(), uuid)){
-                        return periphs.get(i).table.asValue();
+                        return periphs.get(i).table;
                     }
                 }
                 return Value.NULL;
@@ -131,9 +131,9 @@ public abstract class PeripheralsAPI extends LangAPI {
                 }
                 Value[] outputArray = new Value[output.size()];
                 for (int i = 0; i < output.size(); i++){
-                    outputArray[i] = output.get(i).table.asValue();
+                    outputArray[i] = output.get(i).table;
                 }
-                return Value.toList(outputArray);
+                return Value.toTuple(outputArray);
             }
 
             @Override

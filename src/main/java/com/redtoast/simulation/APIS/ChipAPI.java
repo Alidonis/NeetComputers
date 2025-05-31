@@ -2,27 +2,29 @@ package com.redtoast.simulation.APIS;
 
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
-import com.redtoast.simulation.*;
 import com.redtoast.simulation.LangAPI.LangAPI;
 import com.redtoast.simulation.LangAPI.LambdaFunction;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import com.redtoast.simulation.LangAPI.Value;
+import com.redtoast.simulation.LangAPI.ValueTypes.Function;
 import com.redtoast.simulation.LangAPI.VarType;
+import com.redtoast.simulation.LangThread;
+import com.redtoast.simulation.Runtime;
 
 import java.util.LinkedList;
 import java.util.UUID;
 
 public abstract class ChipAPI extends LangAPI {
     Computer computer;
-    LuaVM vm;
+    Runtime vm;
 
-    public abstract LinkedList<LuaVM.Thread> getThreads();
-    public abstract LuaVM.Thread getThread();
-    public abstract void addThread(LuaVM.Thread thread);
-    public abstract void registerEvent(String event, org.luaj.vm2.LuaFunction func);
+    public abstract LinkedList<LangThread> getThreads();
+    public abstract LangThread getThread();
+    public abstract void addThread(LangThread thread);
+    public abstract void registerEvent(String event, Function func);
 
-    public ChipAPI(Computer parent, LuaVM VM, int maxThreadCount) {
+    public ChipAPI(Computer parent, Runtime VM, int maxThreadCount) {
         super("chip");
         computer = parent;
         vm = VM;
@@ -80,9 +82,7 @@ public abstract class ChipAPI extends LangAPI {
             public Value main(FunctionInput args) {
                 if (getThreads().size()>=maxThreadCount) return Value.asError("Thread cap for this machine reached, cant make more threads");
                 String text = (String) args.get(0).getValue();
-                LuaVM.Thread thread = new LuaVM.Thread(vm,text,0,"null");
-                UUID uuid = thread.uuid;
-                addThread(thread);
+                UUID uuid = vm.MakeThread(text, "Lua 5.2");
                 return new Value(uuid.toString());
             }
 
@@ -96,7 +96,7 @@ public abstract class ChipAPI extends LangAPI {
         set("getCurrentThread", new LambdaFunction() {
             @Override
             public Value main(FunctionInput args) {
-                UUID uuid = getThread().uuid;
+                UUID uuid = getThread().getUuid();
                 return new Value(uuid.toString());
             }
 
@@ -109,10 +109,10 @@ public abstract class ChipAPI extends LangAPI {
         set("killThread", new LambdaFunction() {
             @Override
             public Value main(FunctionInput args) {
-                LinkedList<LuaVM.Thread> threads = getThreads();
-                for (LuaVM.Thread thread : threads){
-                    if (thread.uuid.toString().equals(args.get(0).getValue())){
-                        thread.Kill();
+                LinkedList<LangThread> threads = getThreads();
+                for (LangThread thread : threads){
+                    if (thread.getUuid().toString().equals(args.get(0).getValue())){
+                        thread.kill();
                         return Value.TRUE;
                     }
                 }

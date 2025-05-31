@@ -5,7 +5,7 @@ import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.FileHandler;
 import com.redtoast.simulation.EventGeneric;
-import com.redtoast.simulation.LuaVM;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.IDFactory;
 import com.redtoast.simulation.peripheral.peripheralAPI;
 import com.redtoast.simulation.peripheral.peripheralWrapper;
@@ -30,7 +30,7 @@ import java.util.UUID;
 public abstract class Computer {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     private static final Logger errer = LoggerFactory.getLogger("NeetComputers:error");
-    private LuaVM VM;
+    private Runtime VM;
     private int pointer = 0;
     private boolean loaded = false;
     private int ROM = -1;
@@ -204,7 +204,7 @@ public abstract class Computer {
                     BinGraphics.set(x,y,false);
                 }
             }
-            VM = new LuaVM(this, FS, pointer, ROM) {
+            VM = new Runtime(this, FS, pointer, ROM) {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {
                     return peripherals;
@@ -227,7 +227,7 @@ public abstract class Computer {
 
     public void staticStart(){
         if (isOn && VM==null){
-            VM = new LuaVM(this, FS, pointer, ROM) {
+            VM = new Runtime(this, FS, pointer, ROM) {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {
                     return peripherals;
