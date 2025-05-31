@@ -33,7 +33,6 @@ public class LuaThread extends LangThread {
         super();
         try{
             specs = specification;
-            System.out.println(script);
             LuaValue chunk = parentRuntime.env.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(parentRuntime.env, chunk);
             parentRuntime.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specification.BatchSize)});
@@ -56,26 +55,20 @@ public class LuaThread extends LangThread {
             if (result.arg(2).toString().equals("cannot resume dead coroutine")) {
                 log("LuaThread has ran to completion!");
             } else {
-                System.out.println(result.arg(2).toString());
                 kill(result.arg(2).toString());
                 error("LuaThread threw " + result.arg(2).toString());
             }
-            System.out.println(2);
             kill();
         }
     }
 
     @Override
     public void Tick(){
-        System.out.println("hell -2");
         if (!isAlive()) return;
         ticket += (short) specs.Batches;
         while (ticket>0) {
-            System.out.println("hell -1");
             if (!isAlive()) return;
-            System.out.println("hell");
             step();
-            System.out.println(isAlive());
         }
     }
 }

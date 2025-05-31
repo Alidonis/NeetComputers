@@ -41,7 +41,6 @@ public abstract class Runtime {
         LanguageGeneric langObject = NeetComputers.getLanguage(lang);
         assert langObject != null;
         LangThread thread = langObject.createThread(script, this, parent, getSpecifications());
-        System.out.println("i hate my life");
         threads.add(thread);
         return thread.getUuid();
     }

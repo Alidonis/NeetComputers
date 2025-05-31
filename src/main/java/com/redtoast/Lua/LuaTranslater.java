@@ -24,7 +24,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
         Varargs data = fromValueWithoutMetadata(var);
         if (var.hasMetadata() && !var.instanceOf(VarType.TUPLE)){
             assert data instanceof LuaValue;
-            Varargs val = fromValue(var.getMetaTable().asValue());
+            Varargs val = fromValueWithoutMetadata(var.getMetaTable().asValue());
             ((LuaValue) data).setmetatable((LuaValue) val);
         }
         return data;
@@ -68,7 +68,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                     values[i] = (LuaValue) rawValue;
                 }
                 LuaTable array = LuaValue.listOf(values);
-                if (var.instanceOf(VarType.TUPLE)){
+                if (var.getValue() instanceof Tuple){
                     return array.unpack();
                 }else{
                     return array;
@@ -78,20 +78,12 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                 return new FunctionWrapper() {
                     @Override
                     public Varargs invoke(Varargs args) {
-                        System.out.println("fuck");
                         Value[] values = new Value[args.narg()];
-                        System.out.println("fuck 0.1");
                         for (int i = 0; i < args.narg(); i++){
-                            System.out.println("fuck 0.2"+i);
-                            System.out.println(args.arg(i+1).typename());
                             values[i] = toValue(args.arg(i+1));
-                            System.out.println("fuck 0.3"+i);
                         }
-                        System.out.println("fuck 0");
                         ParameterRules rules = ((Function) var.getValue()).getRules();
-                        System.out.println("fuck 1");
                         ParameterCheckReturn check = ParameterRules.checkParameters(values, rules);
-                        System.out.println("fuck 2");
                         if (check.isError()){
                             String message = check.getMessage()
                                 .replaceAll("null", "nil")
@@ -103,7 +95,6 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                         }else{
                             try {
                                 Value output = ((Function) var.getValue()).call(check.getFunctionInput());
-                                System.out.println(output.getValue());
                                 return fromValue(output);
                             }catch (Exception e){
                                 Function.logError(e.toString());
@@ -125,7 +116,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
     public Value<?> toValue(Varargs var){
         Value<?> data = toValueWithoutMetadata(var);
         if (var instanceof LuaValue val){
-            data.setMetaTable(toValue(val).toTable());
+            data.setMetaTable(toValueWithoutMetadata(val).toTable());
         }
         return data;
     }

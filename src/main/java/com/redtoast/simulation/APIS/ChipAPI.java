@@ -82,7 +82,6 @@ public abstract class ChipAPI extends LangAPI {
             public Value main(FunctionInput args) {
                 if (getThreads().size()>=maxThreadCount) return Value.asError("Thread cap for this machine reached, cant make more threads");
                 String text = (String) args.get(0).getValue();
-                System.out.println(1);
                 UUID uuid = vm.MakeThread(text, "Lua 5.2");
                 return new Value(uuid.toString());
             }

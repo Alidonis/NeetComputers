@@ -12,6 +12,7 @@ public class Value<Type> {
     private Type value;
     private VarType type = VarType.NULL;
     private Table metaTable = null;
+    private boolean hasMetadata = false;
     public Value(Type val){
         if (val instanceof Integer){
             type = VarType.INT;
@@ -111,12 +112,13 @@ public class Value<Type> {
 
     public void setMetaTable(Table metadata){
         metaTable = metadata;
+        hasMetadata = true;
     }
     public Table getMetaTable(){
         return metaTable;
     }
     public boolean hasMetadata(){
-        return metaTable!=null;
+        return hasMetadata;
     }
     public void setMeta(String key, Value value){
         metaTable.put(key, value);
