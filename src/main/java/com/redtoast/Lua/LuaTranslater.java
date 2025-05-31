@@ -1,4 +1,4 @@
-package com.redtoast.simulation;
+package com.redtoast.Lua;
 
 import com.redtoast.simulation.LangAPI.LangAPI;
 import com.redtoast.simulation.LangAPI.LanguageTranslater;
@@ -10,9 +10,11 @@ import com.redtoast.simulation.LangAPI.ValueTypes.*;
 import com.redtoast.simulation.LangAPI.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globals> {
-    private abstract class FunctionWrapper extends VarArgFunction {
+    private abstract static class FunctionWrapper extends VarArgFunction {
         @Override
         public abstract Varargs invoke(Varargs args);
     }
@@ -22,7 +24,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
         Varargs data = fromValueWithoutMetadata(var);
         if (var.hasMetadata() && !var.instanceOf(VarType.TUPLE)){
             assert data instanceof LuaValue;
-            Varargs val = fromValueWithoutMetadata(var.getMetaTable().asValue());
+            Varargs val = fromValue(var.getMetaTable().asValue());
             ((LuaValue) data).setmetatable((LuaValue) val);
         }
         return data;
@@ -66,7 +68,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                     values[i] = (LuaValue) rawValue;
                 }
                 LuaTable array = LuaValue.listOf(values);
-                if (var.getType()==VarType.TUPLE){
+                if (var.instanceOf(VarType.TUPLE)){
                     return array.unpack();
                 }else{
                     return array;
@@ -76,25 +78,35 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                 return new FunctionWrapper() {
                     @Override
                     public Varargs invoke(Varargs args) {
-                        Value[] values = new Value<?>[args.narg()];
+                        System.out.println("fuck");
+                        Value[] values = new Value[args.narg()];
+                        System.out.println("fuck 0.1");
                         for (int i = 0; i < args.narg(); i++){
+                            System.out.println("fuck 0.2"+i);
+                            System.out.println(args.arg(i+1).typename());
                             values[i] = toValue(args.arg(i+1));
+                            System.out.println("fuck 0.3"+i);
                         }
+                        System.out.println("fuck 0");
                         ParameterRules rules = ((Function) var.getValue()).getRules();
+                        System.out.println("fuck 1");
                         ParameterCheckReturn check = ParameterRules.checkParameters(values, rules);
+                        System.out.println("fuck 2");
                         if (check.isError()){
-                            return LuaValue.error(check.getMessage()
-                                    .replaceAll("null", "nil")
-                                    .replaceAll("int", "number")
-                                    .replaceAll("double", "number")
-                                    .replaceAll("float", "number")
-                            );
+                            String message = check.getMessage()
+                                .replaceAll("null", "nil")
+                                .replaceAll("int", "number")
+                                .replaceAll("double", "number")
+                                .replaceAll("float", "number");
+                            Function.logError(message);
+                            return LuaValue.error(message);
                         }else{
                             try {
                                 Value output = ((Function) var.getValue()).call(check.getFunctionInput());
+                                System.out.println(output.getValue());
                                 return fromValue(output);
                             }catch (Exception e){
-                                Function.logError(e);
+                                Function.logError(e.toString());
                                 return LuaValue.error("Unexpected java error, check log for information");
                             }
                         }
@@ -113,7 +125,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
     public Value<?> toValue(Varargs var){
         Value<?> data = toValueWithoutMetadata(var);
         if (var instanceof LuaValue val){
-            data.setMetaTable(toValueWithoutMetadata(val).toTable());
+            data.setMetaTable(toValue(val).toTable());
         }
         return data;
     }

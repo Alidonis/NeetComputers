@@ -10,8 +10,8 @@ public abstract class Function{
     private ParameterRules ruleset;
 
     private static final Logger error = LoggerFactory.getLogger("Neetcomputer: java function");
-    public static void logError(Exception e){
-        error.warn(e.toString());
+    public static void logError(String e){
+        error.warn(e);
     }
 
     public Function(){

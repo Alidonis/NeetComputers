@@ -1,6 +1,7 @@
 package com.redtoast.neet;
 
 import com.redtoast.Computer;
+import com.redtoast.Lua.LuaMaster;
 import com.redtoast.blocks.LargeBlockComputer;
 import com.redtoast.blocks.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
@@ -9,6 +10,8 @@ import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.LangAPI.LanguageTranslater;
+import com.redtoast.simulation.LanguageGeneric;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -32,22 +35,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.UUID;
 
 public class NeetComputers implements ModInitializer {
+
+	//create packet id's and screen handler
 	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
 	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
-	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 
 	//internal config
 	public static final String version = "NeetComputers 0.1 beta";
 
+	//important resources
+	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath;
+
+	//internal language processing
+	private static boolean LangsLoaded = false;
+	protected static LanguageGeneric[] LanguageCache;
+	protected static LanguageTranslater[] translaters;
+	private final static LinkedList<LanguageGeneric> languageGenerics = new LinkedList<>();
 
 	@Override
 	public void onInitialize() {
@@ -90,13 +104,69 @@ public class NeetComputers implements ModInitializer {
 			EventGeneric event = EventGeneric.fromPacket(buf);
 			computerMap.get(uuid).queueEvent(event);
 		});
+
+		registerLanguage(new LuaMaster());
+	}
+
+	public void registerLanguage(LanguageGeneric language){
+		for (LanguageGeneric lang : languageGenerics){
+			if (lang.getVersion().equals(language.getVersion())){
+				return;
+			}
+		}
+		languageGenerics.add(language);
 	}
 
 	public static void updateServer(MinecraftServer server) {
 		worldPath = server.getSavePath(WorldSavePath.ROOT);
-		if (!NeetComputers.worldPath.resolve("neetcomputers").toFile().exists()){
+		if (!worldPath.resolve("neetcomputers").toFile().exists()){
 			LOGGER.info("Generating neetcomputers world directory");
-			NeetComputers.worldPath.resolve("neetcomputers").toFile().mkdir();
+			worldPath.resolve("neetcomputers").toFile().mkdir();
 		}
+		//process lang translaters
+		if (!LangsLoaded){
+			LangsLoaded = true;
+			LanguageCache = new LanguageGeneric[languageGenerics.size()];
+			translaters = new LanguageTranslater[languageGenerics.size()];
+			for (int i = 0; i < languageGenerics.size(); i++){
+				LanguageCache[i] = languageGenerics.get(i);
+				translaters[i] = languageGenerics.get(i).generateTranslationClass();
+			}
+		}
+	}
+
+	protected static LanguageTranslater getTranslater(String lang){
+		for (int i = 0; i < LanguageCache.length; i++){
+			if (LanguageCache[i].getVersion().equals(lang)){
+				return translaters[i];
+			}
+		}
+		return null;
+	}
+
+	public static String[] getLangs(){
+		String[] output = new String[LanguageCache.length];
+		for (int i = 0; i < LanguageCache.length; i++){
+			output[i] = LanguageCache[i].getVersion();
+		}
+		return output;
+	}
+
+	public static LanguageGeneric getLanguage(String lang){
+		for (int i = 0; i < LanguageCache.length; i++){
+			if (LanguageCache[i].getVersion().equals(lang)){
+				return LanguageCache[i];
+			}
+		}
+		return null;
+	}
+
+	public static boolean hasLanguage(String lang){
+		for (int i = 0; i < LanguageCache.length; i++){
+			if (LanguageCache[i].getVersion().equals(lang)){
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -6,12 +6,12 @@ import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
 import com.redtoast.simulation.LangAPI.Parameter.LambdaRule;
 import com.redtoast.simulation.LangAPI.Value;
 import com.redtoast.simulation.LangAPI.VarType;
-import com.redtoast.simulation.LuaVM;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import org.luaj.vm2.LuaValue;
 
 public class FSAPI extends LangAPI {
-    public FSAPI(LuaVM vm) {
+    public FSAPI(Runtime vm) {
         super("fs");
 
         LambdaRule ValidPath = new LambdaRule() {
