@@ -116,7 +116,6 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof LargeEntityComputer computerBlock) {
-                computerBlock.computer.staticStart();
                 computerBlock.computer.Tick(world);
                 BlockState current = world.getBlockState(blockPos);
                 if (current.get(LargeBlockComputer.ON) != computerBlock.computer.IsOn()) {

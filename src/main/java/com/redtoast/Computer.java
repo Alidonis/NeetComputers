@@ -225,8 +225,8 @@ public abstract class Computer {
         }
     }
 
-    public void staticStart(){
-        if (isOn && VM==null){
+    private void staticStart(){
+        if (isOn && VM==null && loaded && FS!=null){
             VM = new Runtime(this, FS, pointer, ROM) {
                 @Override
                 public LinkedList<peripheralWrapper> getPeripherals() {
@@ -270,6 +270,7 @@ public abstract class Computer {
 
     public void Tick(World world){
         if (loaded){
+            staticStart();
             if (NeetComputers.worldPath!=null && FS==null){
                 FS = new FileHandler(pointer,ROM,"null");
             }
