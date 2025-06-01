@@ -32,7 +32,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory, ClientEntityEvents.Load {
+public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory {
     public Computer computer;
     public RGBGraphicsArray graphics;
 
@@ -112,17 +112,11 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
         computer.Load(nbt);
     }
 
-    @Override
-    public void onLoad(Entity entity, ClientWorld world) {
-        if (this.world != null && !this.world.isClient) {
-            computer.staticStart();
-        }
-    }
-
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof LargeEntityComputer computerBlock) {
+                computerBlock.computer.staticStart();
                 computerBlock.computer.Tick(world);
                 BlockState current = world.getBlockState(blockPos);
                 if (current.get(LargeBlockComputer.ON) != computerBlock.computer.IsOn()) {
