@@ -32,7 +32,7 @@ public abstract class ChipAPI extends LangAPI {
         set("getTime", new LambdaFunction() {
             @Override
             public Value main(FunctionInput args) {
-                return new Value(System.currentTimeMillis());
+                return new Value<>((int) System.currentTimeMillis());
             }
 
             @Override

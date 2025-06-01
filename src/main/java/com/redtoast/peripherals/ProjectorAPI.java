@@ -40,7 +40,7 @@ public class ProjectorAPI extends peripheralAPI {
         set("getSize", new LambdaFunction() {
             @Override
             public Value main(FunctionInput args) {
-                return Value.toList(new Value[]{new Value(sizex), new Value(sizey)});
+                return Value.toTuple(new Value[]{new Value(sizex), new Value(sizey)});
             }
 
             @Override

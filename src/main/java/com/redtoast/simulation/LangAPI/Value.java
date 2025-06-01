@@ -16,6 +16,8 @@ public class Value<Type> {
     public Value(Type val){
         if (val instanceof Integer){
             type = VarType.INT;
+        }if (val instanceof Long){
+            type = VarType.INT;
         }else if (val instanceof Double){
             type = VarType.DOUBLE;
         }else if (val instanceof Float){
