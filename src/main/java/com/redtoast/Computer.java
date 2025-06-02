@@ -76,6 +76,10 @@ public abstract class Computer {
     }
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
 
+    public ComputerSpecs getSpecifications(){
+        return specs;
+    }
+
     public boolean attachPeripheral(peripheralWrapper peripheral){
         for (com.redtoast.simulation.peripheral.peripheralWrapper peripheralWrapper : peripherals) {
             if (peripheralWrapper.uuid.equals(peripheral.uuid)) {

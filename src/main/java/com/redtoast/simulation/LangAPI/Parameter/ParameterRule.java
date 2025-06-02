@@ -1,35 +1,22 @@
 package com.redtoast.simulation.LangAPI.Parameter;
 
+import com.redtoast.simulation.LangAPI.CustomParameter;
 import com.redtoast.simulation.LangAPI.Value;
 import com.redtoast.simulation.LangAPI.VarType;
 
 public class ParameterRule {
     private boolean mode;
     public VarType type;
-    private LambdaRule func;
-    private boolean nullable = false;
-    public ParameterRule(LambdaRule function){
+    private CustomParameter func;
+    public ParameterRule(CustomParameter function){
         func = function;
         mode = false;
     }
-    public ParameterRule(LambdaRule function, boolean optional){
-        func = function;
-        nullable = optional;
-        mode = false;
-    }
-    public ParameterRule(VarType filter){
+    public ParameterRule(VarType filter) {
         type = filter;
-        mode = true;
-    }
-    public ParameterRule(VarType filter, boolean optional){
-        type = filter;
-        nullable = optional;
         mode = true;
     }
 
-    public boolean isOptional(){
-        return nullable;
-    }
     public String getName(){
         if (!mode){
             return func.getName();

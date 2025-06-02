@@ -13,5 +13,5 @@ public enum VarType {
     TABLE,
     LIST,
     TUPLE,
-    ALL
+    ANY
 }

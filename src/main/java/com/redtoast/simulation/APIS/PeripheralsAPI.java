@@ -1,13 +1,10 @@
 package com.redtoast.simulation.APIS;
 
-import com.redtoast.simulation.LangAPI.LangAPI;
-import com.redtoast.simulation.LangAPI.LambdaFunction;
+import com.redtoast.simulation.LangAPI.*;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
 import com.redtoast.simulation.LangAPI.Parameter.LambdaRule;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
-import com.redtoast.simulation.LangAPI.Value;
 import com.redtoast.simulation.LangAPI.ValueTypes.Table;
-import com.redtoast.simulation.LangAPI.VarType;
 import com.redtoast.simulation.peripheral.peripheralWrapper;
 
 import java.util.LinkedList;
@@ -22,7 +19,7 @@ public abstract class PeripheralsAPI extends LangAPI {
         metaUUID.put("UUID_source", "peripheral");
         metaUUID.put("tag","uuid");
 
-        LambdaRule validPeripheral = new LambdaRule() {
+        CustomParameter validPeripheral = new CustomParameter() {
             @Override
             public boolean rule(Value arg) {
                 if (!arg.instanceOf(VarType.TABLE)) return false;

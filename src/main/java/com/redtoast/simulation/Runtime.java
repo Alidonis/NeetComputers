@@ -8,6 +8,7 @@ import com.redtoast.simulation.APIS.ChipAPI;
 import com.redtoast.simulation.APIS.FSAPI;
 import com.redtoast.simulation.APIS.PaintAPI;
 import com.redtoast.simulation.APIS.PeripheralsAPI;
+import com.redtoast.simulation.LangAPI.APILoader;
 import com.redtoast.simulation.LangAPI.LangAPI;
 import com.redtoast.simulation.LangAPI.ValueTypes.Function;
 import com.redtoast.simulation.peripheral.peripheralWrapper;
@@ -78,6 +79,7 @@ public abstract class Runtime {
             }
         });
         env = getGlobals();
+        new APILoader(this, parent);
         if (files.exists("rom/startup.lua")){
             MakeThread(files.readFile("rom/startup.lua"), "Lua 5.2");
         }else{

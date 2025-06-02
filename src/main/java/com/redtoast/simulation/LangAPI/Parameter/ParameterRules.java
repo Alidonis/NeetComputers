@@ -1,5 +1,6 @@
 package com.redtoast.simulation.LangAPI.Parameter;
 
+import com.redtoast.simulation.LangAPI.CustomParameter;
 import com.redtoast.simulation.LangAPI.Value;
 import com.redtoast.simulation.LangAPI.VarType;
 
@@ -8,7 +9,8 @@ import java.util.LinkedList;
 
 public class ParameterRules {
     private final LinkedList<ParameterRule> rules = new LinkedList<>();
-    private boolean packExtra = false;
+    public boolean packExtra = false;
+    public ParameterRule packRule;
 
     public final static ParameterRules ANY = new ParameterRules(){
         @Override
@@ -23,34 +25,26 @@ public class ParameterRules {
     public ParameterRules(VarType rule){
         rules.add(new ParameterRule(rule));
     }
-    public ParameterRules(LambdaRule rule){
+    public ParameterRules(CustomParameter rule){
         rules.add(new ParameterRule(rule));
-    }
-    public ParameterRules(VarType rule, boolean optional){
-        rules.add(new ParameterRule(rule, optional));
-    }
-    public ParameterRules(LambdaRule rule, boolean optional){
-        rules.add(new ParameterRule(rule, optional));
     }
 
     public ParameterRules add(VarType rule){
         rules.add(new ParameterRule(rule));
         return this;
     }
-    public ParameterRules add(LambdaRule rule){
+    public ParameterRules add(CustomParameter rule){
         rules.add(new ParameterRule(rule));
         return this;
     }
-    public ParameterRules add(VarType rule, boolean optional){
-        rules.add(new ParameterRule(rule, optional));
-        return this;
-    }
-    public ParameterRules add(LambdaRule rule, boolean optional){
-        rules.add(new ParameterRule(rule, optional));
-        return this;
-    }
-    public ParameterRules allowPacking(){
+    public ParameterRules allowPacking(VarType rule){
         packExtra = true;
+        packRule = new ParameterRule(rule);
+        return this;
+    }
+    public ParameterRules allowPacking(CustomParameter rule){
+        packExtra = true;
+        packRule = new ParameterRule(rule);
         return this;
     }
 
@@ -69,11 +63,7 @@ public class ParameterRules {
                         return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
                     }
                 }else{
-                    if (ruleset.rules.get(i).isOptional()){
-                        output.add(Value.NULL);
-                    }else{
-                        return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got null");
-                    }
+                    return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got null");
                 }
             }else{
                 if (ruleset.packExtra){

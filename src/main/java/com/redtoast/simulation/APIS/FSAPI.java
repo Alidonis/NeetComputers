@@ -1,11 +1,8 @@
 package com.redtoast.simulation.APIS;
 
-import com.redtoast.simulation.LangAPI.LangAPI;
-import com.redtoast.simulation.LangAPI.LambdaFunction;
+import com.redtoast.simulation.LangAPI.*;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
 import com.redtoast.simulation.LangAPI.Parameter.LambdaRule;
-import com.redtoast.simulation.LangAPI.Value;
-import com.redtoast.simulation.LangAPI.VarType;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import org.luaj.vm2.LuaValue;
@@ -14,7 +11,7 @@ public class FSAPI extends LangAPI {
     public FSAPI(Runtime vm) {
         super("fs");
 
-        LambdaRule ValidPath = new LambdaRule() {
+        CustomParameter ValidPath = new CustomParameter() {
             @Override
             public boolean rule(Value arg) {
                 if (arg.instanceOf(VarType.STRING)){

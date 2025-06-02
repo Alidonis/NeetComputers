@@ -9,9 +9,14 @@ import com.redtoast.blocks.LargeComputerRenderer;
 import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
+import com.redtoast.simulation.APIS.GraphicsAPI;
 import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.LangAPI.API;
+import com.redtoast.simulation.LangAPI.APILoader;
+import com.redtoast.simulation.LangAPI.APIRegistry;
 import com.redtoast.simulation.LangAPI.LanguageTranslater;
 import com.redtoast.simulation.LanguageGeneric;
+import com.redtoast.simulation.Runtime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -31,6 +36,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +112,13 @@ public class NeetComputers implements ModInitializer {
 		});
 
 		registerLanguage(new LuaMaster());
+
+		APILoader.addRegistry(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Runtime runtime, Computer computer) {
+				return new GraphicsAPI();
+			}
+		});
 	}
 
 	public void registerLanguage(LanguageGeneric language){
@@ -135,7 +148,7 @@ public class NeetComputers implements ModInitializer {
 		}
 	}
 
-	protected static LanguageTranslater getTranslater(String lang){
+	public static LanguageTranslater getTranslater(String lang){
 		for (int i = 0; i < LanguageCache.length; i++){
 			if (LanguageCache[i].getVersion().equals(lang)){
 				return translaters[i];

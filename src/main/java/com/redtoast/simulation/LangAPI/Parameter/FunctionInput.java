@@ -21,6 +21,10 @@ public class FunctionInput {
     public List getPacked(){
         return packed;
     }
+    public boolean isPacked(){
+        return doPacked;
+    }
+
     public int getSize(){
         return values.size();
     }

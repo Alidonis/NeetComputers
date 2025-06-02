@@ -16,8 +16,6 @@ public class Value<Type> {
     public Value(Type val){
         if (val instanceof Integer){
             type = VarType.INT;
-        }if (val instanceof Long){
-            type = VarType.INT;
         }else if (val instanceof Double){
             type = VarType.DOUBLE;
         }else if (val instanceof Float){
@@ -160,7 +158,7 @@ public class Value<Type> {
     }
 
     public boolean instanceOf(VarType comparison){
-        if (comparison==VarType.ALL) return true;
+        if (comparison==VarType.ANY) return true;
         if (comparison==VarType.NUMBER && type==VarType.INT) return true;
         if (comparison==VarType.NUMBER && type==VarType.DOUBLE) return true;
         if (comparison==VarType.NUMBER && type==VarType.FLOAT) return true;
@@ -213,7 +211,7 @@ public class Value<Type> {
                 return "function";
             case EXEMPTION:
                 return "exemption";
-            case ALL:
+            case ANY:
                 return "all";
         }
         return "null";
