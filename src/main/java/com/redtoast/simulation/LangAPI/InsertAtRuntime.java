@@ -6,7 +6,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface CustomRule {
-    public Class<? extends CustomParameter> rule();
+@Target(ElementType.FIELD)
+public @interface InsertAtRuntime {
 }

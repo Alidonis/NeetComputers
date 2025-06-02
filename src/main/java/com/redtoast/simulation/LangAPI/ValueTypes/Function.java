@@ -19,8 +19,16 @@ public abstract class Function{
     public Function(){
         ruleset = new ParameterRules();
     }
+    public Function(String Name){
+        name = Name;
+        ruleset = new ParameterRules();
+    }
     public Function(ParameterRules rules){
         ruleset = rules;
+    }
+    public Function(String Name, ParameterRules rules){
+        ruleset=rules;
+        name=Name;
     }
     public abstract Value call(FunctionInput parameters);
     public ParameterRules getRules(){

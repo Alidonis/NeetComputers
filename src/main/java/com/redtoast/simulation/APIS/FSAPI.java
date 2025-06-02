@@ -2,7 +2,6 @@ package com.redtoast.simulation.APIS;
 
 import com.redtoast.simulation.LangAPI.*;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
-import com.redtoast.simulation.LangAPI.Parameter.LambdaRule;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import org.luaj.vm2.LuaValue;

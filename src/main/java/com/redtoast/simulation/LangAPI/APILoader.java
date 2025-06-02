@@ -3,7 +3,6 @@ package com.redtoast.simulation.LangAPI;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
-import com.redtoast.simulation.LangAPI.Parameter.LambdaRule;
 import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import com.redtoast.simulation.LangAPI.ValueTypes.*;
 import com.redtoast.simulation.Runtime;
@@ -14,9 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.security.InvalidParameterException;
+import java.util.Collection;
 import java.util.LinkedList;
 
 public class APILoader {
@@ -81,12 +82,9 @@ public class APILoader {
                 }else if (parameters[i].getType()==Value[].class){
                     if (parameters[i].isAnnotationPresent(CustomRule.class)){
                         try{
-                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getConstructor();
-                            if (constructor.getParameters().length>0){
-                                throw new InvalidParameterException("Constructor cant have parameters");
-                            }
+                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
                             constructor.setAccessible(true);
-                            rules.allowPacking(constructor.newInstance());
+                            rules.add(constructor.newInstance());
                         }catch (Throwable e){
                             logger.warn("Failed to load api, threw: "+e.getMessage());
                             rules.allowPacking(VarType.ANY);
@@ -117,10 +115,7 @@ public class APILoader {
                 }else if (parameters[i].getType()==Value.class){
                     if (parameters[i].isAnnotationPresent(CustomRule.class)){
                         try{
-                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getConstructor();
-                            if (constructor.getParameters().length>0){
-                                throw new InvalidParameterException("Constructor cant have parameters");
-                            }
+                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
                             constructor.setAccessible(true);
                             rules.add(constructor.newInstance());
                         }catch (Throwable e){
@@ -313,8 +308,18 @@ public class APILoader {
                 functions.add(function);
             }
         }
-        if (obj instanceof API api){
-            functions.addAll(api.runtimeFunctions);
+        Field[] fields = _class.getFields();
+        for (Field field : fields){
+            if (field.isAnnotationPresent(InsertAtRuntime.class)){
+                System.out.println("yay "+field.getName());
+                try{
+                    functions.addAll((Collection<? extends Function>) field.get(obj));
+                }catch (Throwable ignored){
+                    logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), ignored.getMessage());
+                }
+            }else{
+                System.out.println("fuck "+field.getName());
+            }
         }
         Function[] output = new Function[functions.size()];
         for (int i = 0; i < functions.size(); i++){
