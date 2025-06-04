@@ -60,11 +60,11 @@ public class Value<Type> {
         if (instanceOf(VarType.NUMBER)){
             switch (type){
                 case INT:
-                    return (Integer) value;
+                    return ((Integer) value);
                 case DOUBLE:
-                    return ((Double) value).intValue();
+                    return (int)Math.floor((Double) value);
                 case FLOAT:
-                    return ((Float) value).intValue();
+                    return (int)Math.floor((Float) value);
             }
             return null;
         }else{
@@ -75,11 +75,11 @@ public class Value<Type> {
         if (instanceOf(VarType.NUMBER)){
             switch (type){
                 case INT:
-                    return ((Integer) value).doubleValue();
+                    return (double)((Integer) value);
                 case DOUBLE:
                     return (Double) value;
                 case FLOAT:
-                    return ((Float) value).doubleValue();
+                    return (double)((Float) value);
             }
             return null;
         }else{
@@ -90,9 +90,9 @@ public class Value<Type> {
         if (instanceOf(VarType.NUMBER)){
             switch (type){
                 case INT:
-                    return ((Integer) value).floatValue();
+                    return (float)((Integer) value);
                 case DOUBLE:
-                    return ((Double) value).floatValue();
+                    return (float)((double) value);
                 case FLOAT:
                     return (Float) value;
             }

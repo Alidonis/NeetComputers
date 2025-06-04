@@ -25,16 +25,16 @@ public class ParameterRules {
     public ParameterRules(VarType rule){
         rules.add(new ParameterRule(rule));
     }
-    public ParameterRules(CustomParameter rule){
-        rules.add(new ParameterRule(rule));
+    public ParameterRules(CustomParameter rule, VarType type){
+        rules.add(new ParameterRule(rule, type));
     }
 
     public ParameterRules add(VarType rule){
         rules.add(new ParameterRule(rule));
         return this;
     }
-    public ParameterRules add(CustomParameter rule){
-        rules.add(new ParameterRule(rule));
+    public ParameterRules add(CustomParameter rule, VarType type){
+        rules.add(new ParameterRule(rule, type));
         return this;
     }
     public ParameterRules allowPacking(VarType rule){
@@ -42,9 +42,9 @@ public class ParameterRules {
         packRule = new ParameterRule(rule);
         return this;
     }
-    public ParameterRules allowPacking(CustomParameter rule){
+    public ParameterRules allowPacking(CustomParameter rule, VarType type){
         packExtra = true;
-        packRule = new ParameterRule(rule);
+        packRule = new ParameterRule(rule, type);
         return this;
     }
 
@@ -67,7 +67,11 @@ public class ParameterRules {
                 }
             }else{
                 if (ruleset.packExtra){
-                    packed.add(values[i]);
+                    if (ruleset.rules.get(i).check(values[i])){
+                        packed.add(values[i]);
+                    }else{
+                        return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
+                    }
                 }else{
                     return new ParameterCheckReturn("Argument #"+i+": Expected null, got "+values[i].typeName());
                 }

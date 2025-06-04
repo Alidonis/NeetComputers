@@ -1,4 +1,4 @@
-package com.redtoast.blocks;
+package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.graphics.BinaryGraphicsArray;
 import net.minecraft.block.BlockState;

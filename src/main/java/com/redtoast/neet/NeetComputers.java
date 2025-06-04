@@ -2,14 +2,14 @@ package com.redtoast.neet;
 
 import com.redtoast.Computer;
 import com.redtoast.Lua.LuaMaster;
-import com.redtoast.blocks.LargeBlockComputer;
-import com.redtoast.blocks.LargeEntityComputer;
+import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
+import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
-import com.redtoast.blocks.LargeComputerRenderer;
+import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
-import com.redtoast.simulation.APIS.GraphicsAPI;
+import com.redtoast.simulation.APIS.*;
 import com.redtoast.simulation.EventGeneric;
 import com.redtoast.simulation.LangAPI.API;
 import com.redtoast.simulation.LangAPI.APILoader;
@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -113,10 +112,34 @@ public class NeetComputers implements ModInitializer {
 
 		registerLanguage(new LuaMaster());
 
-		APILoader.addRegistry(new APIRegistry() {
+		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Runtime runtime, Computer computer) {
 				return new GraphicsAPI();
+			}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Runtime runtime, Computer computer) {
+				return new ChipAPI(computer, runtime);
+			}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Runtime runtime, Computer computer) {
+				return new FSAPI(runtime);
+			}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Runtime runtime, Computer computer) {
+				return new PeripheralsAPI(runtime);
+			}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Runtime runtime, Computer computer) {
+				return new PaintAPI(computer);
 			}
 		});
 	}

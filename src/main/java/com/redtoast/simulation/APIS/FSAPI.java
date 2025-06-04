@@ -1,141 +1,95 @@
 package com.redtoast.simulation.APIS;
 
 import com.redtoast.simulation.LangAPI.*;
-import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
+import com.redtoast.simulation.LangAPI.ValueTypes.List;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
-import org.luaj.vm2.LuaValue;
 
-public class FSAPI extends LangAPI {
+public class FSAPI implements API {
+    Runtime runtime;
+
+    @Override
+    public String getLabel() {
+        return "fs";
+    }
+
+    class ValidPath extends CustomParameter{
+        @Override
+        public boolean rule(Value arg) {
+            if (arg.instanceOf(VarType.STRING)){
+                return runtime.files.validatePath((String) arg.getValue());
+            }else{
+                return false;
+            }
+        }
+
+        @Override
+        public String getName() {
+            return "Valid filepath";
+        }
+    }
+
     public FSAPI(Runtime vm) {
-        super("fs");
+        runtime=vm;
+    }
 
-        CustomParameter ValidPath = new CustomParameter() {
-            @Override
-            public boolean rule(Value arg) {
-                if (arg.instanceOf(VarType.STRING)){
-                    return vm.files.validatePath((String) arg.getValue());
-                }else{
-                    return false;
-                }
-            }
+    @Exposed
+    public Boolean isRootPath(@CustomRule(rule = ValidPath.class) String path){
+        return runtime.files.findRoot(path)!=null && runtime.files.deObjectivify(path).equals("");
+    }
 
-            @Override
-            public String getName() {
-                return "Valid filepath (string)";
-            }
-        };
+    @Exposed
+    public Boolean isReadOnly(@CustomRule(rule = ValidPath.class) String path){
+        if (!runtime.files.exists(path)){
+            return null;
+        }
+        if (path.equals("") || path.equals("/")){
+            return true;
+        }
+        return runtime.files.findRoot(path).readOnly;
+    }
 
-        set("isRootPath", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = (String) args.get(0).getValue();
-                return new Value(vm.files.findRoot(path)!=null && vm.files.deObjectivify(path).equals(""));
-            }
+    @Exposed
+    public Boolean exists(@CustomRule(rule = ValidPath.class) String path){
+        return runtime.files.exists(path);
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("isReadOnly", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = ((String) args.get(0).getValue()).replace('\\','/');
-                if (!vm.files.exists(path)){
-                    return Value.NULL;
-                }
-                if (path.equals("") || path.equals("/")){
-                    return Value.TRUE;
-                }
-                return new Value(vm.files.findRoot(path).readOnly);
-            }
+    @Exposed
+    public Boolean isDir(@CustomRule(rule = ValidPath.class) String path){
+        if (!runtime.files.exists(path)){
+            return null;
+        }
+        return runtime.files.isDir(path);
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("exists", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                return new Value(vm.files.exists((String) args.get(0).getValue()));
-            }
+    @Exposed
+    public String readAll(@CustomRule(rule = ValidPath.class) String path){
+        if (!runtime.files.exists(path)){
+            return null;
+        }
+        return runtime.files.readFile(path);
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("isDir", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = (String) args.get(0).getValue();
-                if (!vm.files.exists(path)){
-                    return Value.NULL;
-                }
-                return new Value(vm.files.isDir(path));
-            }
+    @Exposed
+    public void makeDir(@CustomRule(rule = ValidPath.class) String path){
+        if (!runtime.files.rootExists(path)){
+            return;
+        }
+        runtime.files.makeDir(path);
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("readAll", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = (String) args.get(0).getValue();
-                if (!vm.files.exists(path)){
-                    return Value.NULL;
-                }
-                return new Value(vm.files.readFile(path));
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("makeDir", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = (String) args.get(0).getValue();
-                if (!vm.files.rootExists(path)){
-                    return Value.NULL;
-                }
-                vm.files.makeDir(path);
-                return Value.NULL;
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-        set("getFiles", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                String path = (String) args.get(0).getValue();
-                if (!vm.files.exists(path)){
-                    return Value.NULL;
-                }
-                if (!vm.files.isDir(path)){
-                    return new Value("Path must be a directory");
-                }
-                String[] files = vm.files.getFiles(path);
-                LuaValue[] values = new LuaValue[files.length];
-                for (int i = 0; i < files.length; i++){
-                    values[i] = LuaValue.valueOf(files[i]);
-                }
-                return new Value(values);
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(ValidPath);
-            }
-        });
-
+    @Exposed
+    public List getFiles(@CustomRule(rule = ValidPath.class) String path){
+        if (!runtime.files.exists(path)){
+            return null;
+        }
+        if (!runtime.files.isDir(path)){
+            throw new LangError("Path must be a directory");
+        }
+        String[] files = runtime.files.getFiles(path);
+        Value[] values = new Value[files.length];
+        for (int i = 0; i < files.length; i++){
+            values[i] = new Value(files[i]);
+        }
+        return new List(values);
     }
 }

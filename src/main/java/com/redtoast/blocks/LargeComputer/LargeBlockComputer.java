@@ -1,4 +1,4 @@
-package com.redtoast.blocks;
+package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.*;

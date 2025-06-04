@@ -16,7 +16,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -30,7 +29,7 @@ public class APILoader {
         load(runtime, computer);
     }
 
-    public static void addRegistry(APIRegistry registry){
+    public static void register(APIRegistry registry){
         APIs.add(registry);
     }
 
@@ -61,70 +60,70 @@ public class APILoader {
         ParameterRules rules = new ParameterRules();
         for (int i = 0; i < parameters.length; i++){
             if (i == parameters.length-1 && isPacked){
+                VarType type = VarType.ANY;
                 if (parameters[i].getType()==String[].class){
-                    rules.allowPacking(VarType.STRING);
+                    type = (VarType.STRING);
                 }else if (parameters[i].getType()==int[].class){
-                    rules.allowPacking(VarType.INT);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==double[].class){
-                    rules.allowPacking(VarType.DOUBLE);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==float[].class){
-                    rules.allowPacking(VarType.FLOAT);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==boolean[].class){
-                    rules.allowPacking(VarType.BOOLEAN);
+                    type = (VarType.BOOLEAN);
                 }else if (parameters[i].getType()==Table[].class){
-                    rules.allowPacking(VarType.TABLE);
+                    type = (VarType.TABLE);
                 }else if (parameters[i].getType()==Tuple[].class){
-                    rules.allowPacking(VarType.TUPLE);
+                    type = (VarType.TUPLE);
                 }else if (parameters[i].getType()==List[].class){
-                    rules.allowPacking(VarType.LIST);
+                    type = (VarType.LIST);
                 }else if (parameters[i].getType()==Function[].class){
-                    rules.allowPacking(VarType.FUNCTION);
-                }else if (parameters[i].getType()==Value[].class){
-                    if (parameters[i].isAnnotationPresent(CustomRule.class)){
-                        try{
-                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
-                            constructor.setAccessible(true);
-                            rules.add(constructor.newInstance());
-                        }catch (Throwable e){
-                            logger.warn("Failed to load api, threw: "+e.getMessage());
-                            rules.allowPacking(VarType.ANY);
-                        }
-                    }else{
-                        rules.allowPacking(VarType.ANY);
+                    type = (VarType.FUNCTION);
+                }
+                if (parameters[i].isAnnotationPresent(CustomRule.class)){
+                    try{
+                        Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
+                        constructor.setAccessible(true);
+                        rules.add(constructor.newInstance(), type);
+                    }catch (Throwable e){
+                        logger.warn("Failed to load api, threw: "+ e);
+                        rules.allowPacking(type);
                     }
+                }else{
+                    rules.allowPacking(type);
                 }
             }else{
+                VarType type = VarType.ANY;
                 if (parameters[i].getType()==String.class){
-                    rules.add(VarType.STRING);
+                    type = (VarType.STRING);
                 }else if (parameters[i].getType()==int.class){
-                    rules.add(VarType.INT);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==double.class){
-                    rules.add(VarType.DOUBLE);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==float.class){
-                    rules.add(VarType.FLOAT);
+                    type = (VarType.NUMBER);
                 }else if (parameters[i].getType()==boolean.class){
-                    rules.add(VarType.BOOLEAN);
+                    type = (VarType.BOOLEAN);
                 }else if (parameters[i].getType()==Table.class){
-                    rules.add(VarType.TABLE);
+                    type = (VarType.TABLE);
                 }else if (parameters[i].getType()==Tuple.class){
-                    rules.add(VarType.TUPLE);
+                    type = (VarType.TUPLE);
                 }else if (parameters[i].getType()==List.class){
-                    rules.add(VarType.LIST);
+                    type = (VarType.LIST);
                 }else if (parameters[i].getType()==Function.class){
-                    rules.add(VarType.FUNCTION);
-                }else if (parameters[i].getType()==Value.class){
-                    if (parameters[i].isAnnotationPresent(CustomRule.class)){
-                        try{
-                            Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
-                            constructor.setAccessible(true);
-                            rules.add(constructor.newInstance());
-                        }catch (Throwable e){
-                            logger.warn("Failed to load api, threw: "+e.getMessage());
-                            rules.add(VarType.ANY);
-                        }
-                    }else{
-                        rules.add(VarType.ANY);
+                    type = (VarType.FUNCTION);
+                }
+                if (parameters[i].isAnnotationPresent(CustomRule.class)){
+                    try{
+                        Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
+                        constructor.setAccessible(true);
+                        rules.add(constructor.newInstance(), type);
+                    }catch (Throwable e){
+                        logger.warn("Failed to load api, threw: "+e);
+                        rules.add(type);
                     }
+                }else{
+                    rules.add(type);
                 }
             }
         }
@@ -135,6 +134,7 @@ public class APILoader {
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
         for (int i = 0; i < args.length; i++){
+            if (method.getName().equals("getHexColor")) System.out.println(6);
             if (parameters[i].isVarArgs()){
                 if (parameters[i].getType()==String.class){
                     List packed = input.getPacked();
@@ -287,6 +287,7 @@ public class APILoader {
                         public Value call(FunctionInput parameters) {
                             try {
                                 Object retun = method.invoke(obj, processArgs(method, parameters));
+                                if (method.getName().equals("getHexColor")) System.out.println(7);
                                 if (retun==null){
                                     return Value.NULL;
                                 }else{

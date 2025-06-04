@@ -8,9 +8,11 @@ public class ParameterRule {
     private boolean mode;
     public VarType type;
     private CustomParameter func;
-    public ParameterRule(CustomParameter function){
+    private boolean showType = false;
+    public ParameterRule(CustomParameter function, VarType filter){
         func = function;
         mode = false;
+        type=filter;
     }
     public ParameterRule(VarType filter) {
         type = filter;
@@ -19,6 +21,10 @@ public class ParameterRule {
 
     public String getName(){
         if (!mode){
+            if (showType){
+                showType=false;
+                return Value.VarName(type);
+            }
             return func.getName();
         }else{
             return Value.VarName(type);
@@ -26,6 +32,10 @@ public class ParameterRule {
     }
     public boolean check(Value value){
         if (!mode){
+            if (!value.instanceOf(type)) {
+                showType = true;
+                return false;
+            }
             return func.rule(value);
         }else{
             return value.instanceOf(type);

@@ -1,6 +1,6 @@
 package com.redtoast.neet;
 
-import com.redtoast.blocks.LargeEntityComputer;
+import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreen;
 import com.redtoast.graphics.GraphicsScreenHandler;

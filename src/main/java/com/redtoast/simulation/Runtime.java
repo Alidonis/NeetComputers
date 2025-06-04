@@ -49,35 +49,6 @@ public abstract class Runtime {
     public Runtime(Computer Parent, FileHandler Files, int filePointer, int ROMPointer){
         parent = Parent;
         files = Files;
-        addAPI(new FSAPI(this));
-        addAPI(new PaintAPI(parent));
-        addAPI(new PeripheralsAPI() {
-            @Override
-            public LinkedList<peripheralWrapper> getParentsPeripherals() {
-                return getPeripherals();
-            }
-        });
-        addAPI(new ChipAPI(parent, this, getSpecifications().MaxCores) {
-            @Override
-            public LinkedList<LangThread> getThreads() {
-                return threads;
-            }
-
-            @Override
-            public LangThread getThread() {
-                return thread;
-            }
-
-            @Override
-            public void addThread(LangThread t) {
-                threads.add(t);
-            }
-
-            @Override
-            public void registerEvent(String event, Function func) {
-                eventTable.put(event, func);
-            }
-        });
         env = getGlobals();
         new APILoader(this, parent);
         if (files.exists("rom/startup.lua")){
@@ -150,5 +121,21 @@ public abstract class Runtime {
 
     public boolean isDead(){
         return kill;
+    }
+
+    public LinkedList<peripheralWrapper> getParentsPeripherals() {
+        return getPeripherals();
+    }
+
+    public LinkedList<LangThread> getThreads() {
+        return threads;
+    }
+
+    public LangThread getThread() {
+        return thread;
+    }
+
+    public void registerEvent(String event, Function func) {
+        eventTable.put(event, func);
     }
 }

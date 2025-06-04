@@ -1,4 +1,4 @@
-package com.redtoast.blocks;
+package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
@@ -7,14 +7,11 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.peripherals.ProjectorAPI;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;

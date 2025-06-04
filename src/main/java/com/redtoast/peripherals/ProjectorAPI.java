@@ -1,7 +1,7 @@
 package com.redtoast.peripherals;
 
 import com.redtoast.Computer;
-import com.redtoast.blocks.LargeEntityComputer;
+import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.simulation.LangAPI.LambdaFunction;
 import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
@@ -9,7 +9,6 @@ import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
 import com.redtoast.simulation.LangAPI.Value;
 import com.redtoast.simulation.LangAPI.VarType;
 import com.redtoast.simulation.peripheral.peripheralAPI;
-import org.luaj.vm2.LuaValue;
 
 public class ProjectorAPI extends peripheralAPI {
     Computer computer;
