@@ -6,6 +6,7 @@ import org.luaj.vm2.Varargs;
 
 import java.util.LinkedList;
 
+@Deprecated
 public class EventGeneric {
     private String Name;
     private Varargs args;

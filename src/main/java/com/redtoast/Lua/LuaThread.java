@@ -2,7 +2,7 @@ package com.redtoast.Lua;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
-import com.redtoast.simulation.LangThread;
+import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -42,6 +42,11 @@ public class LuaThread extends LangThread {
             error(e.toString());
             kill();
         }
+    }
+
+    @Override
+    public String getLand() {
+        return "Lua 5.2";
     }
 
     @Override

@@ -1,0 +1,16 @@
+{
+  "function": "copy_components",
+  "source": "block_entity",
+  "ops": [
+    {
+      "source": "UserPointer",
+      "target": "UserPointer",
+      "op": "replace"
+    },
+    {
+      "source": "ROMPointer",
+      "target": "ROMPointer",
+      "op": "replace"
+    }
+  ]
+}

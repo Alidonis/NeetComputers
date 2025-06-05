@@ -1,19 +1,16 @@
 package com.redtoast.Lua;
 
-import com.redtoast.simulation.LangAPI.LangAPI;
-import com.redtoast.simulation.LangAPI.LanguageTranslater;
-import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
-import com.redtoast.simulation.LangAPI.Parameter.ParameterCheckReturn;
-import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
-import com.redtoast.simulation.LangAPI.Value;
-import com.redtoast.simulation.LangAPI.ValueTypes.*;
-import com.redtoast.simulation.LangAPI.VarType;
+import com.redtoast.simulation.base.LanguageTranslater;
+import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.parameter.ParameterCheckReturn;
+import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.*;
+import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globals> {
+public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     private abstract static class FunctionWrapper extends VarArgFunction {
         @Override
         public abstract Varargs invoke(Varargs args);
@@ -90,16 +87,10 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
                                 .replaceAll("int", "number")
                                 .replaceAll("double", "number")
                                 .replaceAll("float", "number");
-                            Function.logError(message);
                             return LuaValue.error(message);
                         }else{
-                            try {
-                                Value output = ((Function) var.getValue()).call(check.getFunctionInput());
-                                return fromValue(output);
-                            }catch (Exception e){
-                                Function.logError(e.toString());
-                                return LuaValue.error("Unexpected java error, check log for information");
-                            }
+                            Value output = ((Function) var.getValue()).call(check.getFunctionInput());
+                            return fromValue(output);
                         }
                     }
                 };
@@ -187,23 +178,5 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs, Globa
             });
         }
         return Value.NULL;
-    }
-
-    @Override
-    public void InductAPI(LangAPI API, Globals Env) {
-        if (API.getLabel().equals("")){
-            API.getTable().foreach((key, value) -> {
-                assert key.getValue() instanceof String;
-                if (!value.instanceOf(VarType.TUPLE)){
-                    Varargs rawValues = fromValue(value);
-                    assert rawValues instanceof LuaValue;
-                    Env.set((String) key.getValue(), (LuaValue) rawValues);
-                }
-            });
-        }else{
-            Varargs rawValues = fromValue(new Value<>(API.getTable()));
-            assert rawValues instanceof LuaValue;
-            Env.set(API.getLabel(), (LuaValue) rawValues);
-        }
     }
 }

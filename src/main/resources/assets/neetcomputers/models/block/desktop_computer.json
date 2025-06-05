@@ -2,8 +2,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "block/desktop_computer",
-		"particle": "block/desktop_computer"
+		"0": "neetcomputers:block/desktop_computer",
+		"particle": "neetcomputers:block/desktop_computer"
 	},
 	"elements": [
 		{
@@ -260,6 +260,12 @@
 			"origin": [8, 8, 8],
 			"color": 0,
 			"children": [14, 15, 16, 17, 18]
+		},
+		{
+			"name": "group",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": []
 		}
 	]
 }

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.nio.file.Files;
 
+@Deprecated
 public class FileHandler {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-file_system");
     private LinkedList<rootDir> roots = new LinkedList<>();
@@ -75,7 +76,7 @@ public class FileHandler {
         return root;
     }
 
-    public String deObjectivify(String path){
+    public static String deObjectivify(String path){
         int start;
         if (path.charAt(0)=='/' || path.charAt(0)=='\\'){
             start=1;
@@ -377,6 +378,25 @@ public class FileHandler {
                     }
                 }catch (Exception e){
                     return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean validatePathStatic(String path){
+        String[] parts = getParts(path);
+        for (int i = 0; i < parts.length; i++){
+            char[] chars = parts[i].toCharArray();
+            if (chars.length==0 && i<parts.length-1){
+                return false;
+            }
+            for (int x = 0; x < chars.length; x++){
+                char letter = chars[x];
+                if (!((int)letter>=(int)'a' && (int)letter<=(int)'z') || ((int)letter>=(int)'A' && (int)letter<=(int)'Z') || ((int)letter>=(int)'0' && (int)letter<=(int)'9')){
+                    if (!(letter=='-' || letter=='_' || (letter==' ' && x< chars.length-1) || (i==parts.length-1 && letter=='.' && i!=0))){
+                        return false;
+                    }
                 }
             }
         }

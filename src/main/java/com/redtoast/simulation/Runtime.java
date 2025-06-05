@@ -4,14 +4,9 @@ import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
 import com.redtoast.Lua.LuaTranslater;
 import com.redtoast.neet.NeetComputers;
-import com.redtoast.simulation.APIS.ChipAPI;
-import com.redtoast.simulation.APIS.FSAPI;
-import com.redtoast.simulation.APIS.PaintAPI;
-import com.redtoast.simulation.APIS.PeripheralsAPI;
-import com.redtoast.simulation.LangAPI.APILoader;
-import com.redtoast.simulation.LangAPI.LangAPI;
-import com.redtoast.simulation.LangAPI.ValueTypes.Function;
-import com.redtoast.simulation.peripheral.peripheralWrapper;
+import com.redtoast.simulation.value.ValueTypes.Function;
+import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.base.LanguageGeneric;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
@@ -24,7 +19,6 @@ import java.util.UUID;
 public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
     private static final LuaTranslater Lua = new LuaTranslater();
-    private final LinkedList<LangAPI> APIS = new LinkedList<>();
     public Globals env;
     public LuaValue LuaDebug;
     public LuaValue LuaCoro;
@@ -59,13 +53,9 @@ public abstract class Runtime {
         }
     }
 
-    public abstract LinkedList<peripheralWrapper> getPeripherals();
+    public abstract LinkedList<Peripheral> getPeripherals();
     public abstract LinkedList<EventGeneric> getEvents();
     public abstract ComputerSpecs getSpecifications();
-
-    public void addAPI(LangAPI api){
-        APIS.add(api);
-    }
 
     private Globals getGlobals(){
         Globals global = JsePlatform.debugGlobals();
@@ -82,10 +72,6 @@ public abstract class Runtime {
         global.set("luajava",LuaValue.NIL);
         global.set("dofile",LuaValue.NIL);
         global.set("loadfile",LuaValue.NIL);
-
-        for (int x = 0; x < APIS.size(); x++){
-            Lua.InductAPI(APIS.get(x), global);
-        }
 
         return global;
     }
@@ -123,7 +109,7 @@ public abstract class Runtime {
         return kill;
     }
 
-    public LinkedList<peripheralWrapper> getParentsPeripherals() {
+    public LinkedList<Peripheral> getParentsPeripherals() {
         return getPeripherals();
     }
 

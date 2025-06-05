@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "neetcomputers:large_computer",
+          "name": "neetcomputers:desktop_computer",
           "functions": [
             {
               "function": "minecraft:copy_name",

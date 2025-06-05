@@ -1,5 +1,6 @@
 package com.redtoast.neet;
 
+import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreen;
@@ -36,9 +37,12 @@ public class NeetComputersClient implements ClientModInitializer {
 			BinaryGraphicsArray graphics = BinaryGraphicsArray.fromPacket(buf);
 			client.execute(() -> {
 				if (client.world == null) return;
-				if (!(client.world.getBlockEntity(pos) instanceof LargeEntityComputer)) return;
+				if (client.world.getBlockEntity(pos) == null) return;
 				BlockEntity be = client.world.getBlockEntity(pos);
 				if (be instanceof LargeEntityComputer computer) {
+					computer.computer.setBinaryGraphics(graphics);
+					Objects.requireNonNull(computer.getWorld()).updateListeners(pos, computer.getCachedState(), computer.getCachedState(), 3);
+				}else if (be instanceof DesktopEntityComputer computer) {
 					computer.computer.setBinaryGraphics(graphics);
 					Objects.requireNonNull(computer.getWorld()).updateListeners(pos, computer.getCachedState(), computer.getCachedState(), 3);
 				}

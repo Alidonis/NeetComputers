@@ -1,4 +1,4 @@
-package com.redtoast.blocks.LargeComputer;
+package com.redtoast.blocks.DesktopComputer;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
@@ -29,18 +29,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory {
+public class DesktopEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory {
     public Computer computer;
     public RGBGraphicsArray graphics;
 
-    public LargeEntityComputer(BlockPos pos, BlockState state) {
-        super(BulkRegistery.fetchBlockEntityType("large_computer"), pos, state);
+    public DesktopEntityComputer(BlockPos pos, BlockState state) {
+        super(BulkRegistery.fetchBlockEntityType("desktop_computer"), pos, state);
         BlockEntity be = this;
         computer = new Computer(new ComputerSpecs()
-                .setGraphics(12, 11)
+                .setGraphics(11, 6)
                 .setColorGraphics(192,108)
-                .setIPS(580000, 500)
-                .setMaxCores(6)
+                .setIPS(194000, 500)
+                .setMaxCores(3)
         ) {
             @Override
             public void saveNBT() {
@@ -117,11 +117,11 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
-            if (be instanceof LargeEntityComputer computerBlock) {
+            if (be instanceof DesktopEntityComputer computerBlock) {
                 computerBlock.computer.Tick(world);
                 BlockState current = world.getBlockState(blockPos);
-                if (current.get(LargeBlockComputer.ON) != computerBlock.computer.IsOn()) {
-                    world.setBlockState(blockPos, current.with(LargeBlockComputer.ON, computerBlock.computer.IsOn()), Block.NOTIFY_ALL);
+                if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.IsOn()) {
+                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.IsOn()), Block.NOTIFY_ALL);
                 }
             }
         }
@@ -134,7 +134,7 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public Text getDisplayName() {
-        return Text.literal("Large Computer");
+        return Text.literal("Desktop Computer");
     }
 
     @Override

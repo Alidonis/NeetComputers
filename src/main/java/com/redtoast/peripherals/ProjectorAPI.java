@@ -1,125 +1,73 @@
 package com.redtoast.peripherals;
 
 import com.redtoast.Computer;
-import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.simulation.LangAPI.LambdaFunction;
-import com.redtoast.simulation.LangAPI.Parameter.FunctionInput;
-import com.redtoast.simulation.LangAPI.Parameter.ParameterRules;
-import com.redtoast.simulation.LangAPI.Value;
-import com.redtoast.simulation.LangAPI.VarType;
-import com.redtoast.simulation.peripheral.peripheralAPI;
+import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.simulation.value.LangError;
+import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Tuple;
+import com.redtoast.simulation.base.API;
 
-public class ProjectorAPI extends peripheralAPI {
+public class ProjectorAPI implements API {
     Computer computer;
     BinaryGraphicsArray graphics;
     int sizex, sizey;
-    public ProjectorAPI(LargeEntityComputer blockEntity) {
-        super("holographic_screen", blockEntity, blockEntity.computer);
-        computer = blockEntity.computer;
-        int sizex = computer.getBinaryGraphics().getSize().x, sizey = computer.getBinaryGraphics().getSize().y;
+    public ProjectorAPI(Computer computer) {
+        this.computer = computer;
+        sizex = this.computer.getBinaryGraphics().getSize().x;
+        sizey = this.computer.getBinaryGraphics().getSize().y;
         graphics = new BinaryGraphicsArray(sizex, sizey);
+    }
 
-        set("drawPixel", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                int x = args.get(0).toInt();
-                int y = args.get(1).toInt();
-                if (x<1 || y<1 || x>sizex || y>sizey) return Value.asError("values not in allowed range");
+    @Exposed
+    public void drawPixel(int x, int y){
+        if (x<1 || y<1 || x>sizex || y>sizey) {
+            throw new LangError("values not in allowed range2");
+        }
+        graphics.set(x-1,y-1,true);
+    }
+
+    @Exposed
+    public Tuple getSize(){
+        return new Tuple(new Value[]{new Value<>(sizex), new Value<>(sizey)});
+    }
+
+    @Exposed
+    public void drawLine(int x1, int y1, int x2, int y2){
+        if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) {
+            throw new LangError("values not in allowed range2");
+        }
+        for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
+            for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
                 graphics.set(x-1,y-1,true);
-                return Value.NULL;
             }
+        }
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER);
+    @Exposed
+    public void drawRec(int x1, int y1, int x2, int y2){
+        if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) {
+            throw new LangError("values not in allowed range2");
+        }
+        for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
+            for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
+                graphics.set(x-1,y-1,true);
             }
-        });
+        }
+    }
 
-        set("getSize", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                return Value.toTuple(new Value[]{new Value(sizex), new Value(sizey)});
-            }
+    @Exposed
+    public void draw(){
+        computer.setBinaryGraphics(graphics);
+    }
 
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules();
-            }
-        });
+    @Exposed
+    public void clear(){
+        graphics = new BinaryGraphicsArray(sizex,sizey);
+    }
 
-        set("drawLine", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                int x1 = args.get(0).toInt();
-                int y1 = args.get(1).toInt();
-                int x2 = args.get(2).toInt();
-                int y2 = args.get(3).toInt();
-                if (x1 < 1 || x2 < 1 || y1 < 1 || y2 < 1 || x1 > sizex || x2 > sizex || y1 > sizey || y2 > sizey)
-                    return Value.asError("values not in allowed range");
-                //equation from here:
-                //https://www3.cs.stonybrook.edu/~cse328/2021-lecture-notes/line-drawing.pdf
-                int dy = y2 - y1;
-                int dx = x2 - x1;
-                for (int i = Math.min(x1, x2); i <= Math.max(x1, x2); i++) {
-                    int y = (int) Math.round(y1 + (i - x1) * ((double) dy / dx));
-                    graphics.set(i - 1, y - 1, true);
-                }
-                return Value.NULL;
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER);
-            }
-        });
-
-        set("drawRec", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                int x1 = args.get(0).toInt();
-                int y1 = args.get(1).toInt();
-                int x2 = args.get(2).toInt();
-                int y2 = args.get(3).toInt();
-                if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) return Value.asError("values not in allowed range");
-                for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
-                    for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
-                        graphics.set(x-1,y-1,true);
-                    }
-                }
-                return Value.NULL;
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER).add(VarType.NUMBER);
-            }
-        });
-
-        set("draw", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                computer.setBinaryGraphics(graphics);
-                return Value.NULL;
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules();
-            }
-        });
-
-        set("clear", new LambdaFunction() {
-            @Override
-            public Value main(FunctionInput args) {
-                graphics = new BinaryGraphicsArray(sizex,sizey);
-                return Value.NULL;
-            }
-
-            @Override
-            public ParameterRules getRules() {
-                return new ParameterRules();
-            }
-        });
+    @Override
+    public String getLabel() {
+        return "holographic_screen";
     }
 }

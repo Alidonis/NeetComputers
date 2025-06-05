@@ -2,6 +2,9 @@ package com.redtoast.neet;
 
 import com.redtoast.Computer;
 import com.redtoast.Lua.LuaMaster;
+import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
+import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
+import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.graphics.GraphicsScreenHandler;
@@ -9,13 +12,13 @@ import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
-import com.redtoast.simulation.APIS.*;
+import com.redtoast.APIS.*;
 import com.redtoast.simulation.EventGeneric;
-import com.redtoast.simulation.LangAPI.API;
-import com.redtoast.simulation.LangAPI.APILoader;
-import com.redtoast.simulation.LangAPI.APIRegistry;
-import com.redtoast.simulation.LangAPI.LanguageTranslater;
-import com.redtoast.simulation.LanguageGeneric;
+import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.APILoader;
+import com.redtoast.simulation.APIRegistry;
+import com.redtoast.simulation.base.LanguageTranslater;
+import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.Runtime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -87,10 +90,14 @@ public class NeetComputers implements ModInitializer {
 
 		//register stuff
 		BulkRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.METAL).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.BONE).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
 		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,LargeComputerRenderer::new,true);
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
+
+		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque().luminance(state -> state.get(LargeBlockComputer.ON) ? 4 : 0));
+		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new, DesktopComputerRenderer::new,true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
 
 		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(16));
 		BulkRegistery.register("mobile_computer", modelComputer);
