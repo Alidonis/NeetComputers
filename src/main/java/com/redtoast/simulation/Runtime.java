@@ -2,13 +2,10 @@ package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.ComputerSpecs;
-import com.redtoast.Lua.LuaTranslater;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
-import org.luaj.vm2.*;
-import org.luaj.vm2.lib.jse.JsePlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +15,7 @@ import java.util.UUID;
 
 public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
-    private static final LuaTranslater Lua = new LuaTranslater();
-    public Globals env;
-    public LuaValue LuaDebug;
-    public LuaValue LuaCoro;
+    public final GlobalManager globalManager;
     public LangThread thread;
     private boolean kill = false;
     public FileHandler files;
@@ -40,15 +34,15 @@ public abstract class Runtime {
         return thread.getUuid();
     }
 
-    public Runtime(Computer Parent, FileHandler Files, int filePointer, int ROMPointer){
+    public Runtime(Computer Parent, FileHandler Files){
         parent = Parent;
         files = Files;
-        env = getGlobals();
+        globalManager = new GlobalManager();
         new APILoader(this, parent);
         if (files.exists("rom/startup.lua")){
             MakeThread(files.readFile("rom/startup.lua"), "Lua 5.2");
         }else{
-            debug.info("Entrypoint not found for {}, computer failed to start!", ROMPointer);
+            debug.info("Entrypoint not found for computer, computer failed to start!");
             kill=true;
         }
     }
@@ -56,25 +50,6 @@ public abstract class Runtime {
     public abstract LinkedList<Peripheral> getPeripherals();
     public abstract LinkedList<EventGeneric> getEvents();
     public abstract ComputerSpecs getSpecifications();
-
-    private Globals getGlobals(){
-        Globals global = JsePlatform.debugGlobals();
-        LuaDebug = global.get("debug");
-        LuaCoro = global.get("coroutine");
-
-        global.set("package",LuaValue.NIL);
-        global.set("os",LuaValue.NIL);
-        global.set("require",LuaValue.NIL);
-        global.set("debug",LuaValue.NIL);
-        global.set("io",LuaValue.NIL);
-        global.set("file",LuaValue.NIL);
-        global.set("load",LuaValue.NIL);
-        global.set("luajava",LuaValue.NIL);
-        global.set("dofile",LuaValue.NIL);
-        global.set("loadfile",LuaValue.NIL);
-
-        return global;
-    }
 
     public void tick(){
         if (!kill) {

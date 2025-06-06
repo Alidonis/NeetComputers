@@ -41,6 +41,8 @@ public class DesktopEntityComputer extends BlockEntity implements ExtendedScreen
                 .setColorGraphics(192,108)
                 .setIPS(194000, 500)
                 .setMaxCores(3)
+                .setCoreUtilizationBonus(5)
+                .setMachineName("Desktop Computer")
         ) {
             @Override
             public void saveNBT() {

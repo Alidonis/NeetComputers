@@ -19,6 +19,7 @@ public class FSAPI implements API {
         return "fs";
     }
 
+    @CustomRule(rule = "ValidPath")
     static class ValidPath extends CustomParameter {
         @Override
         public boolean rule(Value arg) {
@@ -40,12 +41,12 @@ public class FSAPI implements API {
     }
 
     @Exposed
-    public Boolean isRootPath(@CustomRule(rule = ValidPath.class) String path){
+    public Boolean isRootPath(@CustomRule(rule = "ValidPath") String path){
         return runtime.files.findRoot(path)!=null && runtime.files.deObjectivify(path).equals("");
     }
 
     @Exposed
-    public Boolean isReadOnly(@CustomRule(rule = ValidPath.class) String path){
+    public Boolean isReadOnly(@CustomRule(rule = "ValidPath") String path){
         if (!runtime.files.exists(path)){
             return null;
         }
@@ -56,12 +57,12 @@ public class FSAPI implements API {
     }
 
     @Exposed
-    public Boolean exists(@CustomRule(rule = ValidPath.class) String path){
+    public Boolean exists(@CustomRule(rule = "ValidPath") String path){
         return runtime.files.exists(path);
     }
 
     @Exposed
-    public Boolean isDir(@CustomRule(rule = ValidPath.class) String path){
+    public Boolean isDir(@CustomRule(rule = "ValidPath") String path){
         if (!runtime.files.exists(path)){
             return null;
         }
@@ -69,7 +70,7 @@ public class FSAPI implements API {
     }
 
     @Exposed
-    public String readAll(@CustomRule(rule = ValidPath.class) String path){
+    public String readAll(@CustomRule(rule = "ValidPath") String path){
         if (!runtime.files.exists(path)){
             return null;
         }
@@ -77,7 +78,7 @@ public class FSAPI implements API {
     }
 
     @Exposed
-    public void makeDir(@CustomRule(rule = ValidPath.class) String path){
+    public void makeDir(@CustomRule(rule = "ValidPath") String path){
         if (!runtime.files.rootExists(path)){
             return;
         }
@@ -85,7 +86,7 @@ public class FSAPI implements API {
     }
 
     @Exposed
-    public List getFiles(@CustomRule(rule = ValidPath.class) String path){
+    public List getFiles(@CustomRule(rule = "ValidPath") String path){
         if (!runtime.files.exists(path)){
             return null;
         }

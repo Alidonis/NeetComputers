@@ -30,7 +30,7 @@ public abstract class LangThread {
         return uuid;
     }
     public boolean isAlive(){return !killed;}
-    public abstract String getLand();
+    public abstract String getLang();
     public abstract void Yield();
     public abstract void Tick();
 }

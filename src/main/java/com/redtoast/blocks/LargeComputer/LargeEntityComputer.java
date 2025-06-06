@@ -41,6 +41,8 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
                 .setColorGraphics(192,108)
                 .setIPS(580000, 500)
                 .setMaxCores(6)
+                .setCoreUtilizationBonus(15)
+                .setMachineName("Large Computer")
         ) {
             @Override
             public void saveNBT() {

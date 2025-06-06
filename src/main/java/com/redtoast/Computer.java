@@ -58,17 +58,36 @@ public abstract class Computer {
     //stores the peripherals has access to during runtime
     private LinkedList<Peripheral> peripheralBuffer = new LinkedList<>();
     //vector determining mouse pos
-    public Vector2i mousePos;
+    private Vector2i mousePos;
     //represents que for events
     private @Deprecated final LinkedList<EventGeneric> eventQue = new LinkedList<>();
     //specify computer specifications
     private ComputerSpecs specs;
 
     //abstract methods
-    public abstract void saveNBT(); //commands parent object to register a saved nbt (mostly useful in blocks) (markDirty)
-    public abstract World getWorld();// gets a World object from parent
-    public abstract void refreshBinaryGraphics();//tells the parent object to load new binary graphics
-    public abstract Object getParentEntity();//gets parent entity, not used internally
+    /**
+     * commands parent object to register a saved nbt (mostly useful in blocks)
+     * typicly you should have this call markDirty() if it's a blockEntity parent or be otherwise trigger NBT saving
+     */
+    public abstract void saveNBT();
+
+    /**
+     * gets a World object from parent
+     * @return World
+     */
+    public abstract World getWorld();
+    /**
+     * triggers a reloading of the drawing of binary graphics
+     * imagine this as say sending the updated graphics array to all clients to be rendered
+     */
+    public abstract void refreshBinaryGraphics();
+
+    /**
+     * this function should return whatever class is parent to the computer instance,
+     * the output of this class is never used internally and is only meant for modders.
+     * @return Object or null
+     */
+    public abstract @Nullable Object getParentEntity();
 
     //constructor
     public Computer(ComputerSpecs specifications){
@@ -145,7 +164,7 @@ public abstract class Computer {
             peripheralBuffer.addAll(peripheralWrappers);
             //overwrites runtime with a new instance
             Computer com = this;
-            runtime = new Runtime(this, FS, pointer, ROM) {
+            runtime = new Runtime(this, FS) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();
@@ -310,7 +329,7 @@ public abstract class Computer {
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;
-            runtime = new Runtime(this, FS, pointer, ROM) {
+            runtime = new Runtime(this, FS) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();

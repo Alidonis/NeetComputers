@@ -31,6 +31,11 @@ public class ChipAPI implements API {
     }
 
     @Exposed
+    public String getMachine(){
+        return computer.getSpecifications().MachineName;
+    }
+
+    @Exposed
     public int getThreadCount(){
         return vm.getThreads().size();
     }

@@ -87,7 +87,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
 
     private void drawPixel(int x, int y, VertexConsumer vc, Matrix4f mat, int overlay, Sprite sprite, DesktopEntityComputer entity){
         Matrix3f rot = RotationTools.generateRotationX(22.5);
-        Vector3f off = new Vector3f(2.5f / 16f, 8.7706f / 16f, 12.8519f / 16f);
+        Vector3f off = new Vector3f(2.5f / 16f, 8.0206f / 16f, 12.8519f / 16f);
 
         float x1 = x / 16f, x2 = 1f / 16f + x1;
         float y1 = y / 16f, y2 = 1f / 16f + y1;

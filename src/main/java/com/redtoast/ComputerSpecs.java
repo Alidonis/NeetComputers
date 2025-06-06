@@ -2,6 +2,7 @@ package com.redtoast;
 
 public class ComputerSpecs {
     public int MaxCores = 6;
+    public double CoreUtilizationBonus = 0;
     public int BatchSize = 500;
     public int Batches = 58;
     public boolean doesGraphics = false;
@@ -9,8 +10,17 @@ public class ComputerSpecs {
     public int GraphicsSizeY = 0;
     public int ColorGraphicsSizeX = 0;
     public int ColorGraphicsSizeY = 0;
+    public String MachineName = "";
     public ComputerSpecs setMaxCores(int cores){
         MaxCores = cores;
+        return this;
+    }
+    public ComputerSpecs setCoreUtilizationBonus(int percent){
+        CoreUtilizationBonus = percent / 100d;
+        return this;
+    }
+    public ComputerSpecs setMachineName(String name){
+        MachineName=name;
         return this;
     }
     public ComputerSpecs setIPS(int IPS, int size){

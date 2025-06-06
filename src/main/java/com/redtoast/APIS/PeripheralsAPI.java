@@ -24,6 +24,7 @@ public class PeripheralsAPI implements API {
         return "peripherals";
     }
 
+    @CustomRule(rule = "validPeripheral")
     static class validPeripheral extends CustomParameter {
         @Override
         public boolean rule(Value arg) {
@@ -70,14 +71,14 @@ public class PeripheralsAPI implements API {
     }
 
     @Exposed
-    public String getUUID(@CustomRule(rule = validPeripheral.class) Table peripheral){
+    public String getUUID(@CustomRule(rule = "validPeripheral") Table peripheral){
         Value uuid = new Value(peripheral.asValue().getMeta("uuid").toString());
         uuid.setMetaTable(metaUUID);
         return uuid.toString();
     }
 
     @Exposed
-    public String getType(@CustomRule(rule = validPeripheral.class) Table peripheral){
+    public String getType(@CustomRule(rule = "validPeripheral") Table peripheral){
         return peripheral.asValue().getMeta("type").toString();
     }
 

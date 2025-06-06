@@ -38,6 +38,9 @@ public class Table{
     public boolean equals(Object obj) {
         return table.equals(obj);
     }
+    public void remove(Value key){
+        table.remove(key);
+    }
 
     public Value<Table> asValue(){
         return new Value<>(this);

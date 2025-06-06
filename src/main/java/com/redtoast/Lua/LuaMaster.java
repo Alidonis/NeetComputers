@@ -20,6 +20,6 @@ public class LuaMaster implements LanguageGeneric {
 
     @Override
     public LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, ComputerSpecs specifications) {
-        return new LuaThread(script, parentRuntime, parentComputer, specifications);
+        return new LuaThread(script, parentRuntime, specifications);
     }
 }

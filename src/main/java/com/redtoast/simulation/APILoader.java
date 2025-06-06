@@ -1,7 +1,6 @@
 package com.redtoast.simulation;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.annotations.CustomRule;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.InsertAtRuntime;
@@ -14,9 +13,6 @@ import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.CustomParameter;
 import org.jetbrains.annotations.Nullable;
-import org.luaj.vm2.LuaTable;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class APILoader {
@@ -32,7 +29,9 @@ public class APILoader {
     private static Logger logger = LoggerFactory.getLogger("NeetComputers: API loading");
     private static LinkedList<APIRegistry> APIs = new LinkedList<>();
 
-    //APILoader instances are created
+    /**
+     * APILoader instances are created by individual Runtime's
+     */
     public APILoader(Runtime runtime, Computer computer){
         ParentRuntime = runtime;
         load(runtime, computer);
@@ -54,14 +53,15 @@ public class APILoader {
     }
 
     private void loadIntoGlobals(Function[] functions, String label){
-        LuaTable apiTable = new LuaTable();
+        Table apiTable = new Table();
         for (Function func : functions){
-            Varargs args = (Varargs) NeetComputers.getTranslater("Lua 5.2").fromValue(func.asValue());
-            if (args instanceof LuaValue val){
-                apiTable.set(func.getName(), val);
+            if (func.getName()!=null){
+                apiTable.put(func.getName(), func.asValue());
+            }else{
+                logger.warn("Issue encountered loading api '{}': nameless function (try .setName on runtime implimented functions)", label);
             }
         }
-        ParentRuntime.env.set(label, apiTable);
+        ParentRuntime.globalManager.put(label, apiTable.asValue());
     }
 
     public static Peripheral WrapAPI(API api, @Nullable Runtime runtime){
@@ -78,7 +78,7 @@ public class APILoader {
     }
 
     //background methods used to process API's
-    private static ParameterRules rulesFromMethod(Method method){
+    private static ParameterRules rulesFromMethod(Method method, Hashtable<String, CustomParameter> customParameters){
         boolean isPacked = method.isVarArgs();
         Parameter[] parameters = method.getParameters();
         ParameterRules rules = new ParameterRules();
@@ -105,12 +105,11 @@ public class APILoader {
                     type = (VarType.FUNCTION);
                 }
                 if (parameters[i].isAnnotationPresent(CustomRule.class)){
-                    try{
-                        Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
-                        constructor.setAccessible(true);
-                        rules.add(constructor.newInstance(), type);
-                    }catch (Throwable e){
-                        logger.warn("Failed to load api, threw: "+ e);
+                    String rulename = parameters[i].getAnnotation(CustomRule.class).rule();
+                    if (customParameters.contains(rulename)){
+                        rules.allowPacking(customParameters.get(rulename), type);
+                    }else{
+                        logger.warn("Failed to enforce custom rule '{}', class not found", rulename);
                         rules.allowPacking(type);
                     }
                 }else{
@@ -138,12 +137,11 @@ public class APILoader {
                     type = (VarType.FUNCTION);
                 }
                 if (parameters[i].isAnnotationPresent(CustomRule.class)){
-                    try{
-                        Constructor<? extends CustomParameter> constructor = parameters[i].getAnnotation(CustomRule.class).rule().getDeclaredConstructor();
-                        constructor.setAccessible(true);
-                        rules.add(constructor.newInstance(), type);
-                    }catch (Throwable e){
-                        logger.warn("Failed to load api, threw: "+e);
+                    String rulename = parameters[i].getAnnotation(CustomRule.class).rule();
+                    if (customParameters.get(rulename)!=null){
+                        rules.add(customParameters.get(rulename), type);
+                    }else{
+                        logger.warn("Failed to enforce custom rule '{}', class not found", rulename);
                         rules.add(type);
                     }
                 }else{
@@ -260,10 +258,27 @@ public class APILoader {
     private static Function[] translateAPI(API obj, @Nullable Runtime runtime){
         Class<?> _class = obj.getClass();
         LinkedList<Function> functions = new LinkedList<>();
+        Hashtable<String, CustomParameter> customParameters = new Hashtable<>();
+        Class<?>[] classes = _class.getDeclaredClasses();
+        for (Class<?> clazz : classes){
+            if (clazz.isAnnotationPresent(CustomRule.class)){
+                if (clazz.getSuperclass()==CustomParameter.class){
+                    try{
+                        Constructor<? extends CustomParameter> constructor = (Constructor<? extends CustomParameter>) clazz.getDeclaredConstructor();
+                        constructor.setAccessible(true);
+                        customParameters.put(clazz.getAnnotation(CustomRule.class).rule(),constructor.newInstance());
+                    }catch (Throwable e){
+                        logger.warn("Failed to load custom rule, threw: "+e);
+                    }
+                }else{
+                    logger.warn("Failed to establish custom rule '{}', doesn't extend CustomParameter", clazz.getAnnotation(CustomRule.class).rule());
+                }
+            }
+        }
         Method[] buffer = _class.getMethods();
         for (Method method : buffer){
             if (method.isAnnotationPresent(Exposed.class)){
-                ParameterRules ruleset = rulesFromMethod(method);
+                ParameterRules ruleset = rulesFromMethod(method, customParameters);
                 Function function;
                 if (method.getReturnType()==Void.TYPE){
                     function = new Function(ruleset) {
@@ -336,7 +351,11 @@ public class APILoader {
                         }
                     };
                 }
-                function.setName(method.getName());
+                if (method.getAnnotation(Exposed.class).nameOverride().isBlank()){
+                    function.setName(method.getName());
+                }else{
+                    function.setName(method.getAnnotation(Exposed.class).nameOverride());
+                }
                 functions.add(function);
             }
         }
@@ -346,7 +365,7 @@ public class APILoader {
                 try{
                     functions.addAll((Collection<? extends Function>) field.get(obj));
                 }catch (Throwable ignored){
-                    logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), ignored.getMessage());
+                    logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), ignored);
                 }
             }
         }

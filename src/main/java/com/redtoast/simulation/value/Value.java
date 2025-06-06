@@ -142,7 +142,7 @@ public class Value<Type> {
         return metaTable;
     }
     public boolean hasMetadata(){
-        return hasMetadata;
+        return hasMetadata && metaTable!=null;
     }
     public void setMeta(String key, Value value){
         metaTable.put(key, value);
