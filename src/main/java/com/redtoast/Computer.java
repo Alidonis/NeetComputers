@@ -3,13 +3,9 @@ package com.redtoast;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.simulation.FileHandler;
-import com.redtoast.simulation.EventGeneric;
-import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.APILoader;
+import com.redtoast.simulation.*;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.IDFactory;
-import com.redtoast.simulation.Peripheral;
+import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -28,6 +24,32 @@ import org.slf4j.Logger;
 import java.util.LinkedList;
 import java.util.UUID;
 
+/**
+ * the {@link Computer} class represents the entirty of a NeetComputers computer and its subclasses.
+ * <p>
+ *     The {@link Computer} class has multiple steps required before it can start ticking
+ * </p>
+ *
+ * <p>
+ *     First initialize the computer instance, provide a {@link computerSpecs} instance and implement abstract methods
+ *     you can think of this as creating the <i>model</i> that the computer with use
+ * </p>
+ *
+ * <p>
+ *     then run {@code computer.load(params)}, there are multiple load function that load the computer differently, but this stage is critical
+ *     to give the computer the data it needs to operate
+ * </p>
+ *
+ * <p>
+ *     from there you can use {@code computer.start()} or {@code computer.stop()} to control the computers state, and progress the computer using
+ *     {@code computer.tick()}
+ * </p>
+ *
+ * @see computerSpecs
+ * @see Runtime
+ * @see GlobalManager
+ * @see FileHandler
+ */
 public abstract class Computer {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
@@ -39,7 +61,7 @@ public abstract class Computer {
     //determines if a 'load' function has been called, providing important information to computer, most methods won't run if this is false
     private boolean loaded = false;
     //determines if the computer is on
-    private boolean isOn = false;
+    private boolean IsOn = false;
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
     //object representing the computers file interpreter
@@ -62,12 +84,12 @@ public abstract class Computer {
     //represents que for events
     private @Deprecated final LinkedList<EventGeneric> eventQue = new LinkedList<>();
     //specify computer specifications
-    private ComputerSpecs specs;
+    private computerSpecs specs;
 
     //abstract methods
     /**
      * commands parent object to register a saved nbt (mostly useful in blocks)
-     * typicly you should have this call markDirty() if it's a blockEntity parent or be otherwise trigger NBT saving
+     * typically you should have this call markDirty() if it's a blockEntity parent or be otherwise trigger NBT saving
      */
     public abstract void saveNBT();
 
@@ -90,7 +112,7 @@ public abstract class Computer {
     public abstract @Nullable Object getParentEntity();
 
     //constructor
-    public Computer(ComputerSpecs specifications){
+    public Computer(computerSpecs specifications){
         Graphics = new RGBGraphicsArray(specifications.ColorGraphicsSizeX,specifications.ColorGraphicsSizeY);
         specs = specifications;
         doesBinaryGraphics = specifications.doesGraphics;
@@ -98,7 +120,7 @@ public abstract class Computer {
     }
 
     //generic load function all other load functions call after implementing data
-    private void Load(){
+    private void load(){
         loaded = true;
         if (NeetComputers.worldPath!=null){
             FS = new FileHandler(pointer,ROM,"null");
@@ -107,52 +129,52 @@ public abstract class Computer {
         NeetComputers.computerMap.put(uuid, this);
     }
     //loads computer from NBT data
-    public void Load(NbtCompound nbt){
+    public void load(NbtCompound nbt){
         if (!loaded){
             pointer = nbt.getInt("UserPointer");
             ROM = nbt.getInt("ROMPointer");
-            if (nbt.contains("isOn")){
-                isOn = nbt.getBoolean("isOn");
-                if (isOn && doesBinaryGraphics && nbt.contains("screen")){
+            if (nbt.contains("IsOn")){
+                IsOn = nbt.getBoolean("IsOn");
+                if (IsOn && doesBinaryGraphics && nbt.contains("screen")){
                     BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
                 }
                 if (nbt.contains("ComputerID")){
                     uuid = nbt.getUuid("ComputerID");
                 }
             }else{
-                isOn = false;
+                IsOn = false;
             }
-            Load();
+            load();
         }else{
-            if (nbt.contains("isOn")){
-                if (nbt.contains("isOn")!=isOn){
-                    if (nbt.getBoolean("isOn")){
-                        Start();
+            if (nbt.contains("IsOn")){
+                if (nbt.contains("IsOn")!= IsOn){
+                    if (nbt.getBoolean("IsOn")){
+                        start();
                     }else{
-                        Stop();
+                        stop();
                     }
                 }
             }
         }
     }
     //generates a new computer from scratch
-    public void Load(MinecraftServer GameServer){
+    public void load(MinecraftServer GameServer){
         if (!loaded){
             assert GameServer != null;
             IDFactory.getServerState(GameServer);
             IDFactory.PointerIteration++;
             pointer = IDFactory.PointerIteration;
             ROM = -1;
-            isOn = false;
-            Load();
+            IsOn = false;
+            load();
         }
     }
 
     /*'starts' the computer if its off, does nothing if its on
      * starts referring to building a new Runtime instance and marking its state as on
      */
-    public void Start(){
-        if (!isOn && loaded){
+    public void start(){
+        if (!IsOn && loaded){
             //wipes binary graphics
             for (int x = 0; x < BinGraphics.getSize().x; x++){
                 for (int y = 0; y < BinGraphics.getSize().y; y++){
@@ -172,42 +194,50 @@ public abstract class Computer {
 
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
-                    return com.eventQue;
-                }
-
-                @Override
-                public ComputerSpecs getSpecifications() {
-                    return specs;
+                    return com.getEventQue();
                 }
             };
+
             //adds context-sensitive peripherals
+            new APILoader(this);
             for (API api : unwrappedPeripherals){
                 peripheralBuffer.add(APILoader.WrapAPI(api, runtime));
             }
+
+            //load the runtime (create entry thread)
+            runtime.load();
+
             //marks state as on
-            isOn = true;
+            IsOn = true;
             saveNBT();
         }
     }
 
     //marks computer as off and overrides the runtime with null
-    public void Stop(){
-        if (isOn){
+    public void stop(){
+        if (IsOn){
             runtime=null;
-            isOn=false;
+            IsOn =false;
             saveNBT();
         }
     }
 
     //one line fetch methods
-    public boolean IsOn(){return isOn;}
+    public boolean isOn(){return IsOn;}
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
+    public @Nullable Runtime getRuntime() {
+        return runtime;
+    }
     private LinkedList<Peripheral> getPeripherals() {return peripheralBuffer;}
+    private LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
+    public computerSpecs getSpecifications(){
+        return specs;
+    }
 
     //muli-line fetch methods
     public int getPointer(String rootName){
@@ -221,8 +251,12 @@ public abstract class Computer {
         if (!doesBinaryGraphics) return null;
         return BinGraphics;
     }
-    public ComputerSpecs getSpecifications(){
-        return specs;
+    public @Nullable GlobalManager getGlobals(){
+        if (IsOn){
+            return runtime.globalManager;
+        }else{
+            return null;
+        }
     }
 
     //set methods
@@ -233,15 +267,15 @@ public abstract class Computer {
     }
 
     //ticks the computer
-    public void Tick(World world){
+    public void tick(World world){
         if (loaded){
             maintainState();
             if (NeetComputers.worldPath!=null && FS==null){
                 FS = new FileHandler(pointer,ROM,"null");
             }
             if (NeetComputers.worldPath!=null){
-                if (isOn && runtime ==null) {
-                    Start();
+                if (IsOn && runtime ==null) {
+                    start();
                 }
                 step();
                 for (PlayerEntity p : world.getPlayers()) {
@@ -261,11 +295,11 @@ public abstract class Computer {
     //steps the runtime forward (tick with less protection)
     private void step(){
         if (loaded){
-            if (isOn && runtime !=null){
+            if (IsOn && runtime !=null){
                 if (runtime.isDead()){
-                    Stop();
+                    stop();
                 }else{
-                    if (isOn) {
+                    if (IsOn) {
                         runtime.tick();
                     }
                 }
@@ -315,8 +349,8 @@ public abstract class Computer {
     public NbtCompound writeNBT(NbtCompound nbt){
         nbt.putInt("UserPointer", pointer);
         nbt.putInt("ROMPointer",ROM);
-        nbt.putBoolean("isOn",isOn);
-        if (isOn && doesBinaryGraphics){
+        nbt.putBoolean("IsOn", IsOn);
+        if (IsOn && doesBinaryGraphics){
             nbt.put("screen", BinGraphics.writeScreenToNBT());
         }
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
@@ -325,7 +359,7 @@ public abstract class Computer {
 
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
-        if (isOn && runtime ==null && loaded && FS!=null){
+        if (IsOn && runtime ==null && loaded && FS!=null){
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;
@@ -337,17 +371,14 @@ public abstract class Computer {
 
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
-                    return com.eventQue;
+                    return com.getEventQue();
                 }
 
-                @Override
-                public ComputerSpecs getSpecifications() {
-                    return specs;
-                }
             };
             for (API api : unwrappedPeripherals){
                 peripheralBuffer.add(APILoader.WrapAPI(api, runtime));
             }
+            runtime.load();
         }
     }
 }

@@ -5,6 +5,6 @@ import com.redtoast.simulation.base.API;
 import org.jetbrains.annotations.NotNull;
 
 public interface APIRegistry {
-    public @NotNull API Create(Runtime runtime, Computer computer);
-    public default boolean predicate(Runtime runtime, Computer computer){return true;}
+    public @NotNull API Create(Computer computer);
+    public default boolean predicate(Computer computer){return true;}
 }

@@ -3,8 +3,7 @@ package com.redtoast.peripherals;
 import com.redtoast.Computer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.value.LangError;
-import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 import com.redtoast.simulation.base.API;
 
@@ -29,7 +28,7 @@ public class ProjectorAPI implements API {
 
     @Exposed
     public Tuple getSize(){
-        return new Tuple(new Value[]{new Value<>(sizex), new Value<>(sizey)});
+        return new Tuple(sizex, sizey);
     }
 
     @Exposed

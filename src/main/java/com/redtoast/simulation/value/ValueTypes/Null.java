@@ -2,6 +2,15 @@ package com.redtoast.simulation.value.ValueTypes;
 
 import com.redtoast.simulation.value.Value;
 
+/**
+ * represents an N.E.E.T. computers null value, if your using {@link Value} correctly you should never be reading this
+ * @see Value
+ * @see List
+ * @see Tuple
+ * @see Table
+ * @see Function
+ * @see Exception
+ */
 public class Null{
     @Override
     public boolean equals(Object obj) {

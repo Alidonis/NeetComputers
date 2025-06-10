@@ -1,4 +1,4 @@
-package com.redtoast.simulation.value;
+package com.redtoast.simulation.base;
 
 public class LangError extends RuntimeException{
     public LangError(String message){

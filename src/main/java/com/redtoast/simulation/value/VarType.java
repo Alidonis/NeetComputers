@@ -8,7 +8,7 @@ public enum VarType {
     BOOLEAN,
     STRING,
     NULL,
-    EXEMPTION,
+    EXCEPTION,
     FUNCTION,
     TABLE,
     LIST,

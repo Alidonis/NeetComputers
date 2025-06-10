@@ -19,7 +19,6 @@ import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
-import com.redtoast.simulation.Runtime;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -121,32 +120,32 @@ public class NeetComputers implements ModInitializer {
 
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Runtime runtime, Computer computer) {
-				return new GraphicsAPI();
+			public @NotNull API Create(Computer _computer) {
+				return new GraphicsAPI(_computer);
 			}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Runtime runtime, Computer computer) {
-				return new ChipAPI(computer, runtime);
+			public @NotNull API Create(Computer _computer) {
+				return new ChipAPI(_computer);
 			}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Runtime runtime, Computer computer) {
-				return new FSAPI(runtime);
+			public @NotNull API Create(Computer _computer) {
+				return new FSAPI(_computer);
 			}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Runtime runtime, Computer computer) {
-				return new PeripheralsAPI(runtime);
+			public @NotNull API Create(Computer _computer) {
+				return new PeripheralsAPI(_computer);
 			}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Runtime runtime, Computer computer) {
-				return new PaintAPI(computer);
+			public @NotNull API Create(Computer _computer) {
+				return new PaintAPI(_computer);
 			}
 		});
 	}

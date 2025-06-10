@@ -6,7 +6,7 @@ import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.InsertAtRuntime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
-import com.redtoast.simulation.value.LangError;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
@@ -25,16 +25,16 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class APILoader {
-    private Runtime ParentRuntime;
-    private static Logger logger = LoggerFactory.getLogger("NeetComputers: API loading");
-    private static LinkedList<APIRegistry> APIs = new LinkedList<>();
+    private final Runtime ParentRuntime;
+    private static final Logger logger = LoggerFactory.getLogger("NeetComputers: API loading");
+    private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
 
     /**
      * APILoader instances are created by individual Runtime's
      */
-    public APILoader(Runtime runtime, Computer computer){
-        ParentRuntime = runtime;
-        load(runtime, computer);
+    public APILoader(Computer computer){
+        ParentRuntime = computer.getRuntime();
+        load(computer.getRuntime(), computer);
     }
 
     //added a APIRegistery object to the static list of API's to instanciate
@@ -44,8 +44,8 @@ public class APILoader {
 
     private void load(Runtime runtime, Computer computer){
         for (APIRegistry registry : APIs){
-            if (registry.predicate(runtime, computer)){
-                API api = registry.Create(runtime, computer);
+            if (registry.predicate(computer)){
+                API api = registry.Create(computer);
                 Function[] function = translateAPI(api, runtime);
                 loadIntoGlobals(function, api.getLabel());
             }
@@ -294,6 +294,7 @@ public class APILoader {
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
+                                    e.printStackTrace();
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -319,6 +320,7 @@ public class APILoader {
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
+                                    e.printStackTrace();
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -337,13 +339,14 @@ public class APILoader {
                                 if (retun==null){
                                     return Value.NULL;
                                 }else{
-                                    return new Value(retun);
+                                    return Value.of(retun);
                                 }
                             }catch (Throwable e){
                                 Throwable unwrappedThrow = e.getCause();
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
+                                    e.printStackTrace();
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -364,8 +367,8 @@ public class APILoader {
             if (field.isAnnotationPresent(InsertAtRuntime.class)){
                 try{
                     functions.addAll((Collection<? extends Function>) field.get(obj));
-                }catch (Throwable ignored){
-                    logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), ignored);
+                }catch (Throwable notignored){
+                    logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), notignored);
                 }
             }
         }

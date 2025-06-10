@@ -6,6 +6,15 @@ import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * represents an N.E.E.T. computers callable function, call implementation, parameter handling, and error handling not included
+ * @see Value
+ * @see List
+ * @see Tuple
+ * @see Table
+ * @see Exception
+ * @see java.lang.reflect.Method
+ */
 public abstract class Function{
     private ParameterRules ruleset;
     private String name;
@@ -37,6 +46,6 @@ public abstract class Function{
     public String getName(){return name;}
 
     public Value<Function> asValue(){
-        return new Value<>(this);
+        return Value.of(this);
     }
 }

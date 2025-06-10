@@ -1,7 +1,7 @@
 package com.redtoast.Lua;
 
 import com.redtoast.Computer;
-import com.redtoast.ComputerSpecs;
+import com.redtoast.computerSpecs;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
@@ -19,7 +19,7 @@ public class LuaMaster implements LanguageGeneric {
     }
 
     @Override
-    public LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, ComputerSpecs specifications) {
+    public LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, computerSpecs specifications) {
         return new LuaThread(script, parentRuntime, specifications);
     }
 }

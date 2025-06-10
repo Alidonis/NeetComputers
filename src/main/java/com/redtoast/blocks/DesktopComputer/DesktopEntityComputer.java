@@ -1,7 +1,7 @@
 package com.redtoast.blocks.DesktopComputer;
 
 import com.redtoast.Computer;
-import com.redtoast.ComputerSpecs;
+import com.redtoast.computerSpecs;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
@@ -36,10 +36,10 @@ public class DesktopEntityComputer extends BlockEntity implements ExtendedScreen
     public DesktopEntityComputer(BlockPos pos, BlockState state) {
         super(BulkRegistery.fetchBlockEntityType("desktop_computer"), pos, state);
         BlockEntity be = this;
-        computer = new Computer(new ComputerSpecs()
-                .setGraphics(11, 6)
-                .setColorGraphics(192,108)
-                .setIPS(194000, 500)
+        computer = new Computer(new computerSpecs()
+                .setBinaryGraphicsSize(11, 6)
+                .setColorGraphicsSize(192,108)
+                .setIPS(194000)
                 .setMaxCores(3)
                 .setCoreUtilizationBonus(5)
                 .setMachineName("Desktop Computer")
@@ -82,24 +82,24 @@ public class DesktopEntityComputer extends BlockEntity implements ExtendedScreen
     public void AssignPointers(World world, ItemStack itemStack){
         if (itemStack.hasNbt()) {
             NbtCompound nbt = itemStack.getNbt();
-            computer.Load(nbt);
+            computer.load(nbt);
         }else{
             MinecraftServer server = world.getServer();
-            computer.Load(server);
+            computer.load(server);
         }
     }
 
     public ActionResult onUse(PlayerEntity player, BlockState state){
-        if (!player.isSneaking() && !player.isUsingItem() && computer.IsOn()){
+        if (!player.isSneaking() && !player.isUsingItem() && computer.isOn()){
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
             if (screenHandlerFactory != null) {
                 player.openHandledScreen(screenHandlerFactory);
             }
         }
         if (player.isSneaking()){
-            computer.Stop();
+            computer.stop();
         }else{
-            computer.Start();
+            computer.start();
         }
         return ActionResult.SUCCESS;
     }
@@ -113,17 +113,17 @@ public class DesktopEntityComputer extends BlockEntity implements ExtendedScreen
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
-        computer.Load(nbt);
+        computer.load(nbt);
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof DesktopEntityComputer computerBlock) {
-                computerBlock.computer.Tick(world);
+                computerBlock.computer.tick(world);
                 BlockState current = world.getBlockState(blockPos);
-                if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.IsOn()) {
-                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.IsOn()), Block.NOTIFY_ALL);
+                if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.isOn()) {
+                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.isOn()), Block.NOTIFY_ALL);
                 }
             }
         }

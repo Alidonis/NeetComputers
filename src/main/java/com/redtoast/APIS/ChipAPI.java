@@ -3,7 +3,7 @@ package com.redtoast.APIS;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.value.LangError;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
@@ -15,9 +15,9 @@ public class ChipAPI implements API {
     Computer computer;
     Runtime vm;
 
-    public ChipAPI(Computer parent, Runtime VM) {
+    public ChipAPI(Computer parent) {
         computer = parent;
-        vm = VM;
+        vm = computer.getRuntime();
     }
 
     @Exposed
@@ -54,7 +54,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public String getCurrentThread(){
-        UUID uuid = vm.getThread().getUuid();
+        UUID uuid = vm.getRunningThread().getUuid();
         return uuid.toString();
     }
 
@@ -72,7 +72,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public void shutdown(){
-        computer.Stop();
+        computer.stop();
     }
 
     @Exposed

@@ -1,11 +1,11 @@
 package com.redtoast.simulation;
 
 import com.redtoast.Computer;
-import com.redtoast.ComputerSpecs;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,35 +22,60 @@ public abstract class Runtime {
     public Computer parent;
     public Hashtable<String, Function> eventTable = new Hashtable<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
-
-    public UUID MakeThread(String script, String lang){
-        if (!NeetComputers.hasLanguage(lang)){
-            return null;
-        }
-        LanguageGeneric langObject = NeetComputers.getLanguage(lang);
-        assert langObject != null;
-        LangThread thread = langObject.createThread(script, this, parent, getSpecifications());
-        threads.add(thread);
-        return thread.getUuid();
-    }
+    private boolean inTick = false;
 
     public Runtime(Computer Parent, FileHandler Files){
+        globalManager = new GlobalManager();
         parent = Parent;
         files = Files;
-        globalManager = new GlobalManager();
-        new APILoader(this, parent);
+    }
+
+    /**
+     * Creates the runtimes initial thread, automatically ran by computer parent class
+     */
+    public void load(){
         if (files.exists("rom/startup.lua")){
+            inTick=true;
             MakeThread(files.readFile("rom/startup.lua"), "Lua 5.2");
+            inTick=false;
         }else{
             debug.info("Entrypoint not found for computer, computer failed to start!");
             kill=true;
         }
     }
 
-    public abstract LinkedList<Peripheral> getPeripherals();
-    public abstract LinkedList<EventGeneric> getEvents();
-    public abstract ComputerSpecs getSpecifications();
+    /**
+     * opens a new thread
+     * @param script The code you are running
+     * @param lang the name of the language your opening the scrip in (I.E Lua 5.2)
+     * @return The UUID of the created thread
+     */
+    public UUID MakeThread(String script, String lang){
+        if (!NeetComputers.hasLanguage(lang)){
+            return null;
+        }
+        LanguageGeneric langObject = NeetComputers.getLanguage(lang);
+        assert langObject != null;
+        LangThread thread = langObject.createThread(script, this, parent, parent.getSpecifications());
+        threads.add(thread);
+        return thread.getUuid();
+    }
 
+    /**
+     * gets an unordered list of all peripheral object
+     * @return list of wrapped peripherals
+     */
+    public abstract LinkedList<Peripheral> getPeripherals();
+
+    /**
+     * retrieves a que of to-be-run events from its parent class
+     * @return list of events
+     */
+    public abstract LinkedList<EventGeneric> getEvents();
+
+    /**
+     * ticks all contained threads forward once and perform maintenance tasks
+     */
     public void tick(){
         if (!kill) {
             if (threads.isEmpty()) {
@@ -61,7 +86,9 @@ public abstract class Runtime {
             for (int i = 0; i < threads.size(); i++) {
                 if (threads.get(i).isAlive()) {
                     thread = threads.get(i);
+                    inTick=true;
                     threads.get(i).Tick();
+                    inTick=false;
                     if (!threads.get(i).isAlive()) {
                         deathQue.add(i);
                     }
@@ -80,23 +107,28 @@ public abstract class Runtime {
         }
     }
 
+    /**
+     * returns the state of the runtime
+     * @return if the instance is dead or alive
+     */
     public boolean isDead(){
         return kill;
     }
 
-    public LinkedList<Peripheral> getParentsPeripherals() {
-        return getPeripherals();
-    }
-
+    /**
+     * returns an unordered list of all threads, including rarely dead threads
+     * @return list of threads
+     */
     public LinkedList<LangThread> getThreads() {
         return threads;
     }
 
-    public LangThread getThread() {
+    /**
+     * gets the tread that's currently being ticked or returns null
+     * @return LangThread instance or null
+     */
+    public @Nullable LangThread getRunningThread() {
+        if (!inTick) {return null;}
         return thread;
-    }
-
-    public void registerEvent(String event, Function func) {
-        eventTable.put(event, func);
     }
 }

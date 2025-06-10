@@ -1,5 +1,6 @@
 package com.redtoast.APIS;
 
+import com.redtoast.Computer;
 import com.redtoast.simulation.annotations.CustomRule;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.value.Value;
@@ -30,9 +31,9 @@ public class PeripheralsAPI implements API {
         public boolean rule(Value arg) {
             if (!arg.instanceOf(VarType.TABLE)) return false;
             Table table = (Table) arg.getValue();
-            if (table.asValue().hasMetadata()) return true;
-            if (table.asValue().getMeta("tag").isNull()) return false;
-            return table.asValue().getMeta("tag").toString().equals("peripheral");
+            if (table.asValue().hasMetaTable()) return true;
+            if (table.asValue().getMetaTable("tag").isNull()) return false;
+            return table.asValue().getMetaTable("tag").toString().equals("peripheral");
         }
 
         @Override
@@ -41,8 +42,8 @@ public class PeripheralsAPI implements API {
         }
     }
 
-    public PeripheralsAPI(Runtime vm) {
-        runtime = vm;
+    public PeripheralsAPI(Computer vm) {
+        runtime = vm.getRuntime();
         metaUUID.put("hasUUID", Value.TRUE);
         metaUUID.put("UUID_source", "peripheral");
         metaUUID.put("tag","uuid");
@@ -50,7 +51,7 @@ public class PeripheralsAPI implements API {
 
     @Exposed
     public boolean exists(String uuid){
-        LinkedList<Peripheral> periphs = runtime.getParentsPeripherals();
+        LinkedList<Peripheral> periphs = runtime.getPeripherals();
         for (int i = 0; i < periphs.size(); i++){
             if (Objects.equals(periphs.get(i).uuid.toString(), uuid)){
                 return true;
@@ -61,9 +62,9 @@ public class PeripheralsAPI implements API {
 
     @Exposed
     public boolean isPeripheral(Table table){
-        if (table.asValue().hasMetadata()) return false;
-        if (table.asValue().getMeta("tag").isNull()) return false;
-        if (table.asValue().getMeta("tag").toString().equals("peripheral")){
+        if (table.asValue().hasMetaTable()) return false;
+        if (table.asValue().getMetaTable("tag").isNull()) return false;
+        if (table.asValue().getMetaTable("tag").toString().equals("peripheral")){
             return true;
         }else{
             return false;
@@ -72,19 +73,19 @@ public class PeripheralsAPI implements API {
 
     @Exposed
     public String getUUID(@CustomRule(rule = "validPeripheral") Table peripheral){
-        Value uuid = new Value(peripheral.asValue().getMeta("uuid").toString());
+        Value uuid = Value.of(peripheral.asValue().getMetaTable("uuid").toString());
         uuid.setMetaTable(metaUUID);
         return uuid.toString();
     }
 
     @Exposed
     public String getType(@CustomRule(rule = "validPeripheral") Table peripheral){
-        return peripheral.asValue().getMeta("type").toString();
+        return peripheral.asValue().getMetaTable("type").toString();
     }
 
     @Exposed
     public Table retrieve(String uuid){
-        LinkedList<Peripheral> periphs = runtime.getParentsPeripherals();
+        LinkedList<Peripheral> periphs = runtime.getPeripherals();
         for (int i = 0; i < periphs.size(); i++){
             if (Objects.equals(periphs.get(i).uuid.toString(), uuid)){
                 return periphs.get(i).table.getValue();
@@ -95,7 +96,7 @@ public class PeripheralsAPI implements API {
 
     @Exposed
     public Tuple search(String type){
-        LinkedList<Peripheral> periphs = runtime.getParentsPeripherals();
+        LinkedList<Peripheral> periphs = runtime.getPeripherals();
         LinkedList<Peripheral> output = new LinkedList<>();
         for (Peripheral periph : periphs) {
             if (periph.peripheralType.equals(type)) {
@@ -111,9 +112,9 @@ public class PeripheralsAPI implements API {
 
     @Exposed
     public List getAll(){
-        Value[] uuids = new Value[runtime.getParentsPeripherals().size()];
-        for (int i = 0; i < runtime.getParentsPeripherals().size(); i++){
-            uuids[i] = new Value(runtime.getParentsPeripherals().get(i).uuid.toString());
+        Value[] uuids = new Value[runtime.getPeripherals().size()];
+        for (int i = 0; i < runtime.getPeripherals().size(); i++){
+            uuids[i] = Value.of(runtime.getPeripherals().get(i).uuid.toString());
             uuids[i].setMetaTable(metaUUID);
         }
         return new List(uuids);

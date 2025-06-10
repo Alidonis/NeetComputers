@@ -1,9 +1,10 @@
 package com.redtoast.APIS;
 
+import com.redtoast.Computer;
 import com.redtoast.simulation.FileHandler;
 import com.redtoast.simulation.annotations.CustomRule;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.value.LangError;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.List;
@@ -36,8 +37,8 @@ public class FSAPI implements API {
         }
     }
 
-    public FSAPI(Runtime vm) {
-        runtime=vm;
+    public FSAPI(Computer vm) {
+        runtime=vm.getRuntime();
     }
 
     @Exposed
@@ -96,7 +97,7 @@ public class FSAPI implements API {
         String[] files = runtime.files.getFiles(path);
         Value[] values = new Value[files.length];
         for (int i = 0; i < files.length; i++){
-            values[i] = new Value(files[i]);
+            values[i] = Value.of(files[i]);
         }
         return new List(values);
     }

@@ -1,7 +1,6 @@
 package com.redtoast.graphics;
 
 import com.redtoast.Computer;
-import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;

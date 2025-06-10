@@ -1,6 +1,6 @@
 package com.redtoast.Lua;
 
-import com.redtoast.ComputerSpecs;
+import com.redtoast.computerSpecs;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
 import org.luaj.vm2.LuaError;
@@ -24,13 +24,13 @@ public class LuaThread extends LangThread {
         }
     }
 
-    private ComputerSpecs specs;
+    private computerSpecs specs;
     private org.luaj.vm2.LuaThread coroutine;
     private Runtime runtime;
     private LuaGlobals globals;
     protected short ticket = 0;
 
-    public LuaThread(String script, Runtime parentRuntime, ComputerSpecs specification){
+    public LuaThread(String script, Runtime parentRuntime, computerSpecs specification){
         super();
         try{
             globals = new LuaGlobals(parentRuntime.globalManager);
@@ -68,7 +68,8 @@ public class LuaThread extends LangThread {
                 log("LuaThread has ran to completion!");
             } else {
                 kill(result.arg(2).toString());
-                error("LuaThread threw " + result.arg(2).toString());
+                error("2");
+                error("Lua 5.2 threw " + result.arg(2).toString());
             }
             kill();
         }

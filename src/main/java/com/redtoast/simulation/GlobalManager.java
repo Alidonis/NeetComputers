@@ -33,12 +33,12 @@ public class GlobalManager extends Table {
 
     @Override
     public void put(String key, Value value){
-        put(new Value<>(key), value);
+        put(Value.of(key), value);
     }
 
     @Override
     public void put(String key, String value){
-        put(new Value<>(key), new Value<>(value));
+        put(Value.of(key), Value.of(value));
     }
 
     @Override

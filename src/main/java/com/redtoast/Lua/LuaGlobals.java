@@ -18,17 +18,15 @@ import java.util.UUID;
 public class LuaGlobals extends Globals implements GlobalGeneric {
     public final LuaValue LuaDebug;
     private LuaTranslater lua52;
-    private boolean enabled = false;
     private GlobalManager globals;
-    private UUID uuid;
-    private GlobalManager manager;
+    private final UUID uuid;
+    private final GlobalManager manager;
     private boolean noForwarding = false;
-    private Hashtable<Value, Value> queue = new Hashtable<>();
+    private final Hashtable<Value, Value> queue = new Hashtable<>();
 
     public LuaGlobals(GlobalManager globalManager){
         //generate Globals based off how jsePlatform.debugGlobals() works without a few unnecessary library's
         super();
-
         super.load(new JseBaseLib());
         super.load(new PackageLib());
         super.load(new Bit32Lib());
@@ -62,7 +60,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         //enable globals connection to GlobalManager
         manager.register(this);
-        enabled = true;
         push();
     }
 
@@ -81,8 +78,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     public void push(){
         noForwarding = true;
         queue.forEach((key, value) -> {
-            LuaValue luaKay = (LuaValue) lua52.fromValue(key.serialize());
-            super.set(luaKay, (LuaValue) lua52.fromValue(value.serialize()));
+            LuaValue luaKay = (LuaValue) lua52.fromValue(key.pack());
+            super.set(luaKay, (LuaValue) lua52.fromValue(value.pack()));
         });
         noForwarding = false;
         queue.clear();
