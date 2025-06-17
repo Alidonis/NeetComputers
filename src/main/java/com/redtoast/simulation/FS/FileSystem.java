@@ -184,9 +184,11 @@ public class FileSystem implements API {
 
     @Exposed
     public boolean delete(String path){
+        if (FileHelper.normalize(path).equals(FileHelper.normalize(build.entrypoint))) throw new LangError("Access denied");
         Filepath file = getFile(path);
         if (file.isInvalid()) throw new LangError("Invalid file path");
         if (!file.exists()) throw new LangError("File does not exist");
+        if (!file.canWrite()) throw new LangError("Access denied");
         try{
             return file.delete();
         }catch (Exception exception){
