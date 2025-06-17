@@ -1,5 +1,6 @@
 package com.redtoast.simulation.base;
 
+import net.minecraft.nbt.NbtCompound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +32,6 @@ public abstract class LangThread {
     }
     public boolean isAlive(){return !killed;}
     public abstract String getLang();
-    public abstract void Yield();
-    public abstract void Tick();
+    public abstract void yield();
+    public abstract void tick();
 }

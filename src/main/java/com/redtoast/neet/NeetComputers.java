@@ -67,7 +67,7 @@ public class NeetComputers implements ModInitializer {
 	//internal language processing
 	private static boolean LangsLoaded = false;
 	protected static LanguageGeneric[] LanguageCache;
-	protected static LanguageTranslater[] translaters;
+	private static LanguageTranslater[] translaters;
 	private final static LinkedList<LanguageGeneric> languageGenerics = new LinkedList<>();
 
 	@Override
@@ -133,12 +133,6 @@ public class NeetComputers implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer _computer) {
-				return new FSAPI(_computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer _computer) {
 				return new PeripheralsAPI(_computer);
 			}
 		});
@@ -184,6 +178,10 @@ public class NeetComputers implements ModInitializer {
 			}
 		}
 		return null;
+	}
+
+	public static LanguageTranslater[] getTranslaters(){
+		return translaters;
 	}
 
 	public static String[] getLangs(){

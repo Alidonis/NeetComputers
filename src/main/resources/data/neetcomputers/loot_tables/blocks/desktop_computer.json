@@ -16,12 +16,13 @@
               "source": "block_entity",
               "ops": [
                 {
-                  "source": "UserPointer",
-                  "target": "UserPointer",
+                  "source": "Address",
+                  "target": "Address",
                   "op": "replace"
-                },{
-                  "source": "ROMPointer",
-                  "target": "ROMPointer",
+                },
+                {
+                  "source": "ComputerID",
+                  "target": "ComputerID",
                   "op": "replace"
                 }
               ]

@@ -34,4 +34,14 @@ public class FunctionInput {
         }
         return values.get(index);
     }
+    public Value[] toArray(){
+        Value[] vals = new Value[values.size() + packed.size()];
+        for (int i = 0; i < values.size(); i++){
+            vals[i] = values.get(i);
+        }
+        for (int i = 0; i < packed.size(); i++){
+            vals[i + values.size()] = packed.get(i);
+        }
+        return vals;
+    }
 }

@@ -3,6 +3,7 @@ package com.redtoast.Lua;
 import com.redtoast.computerSpecs;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
+import net.minecraft.nbt.NbtCompound;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -19,7 +20,7 @@ public class LuaThread extends LangThread {
         @Override
         public LuaValue call() {
             parent.ticket--;
-            parent.Yield();
+            parent.yield();
             return LuaValue.NIL;
         }
     }
@@ -32,17 +33,17 @@ public class LuaThread extends LangThread {
 
     public LuaThread(String script, Runtime parentRuntime, computerSpecs specification){
         super();
+        specs = specification;
+        runtime = parentRuntime;
         try{
-            globals = new LuaGlobals(parentRuntime.globalManager);
-            specs = specification;
+            globals = new LuaGlobals(runtime.globalManager);
             LuaValue chunk = globals.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(globals, chunk);
-            globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specification.BatchSize)});
-            runtime = parentRuntime;
+            globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specs.BatchSize)});
         } catch (Exception e) {
-            if (e instanceof LuaError laerror){
-                kill(laerror.getMessage());
-                error(laerror.toString());
+            if (e instanceof LuaError error){
+                kill(error.getMessage());
+                error(error.toString());
             }else{
                 kill("Unexpected java issue, please check logs");
                 error(e.toString());
@@ -56,7 +57,7 @@ public class LuaThread extends LangThread {
     }
 
     @Override
-    public void Yield() {
+    public void yield() {
         globals.yield(LuaValue.NIL);
     }
 
@@ -68,7 +69,6 @@ public class LuaThread extends LangThread {
                 log("LuaThread has ran to completion!");
             } else {
                 kill(result.arg(2).toString());
-                error("2");
                 error("Lua 5.2 threw " + result.arg(2).toString());
             }
             kill();
@@ -76,7 +76,7 @@ public class LuaThread extends LangThread {
     }
 
     @Override
-    public void Tick(){
+    public void tick(){
         if (!isAlive()) return;
         double util = (double) specs.Batches / runtime.threads.size();
         util *= specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1;

@@ -95,7 +95,7 @@ public class PeripheralsAPI implements API {
     }
 
     @Exposed
-    public Tuple search(String type){
+    public Tuple locate(String type){
         LinkedList<Peripheral> periphs = runtime.getPeripherals();
         LinkedList<Peripheral> output = new LinkedList<>();
         for (Peripheral periph : periphs) {

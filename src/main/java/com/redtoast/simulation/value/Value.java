@@ -77,6 +77,9 @@ public class Value<Type> {
         }else if (val instanceof Exception){
             type = VarType.EXCEPTION;
         }
+        if (val instanceof ComplexValue<?> complexValue){
+            metaTable = complexValue.getMetaTable();
+        }
         value = val;
     }
 
@@ -291,7 +294,7 @@ public class Value<Type> {
             if (value instanceof Tuple tup){
                 return new List(tup.toArray());
             }else{
-                return (List) value;
+                return (List) getValue();
             }
         }else{
             return null;
@@ -306,7 +309,7 @@ public class Value<Type> {
             if (value instanceof Tuple tup){
                 return tup;
             }else{
-                return new Tuple(((List) value).toArray());
+                return new Tuple(((List) getValue()).toArray());
             }
         }else{
             return null;
@@ -318,7 +321,7 @@ public class Value<Type> {
      */
     public @Nullable Table toTable(){
         if (instanceOf(VarType.TABLE)){
-            return (Table) value;
+            return (Table) getValue();
         }else{
             return null;
         }
@@ -408,6 +411,9 @@ public class Value<Type> {
      */
     @Deprecated
     public Type getValue() {
+        if (value instanceof ComplexValue<?> complexValue){
+            complexValue.setMetaTable(metaTable);
+        }
         return value;
     }
 

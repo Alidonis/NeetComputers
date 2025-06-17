@@ -4,12 +4,7 @@ import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
 import net.minecraft.network.PacketByteBuf;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.Varargs;
 
-import java.util.LinkedList;
-
-@Deprecated
 public class EventGeneric {
     private String Name;
     private List args;

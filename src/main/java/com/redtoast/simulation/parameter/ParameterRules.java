@@ -50,7 +50,7 @@ public class ParameterRules {
 
     public static ParameterCheckReturn checkParameters(Value[] values, ParameterRules ruleset){
         if (ruleset.doAny()){
-            return new ParameterCheckReturn(new FunctionInput(new LinkedList<>(Arrays.asList(values))));
+            return new ParameterCheckReturn(new FunctionInput(new LinkedList<>(Arrays.asList(values)), new LinkedList<>()));
         }
         LinkedList<Value> output = new LinkedList<>();
         LinkedList<Value> packed = new LinkedList<>();
@@ -80,7 +80,7 @@ public class ParameterRules {
         if (ruleset.packExtra){
             return new ParameterCheckReturn(new FunctionInput(output, packed));
         }else{
-            return new ParameterCheckReturn(new FunctionInput(output));
+            return new ParameterCheckReturn(new FunctionInput(output, new LinkedList<>()));
         }
     }
 }

@@ -5,9 +5,11 @@ import com.redtoast.simulation.annotations.CustomRule;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.InsertAtRuntime;
 import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.base.API;
@@ -23,6 +25,7 @@ import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
     private final Runtime ParentRuntime;
@@ -62,6 +65,19 @@ public class APILoader {
             }
         }
         ParentRuntime.globalManager.put(label, apiTable.asValue());
+    }
+
+    public static Table TableizeAPI(API api, @Nullable Runtime runtime){
+        Function[] functions = translateAPI(api, runtime);
+        Table apiTable = new Table();
+        for (Function func : functions){
+            if (func.getName()!=null){
+                apiTable.put(func.getName(), func.asValue());
+            }else{
+                logger.warn("Issue encountered loading api '{}': nameless function (try .setName on runtime implimented functions)", api.getLabel());
+            }
+        }
+        return apiTable;
     }
 
     public static Peripheral WrapAPI(API api, @Nullable Runtime runtime){
@@ -257,7 +273,7 @@ public class APILoader {
 
     private static Function[] translateAPI(API obj, @Nullable Runtime runtime){
         Class<?> _class = obj.getClass();
-        LinkedList<Function> functions = new LinkedList<>();
+        Hashtable<String, LinkedList<Function>> functions = new Hashtable<>();
         Hashtable<String, CustomParameter> customParameters = new Hashtable<>();
         Class<?>[] classes = _class.getDeclaredClasses();
         for (Class<?> clazz : classes){
@@ -294,7 +310,9 @@ public class APILoader {
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
-                                    e.printStackTrace();
+                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                                    }
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -320,7 +338,9 @@ public class APILoader {
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
-                                    e.printStackTrace();
+                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                                    }
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -346,7 +366,9 @@ public class APILoader {
                                 if (unwrappedThrow instanceof LangError){
                                     return Value.asError(unwrappedThrow.getMessage());
                                 }else{
-                                    e.printStackTrace();
+                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                                    }
                                     Function.logError(unwrappedThrow.getMessage());
                                     return Value.asError("Unexpected java error, check log for information");
                                 }
@@ -359,23 +381,57 @@ public class APILoader {
                 }else{
                     function.setName(method.getAnnotation(Exposed.class).nameOverride());
                 }
-                functions.add(function);
+                try{
+                    functions.get(function.getName()).add(function);
+                }catch (java.lang.Exception weenier){
+                    LinkedList<Function> funcy = new LinkedList<>();
+                    funcy.add(function);
+                    functions.put(function.getName(), funcy);
+                }
             }
         }
         Field[] fields = _class.getFields();
         for (Field field : fields){
             if (field.isAnnotationPresent(InsertAtRuntime.class)){
                 try{
-                    functions.addAll((Collection<? extends Function>) field.get(obj));
+                    for (Function function : (Collection<? extends Function>) field.get(obj)){
+                        if (functions.contains(function.getName())){
+                            functions.get(function.getName()).add(function);
+                        }else{
+                            LinkedList<Function> funcy = new LinkedList<>();
+                            funcy.add(function);
+                            functions.put(function.getName(), funcy);
+                        }
+                    };
                 }catch (Throwable notignored){
                     logger.warn("Failed to insert '{}' collection at runtime: {}", field.getName(), notignored);
                 }
             }
         }
         Function[] output = new Function[functions.size()];
-        for (int i = 0; i < functions.size(); i++){
-            output[i] = functions.get(i);
-        }
+        AtomicInteger i = new AtomicInteger();
+        functions.forEach((key, values) -> {
+            if (values.size()==1){
+                output[i.get()] = values.getFirst();
+            }else{
+                output[i.get()] = new Function(key, ParameterRules.ANY) {
+                    @Override
+                    public Value call(FunctionInput parameters) {
+                        String lasterr = "";
+                        for (Function function : values){
+                            ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), function.getRules());
+                            if (!retur.isError()){
+                                return function.call(retur.getFunctionInput());
+                            }else{
+                                lasterr += '\n' + retur.getMessage();
+                            }
+                        }
+                        return new Exception(lasterr.substring(1)).asValue();
+                    }
+                };
+            }
+            i.getAndIncrement();
+        });
         return output;
     }
 }

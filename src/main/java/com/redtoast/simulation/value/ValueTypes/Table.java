@@ -1,5 +1,6 @@
 package com.redtoast.simulation.value.ValueTypes;
 
+import com.redtoast.simulation.value.ComplexValue;
 import com.redtoast.simulation.value.Value;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,8 +16,9 @@ import java.util.function.BiConsumer;
  * @see Exception
  * @see Hashtable
  */
-public class Table{
+public class Table implements ComplexValue<Table> {
     private Hashtable<Value, Value> table = new Hashtable<>();
+    private Table metadata = null;
     public void put(Value key, Value value){
         table.put(key, value);
     }
@@ -51,7 +53,35 @@ public class Table{
         table.remove(key);
     }
 
+    @Override
     public Value<Table> asValue(){
         return Value.of(this);
+    }
+
+    @Override
+    public void setMetaTable(Table metadata) {
+        this.metadata = metadata;
+    }
+
+    @Override
+    public @Nullable Table getMetaTable() {
+        return metadata;
+    }
+
+    @Override
+    public boolean hasMetaTable() {
+        return metadata!=null;
+    }
+
+    @Override
+    public void setMeta(Object key, Object value) {
+        if (metadata==null) return;
+        metadata.put(Value.of(key), Value.of(value));
+    }
+
+    @Override
+    public Value getMeta(Object key) {
+        if (metadata==null) return null;
+        return metadata.get(Value.of(key));
     }
 }

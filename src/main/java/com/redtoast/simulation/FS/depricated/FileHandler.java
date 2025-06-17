@@ -1,4 +1,4 @@
-package com.redtoast.simulation;
+package com.redtoast.simulation.FS.depricated;
 
 import com.redtoast.neet.NeetComputers;
 import net.minecraft.resource.Resource;
@@ -146,7 +146,6 @@ public class FileHandler {
         }
         if (npath.equals("/")){
             if (root.pointer<0){
-                System.out.println("4");
                 String spath = "hard_addresses/"+-root.pointer;
                 Identifier directory = new Identifier("neetcomputers", spath);
                 Map<Identifier, Resource> resources = NeetComputers.datahandling.findResources(spath, arg -> true);
@@ -167,7 +166,6 @@ public class FileHandler {
                 }
                 return filesnames2;
             }else{
-                System.out.println("3");
                 File[] files = root.pathClass.toFile().listFiles();
                 String[] filenames = new String[files.length];
                 for (int i = 0; i < files.length; i++){
@@ -177,7 +175,6 @@ public class FileHandler {
             }
         }else{
             if (root.pointer<0){
-                System.out.println("2");
                 Identifier directory = new Identifier("neetcomputers", "hard_addresses/"+-root.pointer+"/"+npath.substring(0,npath.length()-1));
                 Map<Identifier, Resource> resources = NeetComputers.datahandling.findResources("hard_addresses/"+-root.pointer+"/"+npath.substring(0,npath.length()-1), arg -> true);
                 String[] filenames = new String[resources.size()];

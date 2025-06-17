@@ -4,6 +4,10 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.*;
+import com.redtoast.simulation.FS.FileHelper;
+import com.redtoast.simulation.FS.FileSystem;
+import com.redtoast.simulation.FS.builder.SystemBuild;
+import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
@@ -48,16 +52,15 @@ import java.util.UUID;
  * @see computerSpecs
  * @see Runtime
  * @see GlobalManager
- * @see FileHandler
+ * @see FileSystem
  */
 public abstract class Computer {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
-    //resource pointers
+    //pointer for the folder that contains this computer's files
     private int pointer = 0;
-    private int ROM = -1;
     //determines if a 'load' function has been called, providing important information to computer, most methods won't run if this is false
     private boolean loaded = false;
     //determines if the computer is on
@@ -65,7 +68,9 @@ public abstract class Computer {
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
     //object representing the computers file interpreter
-    private FileHandler FS;
+    private FileSystem fs = null;
+    //object representing the systems build
+    private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
     private boolean doesBinaryGraphics = false;
@@ -122,17 +127,13 @@ public abstract class Computer {
     //generic load function all other load functions call after implementing data
     private void load(){
         loaded = true;
-        if (NeetComputers.worldPath!=null){
-            FS = new FileHandler(pointer,ROM,"null");
-        }
         if (uuid==null) uuid = UUID.randomUUID();
         NeetComputers.computerMap.put(uuid, this);
     }
     //loads computer from NBT data
     public void load(NbtCompound nbt){
         if (!loaded){
-            pointer = nbt.getInt("UserPointer");
-            ROM = nbt.getInt("ROMPointer");
+            pointer = nbt.getInt("Address");
             if (nbt.contains("IsOn")){
                 IsOn = nbt.getBoolean("IsOn");
                 if (IsOn && doesBinaryGraphics && nbt.contains("screen")){
@@ -143,6 +144,12 @@ public abstract class Computer {
                 }
             }else{
                 IsOn = false;
+            }
+            if (nbt.contains("build")){
+                build = new SystemBuild(nbt.getCompound("build"));
+            }else{
+                build = new SystemBuild(SystemPreset.NEETOS);
+                debug.warn("Failed to load computer build [address: {}]", pointer);
             }
             load();
         }else{
@@ -164,8 +171,8 @@ public abstract class Computer {
             IDFactory.getServerState(GameServer);
             IDFactory.PointerIteration++;
             pointer = IDFactory.PointerIteration;
-            ROM = -1;
             IsOn = false;
+            build = new SystemBuild(SystemPreset.NEETOS);
             load();
         }
     }
@@ -174,7 +181,7 @@ public abstract class Computer {
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
-        if (!IsOn && loaded){
+        if (!IsOn && loaded && fs!=null){
             //wipes binary graphics
             for (int x = 0; x < BinGraphics.getSize().x; x++){
                 for (int y = 0; y < BinGraphics.getSize().y; y++){
@@ -186,7 +193,7 @@ public abstract class Computer {
             peripheralBuffer.addAll(peripheralWrappers);
             //overwrites runtime with a new instance
             Computer com = this;
-            runtime = new Runtime(this, FS) {
+            runtime = new Runtime(this) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();
@@ -226,12 +233,14 @@ public abstract class Computer {
     public boolean isOn(){return IsOn;}
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
+    public FileSystem getFs() {return fs;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
     public @Nullable Runtime getRuntime() {
         return runtime;
     }
+    public int getAddress(){return fs.pointer;}
     private LinkedList<Peripheral> getPeripherals() {return peripheralBuffer;}
     private LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
@@ -240,13 +249,6 @@ public abstract class Computer {
     }
 
     //muli-line fetch methods
-    public int getPointer(String rootName){
-        FileHandler.rootDir root = FS.findRoot(rootName);
-        if (root != null){
-            return root.pointer;
-        }
-        return 0;
-    }
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         if (!doesBinaryGraphics) return null;
         return BinGraphics;
@@ -269,10 +271,11 @@ public abstract class Computer {
     //ticks the computer
     public void tick(World world){
         if (loaded){
-            maintainState();
-            if (NeetComputers.worldPath!=null && FS==null){
-                FS = new FileHandler(pointer,ROM,"null");
+            if (NeetComputers.worldPath!=null && fs==null && build!=null){
+                fs = new FileSystem(build, pointer, null);
+                attachPeripheral(fs);
             }
+            if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null){
                 if (IsOn && runtime ==null) {
                     start();
@@ -347,23 +350,23 @@ public abstract class Computer {
 
     //writes current state to NBT tag
     public NbtCompound writeNBT(NbtCompound nbt){
-        nbt.putInt("UserPointer", pointer);
-        nbt.putInt("ROMPointer",ROM);
+        nbt.putInt("Address", pointer);
         nbt.putBoolean("IsOn", IsOn);
         if (IsOn && doesBinaryGraphics){
             nbt.put("screen", BinGraphics.writeScreenToNBT());
         }
+        if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         return nbt;
     }
 
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
-        if (IsOn && runtime ==null && loaded && FS!=null){
+        if (IsOn && runtime ==null && loaded && fs!=null){
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;
-            runtime = new Runtime(this, FS) {
+            runtime = new Runtime(this) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();
@@ -375,6 +378,7 @@ public abstract class Computer {
                 }
 
             };
+            new APILoader(this);
             for (API api : unwrappedPeripherals){
                 peripheralBuffer.add(APILoader.WrapAPI(api, runtime));
             }

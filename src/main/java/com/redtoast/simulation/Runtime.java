@@ -2,6 +2,9 @@ package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.simulation.FS.FileHelper;
+import com.redtoast.simulation.FS.FileSystem;
+import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
@@ -18,25 +21,31 @@ public abstract class Runtime {
     public final GlobalManager globalManager;
     public LangThread thread;
     private boolean kill = false;
-    public FileHandler files;
+    public FileSystem fs;
     public Computer parent;
     public Hashtable<String, Function> eventTable = new Hashtable<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
     private boolean inTick = false;
 
-    public Runtime(Computer Parent, FileHandler Files){
+    public Runtime(Computer Parent){
         globalManager = new GlobalManager();
+        fs = Parent.getFs();
         parent = Parent;
-        files = Files;
     }
 
     /**
      * Creates the runtimes initial thread, automatically ran by computer parent class
      */
     public void load(){
-        if (files.exists("rom/startup.lua")){
+        Filepath entryFile = fs.getFile(FileHelper.normalize(fs.build.entrypoint));
+        if (entryFile.exists()){
             inTick=true;
-            MakeThread(files.readFile("rom/startup.lua"), "Lua 5.2");
+            try{
+                MakeThread(entryFile.readAll(), "Lua 5.2");
+            }catch (Throwable e){
+                debug.info("Computer encountered error at entrypoint: {}", e.toString());
+                kill=true;
+            }
             inTick=false;
         }else{
             debug.info("Entrypoint not found for computer, computer failed to start!");
@@ -87,7 +96,7 @@ public abstract class Runtime {
                 if (threads.get(i).isAlive()) {
                     thread = threads.get(i);
                     inTick=true;
-                    threads.get(i).Tick();
+                    threads.get(i).tick();
                     inTick=false;
                     if (!threads.get(i).isAlive()) {
                         deathQue.add(i);
