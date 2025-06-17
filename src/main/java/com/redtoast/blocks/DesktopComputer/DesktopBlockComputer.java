@@ -22,6 +22,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.explosion.Explosion;
 
 public class DesktopBlockComputer extends HorizontalFacingBlock implements BlockEntityProvider {
     public DesktopBlockComputer(Settings settings) {
@@ -68,6 +69,28 @@ public class DesktopBlockComputer extends HorizontalFacingBlock implements Block
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof DesktopEntityComputer computer) {
                 computer.AssignPointers(world, itemStack);
+            }
+        }
+    }
+
+    @Override
+    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        super.onBreak(world, pos, state, player);
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof DesktopEntityComputer computer) {
+                computer.unload();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
+        super.onDestroyedByExplosion(world, pos, explosion);
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof DesktopEntityComputer computer) {
+                computer.unload();
             }
         }
     }

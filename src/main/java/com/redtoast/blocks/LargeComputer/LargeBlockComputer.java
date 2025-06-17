@@ -1,5 +1,6 @@
 package com.redtoast.blocks.LargeComputer;
 
+import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -19,6 +20,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.explosion.Explosion;
 
 public class LargeBlockComputer extends HorizontalFacingBlock implements BlockEntityProvider {
     public LargeBlockComputer(Settings settings) {
@@ -60,6 +62,28 @@ public class LargeBlockComputer extends HorizontalFacingBlock implements BlockEn
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof LargeEntityComputer computer) {
                 computer.AssignPointers(world, itemStack);
+            }
+        }
+    }
+
+    @Override
+    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        super.onBreak(world, pos, state, player);
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof LargeEntityComputer computer) {
+                computer.unload();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
+        super.onDestroyedByExplosion(world, pos, explosion);
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof LargeEntityComputer computer) {
+                computer.unload();
             }
         }
     }

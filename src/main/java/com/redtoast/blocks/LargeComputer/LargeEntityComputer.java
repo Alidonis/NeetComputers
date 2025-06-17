@@ -5,6 +5,7 @@ import com.redtoast.computerSpecs;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHandlerFactory {
     public Computer computer;
+    private boolean collectedComputer = false;
     public RGBGraphicsArray graphics;
 
     public LargeEntityComputer(BlockPos pos, BlockState state) {
@@ -113,7 +115,18 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
+        if (nbt.contains("uuid") && !collectedComputer){
+            collectedComputer=true;
+            if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
+                computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
+                graphics = computer.getGraphics();
+            }
+        }
         computer.load(nbt);
+    }
+
+    public void unload(){
+        ComputerStorage.storage.remove(computer.getUuid());
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
@@ -121,6 +134,13 @@ public class LargeEntityComputer extends BlockEntity implements ExtendedScreenHa
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof LargeEntityComputer computerBlock) {
                 computerBlock.computer.tick(world);
+                if (computerBlock.computer.isOn()){
+                    if (!ComputerStorage.storage.contains(computerBlock.computer)){
+                        ComputerStorage.storage.put(computerBlock.computer.getUuid(), computerBlock.computer);
+                    }
+                }else{
+                    ComputerStorage.storage.remove(computerBlock.computer.getUuid());
+                }
                 BlockState current = world.getBlockState(blockPos);
                 if (current.get(LargeBlockComputer.ON) != computerBlock.computer.isOn()) {
                     world.setBlockState(blockPos, current.with(LargeBlockComputer.ON, computerBlock.computer.isOn()), Block.NOTIFY_ALL);
