@@ -4,7 +4,6 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.*;
-import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
@@ -120,7 +119,7 @@ public abstract class Computer {
     public Computer(computerSpecs specifications){
         Graphics = new RGBGraphicsArray(specifications.ColorGraphicsSizeX,specifications.ColorGraphicsSizeY);
         specs = specifications;
-        doesBinaryGraphics = specifications.doesGraphics;
+        doesBinaryGraphics = specifications.doesBinaryGraphics;
         BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
     }
 

@@ -23,7 +23,8 @@ public class computerSpecs {
     @Deprecated public double CoreUtilizationBonus = 0;
     @Deprecated public int BatchSize = 500;
     @Deprecated public int Batches = 58;
-    @Deprecated public boolean doesGraphics = false;
+    @Deprecated public boolean doesBinaryGraphics = false;
+    @Deprecated public boolean doesRBGGraphics = false;
     @Deprecated public int GraphicsSizeX = 0;
     @Deprecated public int GraphicsSizeY = 0;
     @Deprecated public int ColorGraphicsSizeX = 0;
@@ -83,7 +84,7 @@ public class computerSpecs {
      * @return this
      */
     public computerSpecs setBinaryGraphicsSize(int SizeX, int SizeY){
-        doesGraphics = true;
+        doesBinaryGraphics = true;
         GraphicsSizeX = SizeX;
         GraphicsSizeY = SizeY;
         return this;
@@ -94,6 +95,7 @@ public class computerSpecs {
      * @return this
      */
     public computerSpecs setColorGraphicsSize(int SizeX, int SizeY){
+        doesRBGGraphics = true;
         ColorGraphicsSizeX = SizeX;
         ColorGraphicsSizeY = SizeY;
         return this;

@@ -74,9 +74,9 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
 
-        if (entity.computer.getBinaryGraphics()!=null){
+        if (entity.getComputer().getBinaryGraphics()!=null){
             sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/white"));
-            BinaryGraphicsArray graphics = entity.computer.getBinaryGraphics();
+            BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
             int sizex = graphics.getSize().x, sizey = graphics.getSize().y;
             for (int x = 0; x < sizex; x++){
                 for (int y = 0; y < sizey; y++){
@@ -96,7 +96,7 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         float z1 = 15.5f / 16f, z2 = 15f / 16f;
         float offsetX = 2f / 16f, offsetY = 3f / 16f;
         Vec3i rgb = getPixel(x, y);
-        BinaryGraphicsArray graphics = entity.computer.getBinaryGraphics();
+        BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
         vc.vertex(mat, x1 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x2 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x2 + offsetX, y2 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();

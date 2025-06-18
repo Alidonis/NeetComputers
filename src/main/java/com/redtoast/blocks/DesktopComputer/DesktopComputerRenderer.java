@@ -64,9 +64,9 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
         vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
 
-        if (entity.computer.getBinaryGraphics()!=null){
+        if (entity.getComputer().getBinaryGraphics()!=null){
             sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/white"));
-            BinaryGraphicsArray graphics = entity.computer.getBinaryGraphics();
+            BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
             int sizex = graphics.getSize().x, sizey = graphics.getSize().y;
             for (int x = 0; x < sizex; x++){
                 for (int y = 0; y < sizey; y++){
@@ -97,7 +97,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
         Vector3f pos2 = new Vector3f(x2, y2, z2);
 
         Vec3i rgb = getPixel(x, y);
-        BinaryGraphicsArray graphics = entity.computer.getBinaryGraphics();
+        BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
 
         applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
         applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
