@@ -187,6 +187,7 @@ public abstract class Computer {
                     BinGraphics.set(x,y,false);
                 }
             }
+            Graphics.clear();
             //starts assembling peripherals
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
@@ -362,6 +363,7 @@ public abstract class Computer {
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
         if (IsOn && runtime ==null && loaded && fs!=null){
+            Graphics.clear();
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;

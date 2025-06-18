@@ -58,4 +58,12 @@ public class RGBGraphicsArray {
     public int getAmount(){
         return sizex * sizey;
     }
+
+    public void clear(){
+        for (int x = 0; x < getSize().x; x++){
+            for (int y = 0; y < getSize().y; y++){
+                set(x,y,0);
+            }
+        }
+    }
 }
