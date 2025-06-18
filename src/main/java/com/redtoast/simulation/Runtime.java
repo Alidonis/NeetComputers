@@ -28,7 +28,7 @@ public abstract class Runtime {
     private boolean inTick = false;
 
     public Runtime(Computer Parent){
-        globalManager = new GlobalManager();
+        globalManager = new GlobalManager(this);
         fs = Parent.getFs();
         parent = Parent;
     }

@@ -10,9 +10,11 @@ import java.util.UUID;
 public class GlobalManager extends Table {
     private Hashtable<UUID, GlobalGeneric> subGlobals = new Hashtable<>();
     private int blockoutTimer = 0;
+    private Runtime runtime;
 
-    public GlobalManager(){
+    public GlobalManager(Runtime runtime){
         super();
+        this.runtime = runtime;
     }
 
     public void register(GlobalGeneric subGlobal){
@@ -60,6 +62,8 @@ public class GlobalManager extends Table {
             }
         });
     }
+
+    public Runtime getParent() {return runtime;}
 
     public GlobalGeneric[] getSubGlobals(){
         return subGlobals.values().toArray(new GlobalGeneric[0]);
