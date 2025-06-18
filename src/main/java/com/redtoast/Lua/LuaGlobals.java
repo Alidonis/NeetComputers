@@ -119,7 +119,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("package",LuaValue.NIL);
         super.set("debug",LuaValue.NIL);
         super.set("file",LuaValue.NIL);
-        super.set("load",LuaValue.NIL);
         super.set("dofile",LuaValue.NIL);
         super.set("loadfile",LuaValue.NIL);
         super.set("setmetatable", LuaValue.NIL);
