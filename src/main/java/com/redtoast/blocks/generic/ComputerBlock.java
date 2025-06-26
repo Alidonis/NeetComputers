@@ -22,17 +22,18 @@ import net.minecraft.world.explosion.Explosion;
 
 public abstract class ComputerBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final BooleanProperty ON = BooleanProperty.of("on");
+    public static final BooleanProperty CRASHED = BooleanProperty.of("crashed");
 
     public ComputerBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(ON, false).with(Properties.HORIZONTAL_FACING, Direction.NORTH));
+        setDefaultState(getDefaultState().with(ON, false).with(CRASHED, false).with(Properties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
     public abstract BlockEntityType<? extends BlockEntity> getType();
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(ON, Properties.HORIZONTAL_FACING);
+        builder.add(ON, CRASHED, Properties.HORIZONTAL_FACING);
     }
 
     @Override

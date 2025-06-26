@@ -19,6 +19,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
 
     @Override
     public Varargs fromValue(Value var){
+        if (var==null) return LuaValue.NIL;
         Varargs data = fromValueWithoutMetadata(var);
         if (var.hasMetaTable() && !var.instanceOf(VarType.TUPLE)){
             assert data instanceof LuaValue;
@@ -106,6 +107,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
 
     @Override
     public Value<?> toValue(Varargs var){
+        if (var instanceof LuaNil) return Value.NULL;
         Value<?> data = toValueWithoutMetadata(var);
         if (var instanceof LuaValue val){
             data.setMetaTable(toValueWithoutMetadata(val).toTable());

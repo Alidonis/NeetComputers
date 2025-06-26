@@ -399,6 +399,11 @@ public class Value<Type> {
      */
     public boolean instanceOf(VarType comparison){
         if (comparison==VarType.ANY) return true;
+        if (comparison==VarType.PRIMITIVE){
+            switch (type){
+                case NULL, FLOAT, INT, DOUBLE, STRING, BOOLEAN, TABLE, LIST: return true;
+            }
+        }
         if (comparison==VarType.NUMBER && type==VarType.INT) return true;
         if (comparison==VarType.NUMBER && type==VarType.DOUBLE) return true;
         if (comparison==VarType.NUMBER && type==VarType.FLOAT) return true;
@@ -462,9 +467,19 @@ public class Value<Type> {
                 return "function";
             case EXCEPTION:
                 return "exemption";
+            case PRIMITIVE:
+                return "primitive";
             case ANY:
                 return "all";
         }
         return "null";
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if (obj instanceof Value<?> _value){
+            return _value.getValue().equals(value);
+        }
+        return super.equals(obj);
     }
 }

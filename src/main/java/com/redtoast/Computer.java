@@ -10,11 +10,14 @@ import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.simulation.value.NVTable;
+import com.redtoast.simulation.value.ValueTypes.Table;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -85,10 +89,16 @@ public abstract class Computer {
     private LinkedList<Peripheral> peripheralBuffer = new LinkedList<>();
     //vector determining mouse pos
     private Vector2i mousePos;
+    //state defining if the computer instance is crashed
+    private boolean IsCrashed = false;
+    //crash message for crash events
+    private String message = null;
     //represents que for events
     private @Deprecated final LinkedList<EventGeneric> eventQue = new LinkedList<>();
     //specify computer specifications
     private computerSpecs specs;
+    //table storing NVRam
+    private NVTable NVRam;
 
     //abstract methods
     /**
@@ -133,6 +143,7 @@ public abstract class Computer {
     public void load(NbtCompound nbt){
         if (!loaded){
             pointer = nbt.getInt("Address");
+            IsOn = false;
             if (nbt.contains("IsOn")){
                 IsOn = nbt.getBoolean("IsOn");
                 if (IsOn && doesBinaryGraphics && nbt.contains("screen")){
@@ -141,8 +152,6 @@ public abstract class Computer {
                 if (nbt.contains("ComputerID")){
                     uuid = nbt.getUuid("ComputerID");
                 }
-            }else{
-                IsOn = false;
             }
             if (nbt.contains("build")){
                 build = new SystemBuild(nbt.getCompound("build"));
@@ -150,15 +159,21 @@ public abstract class Computer {
                 build = new SystemBuild(SystemPreset.NEETOS);
                 debug.warn("Failed to load computer build [address: {}]", pointer);
             }
+            if (nbt.contains("crashed")) IsCrashed = nbt.getBoolean("crashed");
+            if (nbt.contains("crashMessage")) message = nbt.getString("crashMessage");
+            if (!IsOn && IsCrashed && doesBinaryGraphics && nbt.contains("screen")) BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
+            if (nbt.contains("NVRam")){
+                NVRam = NVTable.deserialize(nbt.getCompound("NVRam"), this);
+            }else{
+                NVRam = new NVTable(this);
+            }
             load();
         }else{
             if (nbt.contains("IsOn")){
-                if (nbt.contains("IsOn")!= IsOn){
-                    if (nbt.getBoolean("IsOn")){
-                        start();
-                    }else{
-                        stop();
-                    }
+                if (nbt.getBoolean("IsOn")!=IsOn){
+                    start();
+                }else{
+                    stop();
                 }
             }
         }
@@ -172,6 +187,7 @@ public abstract class Computer {
             pointer = IDFactory.PointerIteration;
             IsOn = false;
             build = new SystemBuild(SystemPreset.NEETOS);
+            NVRam = new NVTable(this);
             load();
         }
     }
@@ -180,7 +196,7 @@ public abstract class Computer {
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
-        if (!IsOn && loaded && fs!=null){
+        if (!IsOn && loaded && fs!=null && !IsCrashed){
             //wipes binary graphics
             for (int x = 0; x < BinGraphics.getSize().x; x++){
                 for (int y = 0; y < BinGraphics.getSize().y; y++){
@@ -193,7 +209,7 @@ public abstract class Computer {
             peripheralBuffer.addAll(peripheralWrappers);
             //overwrites runtime with a new instance
             Computer com = this;
-            runtime = new Runtime(this) {
+            runtime = new Runtime(this, NVRam) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();
@@ -220,6 +236,13 @@ public abstract class Computer {
         }
     }
 
+    //un-crashes the computer
+    public void reset(){
+        stop();
+        IsCrashed=false;
+        saveNBT();
+    }
+
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (IsOn){
@@ -229,11 +252,29 @@ public abstract class Computer {
         }
     }
 
+    //sets the computer to a crashed state
+    public void crash(String message){
+        if (isOn() && !IsCrashed){
+            this.message = runtime.getCurrentSource() + " " + message;
+            IsCrashed = true;
+            this.yield();
+            saveNBT();
+        }
+    }
+
+    //yields the computer
+    public void yield(){
+        if (isOn()) Objects.requireNonNull(runtime.getRunningThread()).yield();
+    }
+
     //one line fetch methods
     public boolean isOn(){return IsOn;}
+    public boolean isCrashed(){return IsCrashed;}
+    public String getCrashMessage(){return IsCrashed ? message : null;}
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
+    public NVTable getNVRam(){return NVRam;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
@@ -276,10 +317,7 @@ public abstract class Computer {
                 attachPeripheral(fs);
             }
             if (fs!=null) maintainState();
-            if (NeetComputers.worldPath!=null){
-                if (IsOn && runtime ==null) {
-                    start();
-                }
+            if (NeetComputers.worldPath!=null && !IsCrashed){
                 step();
                 for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp == this) {
@@ -288,8 +326,11 @@ public abstract class Computer {
                         ServerPlayNetworking.send((ServerPlayerEntity) p, NeetComputers.SCREEN_PACKET_ID, temp);
                     }
                 }
+            }else if (IsCrashed){
+                stop();
             }
             if (clock%10==0 && doesBinaryGraphics) refreshBinaryGraphics();
+            if (clock%10==0 && doesBinaryGraphics) saveNBT();
             clock += 1;
             clock %= 100;
         }
@@ -298,7 +339,7 @@ public abstract class Computer {
     //steps the runtime forward (tick with less protection)
     private void step(){
         if (loaded){
-            if (IsOn && runtime !=null){
+            if (IsOn && runtime !=null && !IsCrashed){
                 if (runtime.isDead()){
                     stop();
                 }else{
@@ -352,22 +393,29 @@ public abstract class Computer {
     public NbtCompound writeNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putBoolean("IsOn", IsOn);
-        if (IsOn && doesBinaryGraphics){
+        if ((IsOn || IsCrashed) && doesBinaryGraphics){
             nbt.put("screen", BinGraphics.writeScreenToNBT());
         }
         if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
+        if (IsCrashed) nbt.putBoolean("crashed", true);
+        if (IsCrashed) nbt.putString("crashMessage", message);
+        try{
+            if (NVRam!=null && !IsCrashed) nbt.put("NVRam", NVRam.serialize());
+        }catch (Throwable ignored){
+            debug.info("Failed to save NVRam: {}", ignored.toString());
+        }
         return nbt;
     }
 
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
-        if (IsOn && runtime ==null && loaded && fs!=null){
+        if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;
-            runtime = new Runtime(this) {
+            runtime = new Runtime(this, NVRam) {
                 @Override
                 public LinkedList<Peripheral> getPeripherals() {
                     return com.getPeripherals();

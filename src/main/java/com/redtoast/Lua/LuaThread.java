@@ -3,7 +3,6 @@ package com.redtoast.Lua;
 import com.redtoast.computerSpecs;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
-import net.minecraft.nbt.NbtCompound;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -27,6 +26,7 @@ public class LuaThread extends LangThread {
 
     private computerSpecs specs;
     private org.luaj.vm2.LuaThread coroutine;
+    private LuaValue chunk;
     private Runtime runtime;
     private LuaGlobals globals;
     protected short ticket = 0;
@@ -37,7 +37,7 @@ public class LuaThread extends LangThread {
         runtime = parentRuntime;
         try{
             globals = new LuaGlobals(runtime.globalManager);
-            LuaValue chunk = globals.load(script, "LuaThread");
+            chunk = globals.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(globals, chunk);
             globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specs.BatchSize)});
         } catch (Exception e) {
@@ -83,11 +83,17 @@ public class LuaThread extends LangThread {
         ticket += (short) Math.round(util);
         int threadCount = runtime.threads.size();
         while (ticket>0) {
+            if (runtime.parent.isCrashed()) kill("Parent computer crashed");
             if (!isAlive()) return;
             step();
             if (threadCount!=runtime.threads.size() && isAlive()){
                 ticket += (short) (Math.round(util) - (specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1));
             }
         }
+    }
+
+    @Override
+    public String getSource(){
+        return "lua:"+globals.debuglib.traceback(1).split(":")[2];
     }
 }

@@ -2,9 +2,12 @@ package com.redtoast.simulation.value.ValueTypes;
 
 import com.redtoast.simulation.value.ComplexValue;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.VarType;
+import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**

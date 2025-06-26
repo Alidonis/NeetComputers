@@ -13,5 +13,6 @@ public enum VarType {
     TABLE,
     LIST,
     TUPLE,
+    PRIMITIVE,
     ANY
 }

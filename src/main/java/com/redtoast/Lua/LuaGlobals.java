@@ -11,7 +11,6 @@ import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
@@ -22,12 +21,11 @@ import org.luaj.vm2.lib.jse.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
-import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
-    public final LuaValue LuaDebug;
-    public final LuaFunction LuaRequire;
+    private final LuaFunction LuaRequire;
+    public LuaValue LuaDebug;
     private LuaTranslater lua52;
     private final UUID uuid;
     private final GlobalManager manager;
@@ -111,9 +109,9 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LuaC.install(this);
         super.load(new DebugLib());
 
-        //fetch some library's we need form the globals object
-        LuaDebug = super.get("debug");
+        //fetch built in require object
         LuaRequire = super.get("require").checkfunction();
+        LuaDebug = super.get("debug");
 
         //remove unwanted base libs
         super.set("package",LuaValue.NIL);
@@ -125,6 +123,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("getmetatable", LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
         super.set("_VERSION", LuaValue.NIL);
+        super.set("_NVRAM", new Lua_NV(globalManager.NVRam));
 
         //load new luaj resource finder
         super.finder = new NeoFinder(globalManager.getParent().fs);

@@ -1,5 +1,6 @@
 package com.redtoast.blocks.LargeComputer;
 
+import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
@@ -23,6 +24,7 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
     public LargeComputerRenderer(BlockEntityRendererFactory.Context context) {
         clock = 0;
     }
+    public BlockState state;
 
     @Override
     public void render(LargeEntityComputer entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
@@ -32,8 +34,9 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         }
         clock %= 6.2f;
         BlockState state = entity.getCachedState();
+        this.state = state;
 
-        if (!state.get(LargeBlockComputer.ON)) {
+        if (!state.get(DesktopBlockComputer.ON) && !state.get(DesktopBlockComputer.CRASHED)) {
             return;
         }
         BlockPos pos = entity.getPos();
@@ -152,7 +155,7 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         r += (int)Math.round(effect);
         g += (int)Math.round(effect);
         b += (int)Math.round(effect);
-        return new Vec3i(r,g,b);
+        return !state.get(DesktopBlockComputer.CRASHED) ? new Vec3i(r,g,b) : new Vec3i(g, r, b);
     }
 
     @Override

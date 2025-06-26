@@ -119,8 +119,13 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
         }
         if (player.isSneaking()){
-            computer.stop();
+            if (computer.isCrashed()){
+                computer.reset();
+            }else{
+                computer.stop();
+            }
         }else{
+            if (computer.isCrashed()) player.sendMessage(Text.literal(computer.getCrashMessage()));
             computer.start();
         }
         return ActionResult.SUCCESS;
@@ -157,6 +162,9 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 BlockState current = world.getBlockState(blockPos);
                 if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.isOn()) {
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.isOn()), Block.NOTIFY_ALL);
+                }
+                if (current.get(DesktopBlockComputer.CRASHED) != computerBlock.computer.isCrashed()) {
+                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
                 }
             }
         }

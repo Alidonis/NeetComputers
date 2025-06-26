@@ -5,9 +5,11 @@ import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.Filepath;
+import com.redtoast.simulation.value.NVTable;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
+import com.redtoast.simulation.value.ValueTypes.Table;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +29,8 @@ public abstract class Runtime {
     public LinkedList<LangThread> threads = new LinkedList<>();
     private boolean inTick = false;
 
-    public Runtime(Computer Parent){
-        globalManager = new GlobalManager(this);
+    public Runtime(Computer Parent, NVTable NVRam){
+        globalManager = new GlobalManager(this, NVRam);
         fs = Parent.getFs();
         parent = Parent;
     }
@@ -96,6 +98,7 @@ public abstract class Runtime {
                 if (threads.get(i).isAlive()) {
                     thread = threads.get(i);
                     inTick=true;
+                    if (parent.isCrashed()) return;
                     threads.get(i).tick();
                     inTick=false;
                     if (!threads.get(i).isAlive()) {
@@ -114,6 +117,14 @@ public abstract class Runtime {
                 kill = true;
             }
         }
+    }
+
+    /**
+     * gets the source of the running thread for error readouts
+     */
+    public String getCurrentSource(){
+        if (!inTick) return null;
+        return thread.getSource();
     }
 
     /**

@@ -34,4 +34,5 @@ public abstract class LangThread {
     public abstract String getLang();
     public abstract void yield();
     public abstract void tick();
+    public abstract String getSource();
 }

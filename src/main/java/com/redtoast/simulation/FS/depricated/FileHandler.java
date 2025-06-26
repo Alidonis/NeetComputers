@@ -153,7 +153,6 @@ public class FileHandler {
                 int i = 0;
                 for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
                     Identifier id = entry.getKey();
-                    System.out.println(id.toString());
                     String filepathRelitive = id.toString().substring(spath.length()+10);
                     if (!filepathRelitive.contains("/")){
                         filenames[i] = filepathRelitive;
@@ -189,7 +188,6 @@ public class FileHandler {
                 String[] filesnames2 = new String[i];
                 for (int x = 0; x < i; x++){
                     filesnames2[x] = filenames[x];
-                    System.out.println(filesnames2[x]);
                 }
                 return filesnames2;
             }else{

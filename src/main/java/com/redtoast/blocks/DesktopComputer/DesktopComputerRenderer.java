@@ -28,6 +28,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
     public DesktopComputerRenderer(BlockEntityRendererFactory.Context context) {
         clock = 0;
     }
+    public BlockState state;
 
     @Override
     public void render(DesktopEntityComputer entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
@@ -37,15 +38,16 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
         }
         clock %= 6.2f;
         BlockState state = entity.getCachedState();
+        this.state = state;
 
-        if (!state.get(DesktopBlockComputer.ON)) {
+        if (!state.get(DesktopBlockComputer.ON) && !state.get(DesktopBlockComputer.CRASHED)) {
             return;
         }
         Direction facing = entity.getCachedState().get(Properties.HORIZONTAL_FACING);
 
         RenderLayer layer = RenderLayer.getCutout();
         VertexConsumer vc = vertexConsumers.getBuffer(layer);
-        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/front_on_uv"));
+        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", !state.get(DesktopBlockComputer.CRASHED) ? "block/front_on_uv" : "block/front_crashed_uv"));
 
         matrices.push();
 
@@ -150,7 +152,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
         r += (int)Math.round(effect);
         g += (int)Math.round(effect);
         b += (int)Math.round(effect);
-        return new Vec3i(r,g,b);
+        return !state.get(DesktopBlockComputer.CRASHED) ? new Vec3i(r,g,b) : new Vec3i(g, r, b);
     }
 
     @Override
