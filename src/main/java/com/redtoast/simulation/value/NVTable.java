@@ -27,10 +27,17 @@ public class NVTable extends HashMap<String, Value> {
     public Value put(String key, Value value){
         if (isntPrimitive(value)){
             computer.crash("Attempted to assign non-primitive value to NV ram");
-            return null;
+            return value;
         }
         super.put(key, value);
-        return null;
+        computer.saveNBT();
+        return value;
+    }
+
+    @Override
+    public Value remove(Object key){
+        computer.saveNBT();
+        return super.remove(key);
     }
 
     public static NbtElement convert(Value value) {

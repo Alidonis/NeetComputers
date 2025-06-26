@@ -138,6 +138,7 @@ public abstract class Computer {
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();
         NeetComputers.computerMap.put(uuid, this);
+        if (doesBinaryGraphics) refreshBinaryGraphics();
     }
     //loads computer from NBT data
     public void load(NbtCompound nbt){
@@ -330,7 +331,7 @@ public abstract class Computer {
                 stop();
             }
             if (clock%10==0 && doesBinaryGraphics) refreshBinaryGraphics();
-            if (clock%10==0 && doesBinaryGraphics) saveNBT();
+            if (clock%30==0) saveNBT();
             clock += 1;
             clock %= 100;
         }
