@@ -19,7 +19,7 @@ public class GraphicsInterface implements API
 
     @Override
     public String getLabel() {
-        return "screen";
+        return "screen";//i
     }
 
     @Override
