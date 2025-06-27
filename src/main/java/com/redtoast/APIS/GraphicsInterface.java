@@ -3,11 +3,14 @@ package com.redtoast.APIS;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.value.ValueTypes.Tuple;
 import org.joml.Vector2i;
 
 public class GraphicsInterface implements API
 {
     //this graphics library is a old project that used to run on Jframe's, please forgive me
+    private int indexOffset = 0;//thanks for nothing lua
     private int height;
     private int width;
     private RGBGraphicsArray Graphics;
@@ -16,7 +19,12 @@ public class GraphicsInterface implements API
 
     @Override
     public String getLabel() {
-        return "graphics";
+        return "screen";
+    }
+
+    @Override
+    public void onCall(LangThread thread){
+        indexOffset = thread.getLang().equals("Lua 5.2") ? 1 : 0;
     }
 
     public static class Vector
@@ -408,4 +416,7 @@ public class GraphicsInterface implements API
     public void drawPolygon(int x, int y, int n, int size){
         drawPolygon(new Vector(x,y),n,size,defualtColor);
     }
+
+    @Exposed
+    public Tuple getSize() {return new Tuple(GraphicsBuffer.getSize().x, GraphicsBuffer.getSize().y);}
 }
