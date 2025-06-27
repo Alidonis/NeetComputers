@@ -142,6 +142,12 @@ public class NeetComputers implements ModInitializer {
 				return new PaintAPI(_computer);
 			}
 		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {
+				return new GraphicsInterface(computer.getGraphics());
+			}
+		});
 	}
 
 	public void registerLanguage(LanguageGeneric language){

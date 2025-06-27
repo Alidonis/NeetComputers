@@ -1,7 +1,6 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
-import com.redtoast.graphics.GraphicsInterface;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;

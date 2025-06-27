@@ -1,8 +1,11 @@
-package com.redtoast.graphics;
+package com.redtoast.APIS;
 
+import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.simulation.base.API;
 import org.joml.Vector2i;
 
-public class GraphicsInterface
+public class GraphicsInterface implements API
 {
     //this graphics library is a old project that used to run on Jframe's, please forgive me
     private int height;
@@ -10,6 +13,11 @@ public class GraphicsInterface
     private RGBGraphicsArray Graphics;
     private RGBGraphicsArray GraphicsBuffer;
     private Vector defualtColor = new Vector(0,0,0);
+
+    @Override
+    public String getLabel() {
+        return "graphics";
+    }
 
     public static class Vector
     {
@@ -52,12 +60,14 @@ public class GraphicsInterface
         GraphicsBuffer = new RGBGraphicsArray(graphics.pixels);
     }
 
+    @Exposed
     public void draw()//refreash graphics on screen
     {
         Graphics.pixels = GraphicsBuffer.pixels;
         GraphicsBuffer = new RGBGraphicsArray(Graphics.pixels);
     }
 
+    @Exposed
     public void setColor(int R, int G, int B)//sets the color used when not specificly provided by a draw function
     {
         defualtColor = new Vector(R,G,B);
@@ -66,10 +76,12 @@ public class GraphicsInterface
         setColor(color.x,color.y,color.z);
     }
 
+    @Exposed
     public void drawLine(int x1, int y1, int x2, int y2)//draws a line, duh
     {
         drawLine(x1,height-y1,x2,height-y2,defualtColor.x,defualtColor.y,defualtColor.z);
     }
+    @Exposed
     public void drawLine(int x1, int y1, int x2, int y2, int R, int G, int B)
     {
         //equation from here:
@@ -94,10 +106,12 @@ public class GraphicsInterface
         drawLine(x1,y1,x2,y2,color.x,color.y,color.z);
     }
 
+    @Exposed
     public void drawPixel(int x, int y)//you will never guess what this bad boy does
     {
         GraphicsBuffer.set(x,y,RGBGraphicsArray.rgbToDecimal(defualtColor.x,defualtColor.y,defualtColor.z));
     }
+    @Exposed
     public void drawPixel(int x, int y, int R, int G, int B)
     {
         GraphicsBuffer.set(x,y,RGBGraphicsArray.rgbToDecimal(R,G,B));
@@ -115,6 +129,7 @@ public class GraphicsInterface
         drawPixel(x,y,color.x,color.y,color.z);
     }
 
+    @Exposed
     public void drawRectangle(int x1, int y1, int x2, int y2, int R, int G, int B)//draws a rectangle between two points
     {
         drawLine(x1,y1,x2,y1,R,G,B);
@@ -122,6 +137,7 @@ public class GraphicsInterface
         drawLine(x2,y2,x1,y2,R,G,B);
         drawLine(x1,y2,x1,y1,R,G,B);
     }
+    @Exposed
     public void drawRectangle(int x1, int y1, int x2, int y2){
         drawLine(x1,y1,x2,y1);
         drawLine(x2,y1,x2,y2);
@@ -164,6 +180,7 @@ public class GraphicsInterface
     public void drawBezier(Vector pointA, Vector pointB, Vector pointC){
         drawBezier(pointA, pointB, pointC, defualtColor);
     }
+    @Exposed
     public void drawBezier(int x1, int y1, int x2, int y2, int x3, int y3){
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3));
     }
@@ -173,6 +190,7 @@ public class GraphicsInterface
     public void drawBezier(int x1, int y1, int x2, int y2, int x3, int y3, Vector color){
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3),color);
     }
+    @Exposed
     public void drawBezier(int x1, int y1, int x2, int y2, int x3, int y3, int R, int G, int B){
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3),new Vector(R,G,B));
     }
@@ -219,9 +237,11 @@ public class GraphicsInterface
         }
         drawSpline(vecs,color);
     }
+    @Exposed
     public void drawSpline(int[] Xs, int[] Ys){
         drawSpline(Xs,Ys, defualtColor);
     }
+    @Exposed
     public void drawSpline(int[] Xs, int[] Ys,int R,int G,int B){
         drawSpline(Xs,Ys,new Vector(R,G,B));
     }
@@ -232,9 +252,11 @@ public class GraphicsInterface
         }
         drawSpline(vecs,color);
     }
+    @Exposed
     public void drawSpline(int[] cords){
         drawSpline(cords,defualtColor);
     }
+    @Exposed
     public void drawSpline(int[] cords, int R,int G,int B){
         drawSpline(cords,new Vector(R,G,B));
     }
@@ -273,9 +295,11 @@ public class GraphicsInterface
             drawLine(Xs[i] + point.x,-Ys[i] + point.y,Xs[i+1] + point.x,-Ys[i+1] + point.y, color);
         }
     }
+    @Exposed
     public void drawCircle(int x1, int y1, int x2, int y2){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),defualtColor);
     }
+    @Exposed
     public void drawCircle(int x1, int y1, int x2, int y2, int R, int G, int B){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),new Vector(R,G,B));
     }
@@ -311,6 +335,7 @@ public class GraphicsInterface
     public void drawCircle(Vector point, int radius){
         drawCircle(point, radius, defualtColor);
     }
+    @Exposed
     public void drawCircle(int x, int y, int radius){
         drawCircle(new Vector(x,y),radius);
     }
@@ -320,6 +345,7 @@ public class GraphicsInterface
     public void drawCircle(Vector point, int radius, int R, int G, int B){
         drawCircle(point, radius, new Vector(R,G,B));
     }
+    @Exposed
     public void drawCircle(int x, int y, int radius, int R, int G, int B){
         drawCircle(new Vector(x,y),radius, new Vector(R,G,B));
     }
@@ -361,6 +387,7 @@ public class GraphicsInterface
             drawLine(points[i].add(point),points[i+1].add(point),color);
         }
     }
+    @Exposed
     public static int toRadius(int n,int apothem){
         return (int)Math.round((double)apothem*Math.tan(Math.PI/n)/Math.sin(Math.PI/n));
     }
@@ -373,9 +400,11 @@ public class GraphicsInterface
     public void drawPolygon(int x, int y, int n, int size, Vector color){
         drawPolygon(new Vector(x,y),n,size,color);
     }
+    @Exposed
     public void drawPolygon(int x, int y, int n, int size, int R, int G, int B){
         drawPolygon(new Vector(x,y),n,size,new Vector(R,G,B));
     }
+    @Exposed
     public void drawPolygon(int x, int y, int n, int size){
         drawPolygon(new Vector(x,y),n,size,defualtColor);
     }
