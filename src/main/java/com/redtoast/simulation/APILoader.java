@@ -1,15 +1,14 @@
 package com.redtoast.simulation;
 
 import com.redtoast.Computer;
-import com.redtoast.simulation.annotations.CustomRule;
-import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.annotations.InsertAtRuntime;
+import com.redtoast.simulation.annotations.*;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Exception;
+import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.base.API;
@@ -22,9 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
@@ -130,7 +127,14 @@ public class APILoader {
                     }
                 }else{
                     rules.allowPacking(type);
+                    if (parameters[i].isAnnotationPresent(Index.class)){
+                        rules.packRule.giveIndexOffset(parameters[i].getAnnotation(Index.class).offset(), parameters[i].getAnnotation(Index.class).strict());
+                    }
+                    if (parameters[i].isAnnotationPresent(Range.class)){
+                        rules.packRule.setRange(parameters[i].getAnnotation(Range.class).range());
+                    }
                 }
+                rules.packRule.disName = parameters[i].getName();
             }else{
                 VarType type = VarType.ANY;
                 if (parameters[i].getType()==String.class){
@@ -162,13 +166,20 @@ public class APILoader {
                     }
                 }else{
                     rules.add(type);
+                    if (parameters[i].isAnnotationPresent(Index.class)){
+                        rules.rules.getLast().giveIndexOffset(parameters[i].getAnnotation(Index.class).offset(), parameters[i].getAnnotation(Index.class).strict());
+                    }
+                    if (parameters[i].isAnnotationPresent(Range.class)){
+                        rules.rules.getLast().setRange(parameters[i].getAnnotation(Range.class).range());
+                    }
                 }
+                rules.rules.getLast().disName = parameters[i].getName();
             }
         }
         return rules;
     }
 
-    private static Object[] processArgs(Method method, FunctionInput input){
+    private static Object[] processArgs(Method method, FunctionInput input, @Nullable Runtime runtime){
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
         for (int i = 0; i < args.length; i++){
@@ -184,7 +195,8 @@ public class APILoader {
                     List packed = input.getPacked();
                     int[] pack = new int[packed.size()];
                     for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Integer val) pack[d] = val;
+                        int offset = parameters[i].isAnnotationPresent(Index.class) ? (runtime!=null ? (runtime.thread.getLang().equals("Lua 5.2") ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;//the road to hell is paved with good intentions
+                        if (input.get(i).getValue() instanceof Integer val) pack[d] = val - offset;
                     }
                     args[i] = pack;
                 }else if (parameters[i].getType()==double.class){
@@ -248,7 +260,8 @@ public class APILoader {
                 if (parameters[i].getType()==String.class){
                     if (input.get(i).getValue() instanceof String val) args[i] = val;
                 }else if (parameters[i].getType()==int.class){
-                    args[i] = input.get(i).toInt();
+                    int offset = parameters[i].isAnnotationPresent(Index.class) ? (runtime!=null ? (runtime.thread.getLang().equals("Lua 5.2") ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;//the road to hell is paved with good intentions, twice
+                    args[i] = input.get(i).toInt() - offset;
                 }else if (parameters[i].getType()==double.class){
                     args[i] = input.get(i).toDouble();
                 }else if (parameters[i].getType()==float.class){
@@ -304,7 +317,7 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
-                                method.invoke(obj, processArgs(method, parameters));
+                                method.invoke(obj, processArgs(method, parameters, runtime));
                             }catch (Throwable e){
                                 Throwable unwrappedThrow = e.getCause();
                                 if (unwrappedThrow instanceof LangError){
@@ -328,7 +341,7 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
-                                Object retun = method.invoke(obj, processArgs(method, parameters));
+                                Object retun = method.invoke(obj, processArgs(method, parameters, runtime));
                                 if (retun==null){
                                     return Value.NULL;
                                 }
@@ -355,7 +368,7 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
-                                Object retun = method.invoke(obj, processArgs(method, parameters));
+                                Object retun = method.invoke(obj, processArgs(method, parameters, runtime));
                                 if (retun==null){
                                     return Value.NULL;
                                 }else{
@@ -417,16 +430,24 @@ public class APILoader {
                 output[i.get()] = new Function(key, ParameterRules.ANY) {
                     @Override
                     public Value call(FunctionInput parameters) {
-                        String lasterr = "";
+                        LinkedList<String> errors = new LinkedList<>();
+                        LinkedList<String> names = new LinkedList<>();
                         for (Function function : values){
-                            ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), function.getRules());
+                            ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), function.getRules(), runtime);
                             if (!retur.isError()){
                                 return function.call(retur.getFunctionInput());
                             }else{
-                                lasterr += '\n' + retur.getMessage();
+                                errors.add(retur.getMessage());
+                                names.add(key + function.getRules().toString(runtime));
                             }
                         }
-                        return new Exception(lasterr.substring(1)).asValue();
+                        names.sort(String::compareTo);
+                        StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                        for (String string : names){
+                            error.append('\n');
+                            error.append(string);
+                        }
+                        return new Exception(error.toString()).asValue();
                     }
                 };
             }

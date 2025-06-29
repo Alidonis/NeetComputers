@@ -82,7 +82,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                             values[i] = toValue(args.arg(i+1));
                         }
                         ParameterRules rules = ((Function) var.getValue()).getRules();
-                        ParameterCheckReturn check = ParameterRules.checkParameters(values, rules);
+                        ParameterCheckReturn check = ParameterRules.checkParameters(values, rules, null);
                         if (check.isError()){
                             String message = check.getMessage()
                                 .replaceAll("null", "nil")
@@ -134,34 +134,27 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
         }else if (val instanceof LuaString){
             return Value.of(val.toString());
         }else if (val instanceof LuaTable table){
-            boolean isArray = false;
-            Value value = Value.NULL;
-            LuaValue k = LuaValue. NIL;
-            while ( true ) {
-                Varargs n = table. next(k);
-                if ( (k = n. arg1()).isnil() )
-                    break;
-                LuaValue v = n. arg(2);
-                if (value.isNull()){
-                    isArray = v.isnil();
-                    if (isArray){
-                        value = Value.of(new List(new Value[]{toValue(k)}));
+            Table tabll = new Table();
+            Value[] vals = new Value[table.length()];
+            boolean isList = true;
+            LuaValue key = LuaValue.NIL;
+            while (true){
+                Varargs out = table.next(key);
+                if (out==LuaValue.NIL) break;
+                key = out.arg1();
+                LuaValue value = out.arg(2);
+                if (isList && key.isint()){
+                    if (key.toint()>vals.length || key.toint() < 1){
+                        isList = false;
                     }else{
-                        value = Value.of(new Table());
-                        assert value.getValue() instanceof Table;
-                        ((Table) value.getValue()).put(toValue(k), toValue(v));
+                        vals[key.toint()-1] = toValueWithoutMetadata(value);
                     }
                 }else{
-                    if (isArray){
-                        assert value.getValue() instanceof List;
-                        ((List) value.getValue()).add(toValue(k));
-                    }else{
-                        assert value.getValue() instanceof Table;
-                        ((Table) value.getValue()).put(toValue(k), toValue(v));
-                    }
+                    isList = false;
                 }
+                tabll.put(toValueWithoutMetadata(key), toValueWithoutMetadata(value));
             }
-            return value;
+            return isList ? Value.of(vals) : Value.of(tabll);
         }else if (val instanceof LuaFunction function){
             return Value.of(new Function(ParameterRules.ANY) {
                 @Override

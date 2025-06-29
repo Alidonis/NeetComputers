@@ -2,20 +2,31 @@ package com.redtoast.APIS;
 
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.simulation.annotations.Index;
+import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
+import com.redtoast.simulation.value.VarType;
 import org.joml.Vector2i;
+import org.joml.Vector3i;
+
+import java.util.Arrays;
+import java.util.LinkedList;
 
 public class GraphicsInterface implements API
 {
-    //this graphics library is a old project that used to run on Jframe's, please forgive me
-    private int indexOffset = 0;//thanks for nothing lua
-    private int height;
-    private int width;
-    private RGBGraphicsArray Graphics;
+    private final int height;
+    private final int width;
+    private int alpha = 255;
+    private final RGBGraphicsArray Graphics;
     private RGBGraphicsArray GraphicsBuffer;
     private Vector defualtColor = new Vector(0,0,0);
+    private double angle = 0;
+    private Vector2i rotatePos = null;
+    private boolean roobj = false;
 
     @Override
     public String getLabel() {
@@ -24,7 +35,9 @@ public class GraphicsInterface implements API
 
     @Override
     public void onCall(LangThread thread){
-        indexOffset = thread.getLang().equals("Lua 5.2") ? 1 : 0;
+        //this graphics library is a old project that used to run on Jframe's, please forgive me
+        //thanks for nothing lua
+        int indexOffset = thread.getLang().equals("Lua 5.2") ? 1 : 0;
     }
 
     public static class Vector
@@ -59,6 +72,25 @@ public class GraphicsInterface implements API
         }
     }
 
+    public int applyAlpha(int channel, int base, int alpha){
+        if (alpha == 255) return channel;
+        double newChannel = 255 - (double) (alpha / 255) * (255 - channel);
+        double oldChannel = 255 - (double) (1 - alpha / 255) * (255 - base);
+        return (int) Math.round(newChannel + oldChannel);
+    }
+
+    public Vector2i rotate(Vector2i vec, Vector2i base, double angle){
+        int x1 = vec.x - base.x;
+        int y1 = vec.y - base.y;
+        double b = Math.toRadians(angle);
+        double x2 = Math.cos(b) * x1 - Math.sin(b) * y1;
+        double y2 = Math.sin(b) * x1 + Math.cos(b) * y1;
+        return new Vector2i(
+                (int) Math.round(x2) + base.x,
+                (int) Math.round(y2) + base.y
+        );
+    }
+
     public GraphicsInterface(RGBGraphicsArray graphics)
     {
         Graphics = graphics;
@@ -66,6 +98,7 @@ public class GraphicsInterface implements API
         height = size.y;
         width = size.x;
         GraphicsBuffer = new RGBGraphicsArray(graphics.pixels);
+        setColor(255,255,255);
     }
 
     @Exposed
@@ -76,31 +109,89 @@ public class GraphicsInterface implements API
     }
 
     @Exposed
-    public void setColor(int R, int G, int B)//sets the color used when not specificly provided by a draw function
-    {
-        defualtColor = new Vector(R,G,B);
-    }
-    public void setColor(Vector color){
-        setColor(color.x,color.y,color.z);
+    public void setRotation(double angle, int x, int y){
+        this.angle = angle;
+        rotatePos = new Vector2i(x, y);
+        roobj = false;
     }
 
     @Exposed
-    public void drawLine(int x1, int y1, int x2, int y2)//draws a line, duh
+    public void setRotation(double angle){
+        this.angle = angle;
+        rotatePos = null;
+        roobj = true;
+    }
+
+    @Exposed
+    public void setRotation(){
+        rotatePos = null;
+        roobj = false;
+    }
+
+    public void startRotationSession(Vector2i pos){
+        if (roobj){
+            rotatePos = pos;
+        }
+    }
+
+    public void startRotationSession(int x, int y){
+        startRotationSession(new Vector2i(x, y));
+    }
+
+    public void startRotationSession(Vector pos){
+        startRotationSession(pos.x, pos.y);
+    }
+
+    public void endRotationSession(){
+        if (roobj) setRotation();
+    }
+
+    @Exposed
+    public void setColor(@Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)//sets the color used when not specificly provided by a draw function
+    {
+        defualtColor = new Vector(R,G,B);
+    }
+    @Exposed
+    public void setColor(@Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B, @Index( strict = true ) @Range( range = 256 ) int A)//sets the color used when not specificly provided by a draw function
+    {
+        setColor(R,G,B);
+        alpha = A;
+    }
+    public void setColor(Vector color){
+        setColor(Math.clamp(color.x,0,255),Math.clamp(color.y,0,255),Math.clamp(color.z,0,255));
+    }
+
+    @Exposed
+    public void drawLine(@Index int x1, @Index int y1, @Index int x2, @Index int y2)//draws a line, duh
     {
         drawLine(x1,height-y1,x2,height-y2,defualtColor.x,defualtColor.y,defualtColor.z);
     }
+
     @Exposed
-    public void drawLine(int x1, int y1, int x2, int y2, int R, int G, int B)
-    {
-        //equation from here:
-        //https://www3.cs.stonybrook.edu/~cse328/2021-lecture-notes/line-drawing.pdf
-        int dy = y2 - y1;
-        int dx = x2 - x1;
-        for (int i = Math.min(x1,x2); i < Math.max(x1,x2);i++){
-            int y = (int) Math.round(y1+(i-x1)*((double)dy/dx));
-            drawPixel(i,y,R,G,B);
+    public void drawLine(@Index int x0, @Index int y0, @Index int x1, @Index int y1, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            drawPixel(x0, y0, R, G, B);
+
+            if (x0 == x1 && y0 == y1) break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err = err - dy;
+                x0 = x0 + sx;
+            }
+            if (e2 < dx) {
+                err = err + dx;
+                y0 = y0 + sy;
+            }
         }
     }
+
     public void drawLine(Vector pointA, Vector pointB){
         drawLine(pointA.x,pointA.y,pointB.x,pointB.y);
     }
@@ -114,15 +205,29 @@ public class GraphicsInterface implements API
         drawLine(x1,y1,x2,y2,color.x,color.y,color.z);
     }
 
+    public Vector2i rotateLocal(int x, int y){
+        if (rotatePos==null || angle == 0){
+            return new Vector2i(x,y);
+        }else{
+            return rotate(new Vector2i(x, y), rotatePos, angle);
+        }
+    }
+
     @Exposed
-    public void drawPixel(int x, int y)//you will never guess what this bad boy does
+    public void drawPixel(@Index int x, @Index int y)//you will never guess what this bad boy does
     {
-        GraphicsBuffer.set(x,y,RGBGraphicsArray.rgbToDecimal(defualtColor.x,defualtColor.y,defualtColor.z));
+        drawPixel(x, y, defualtColor);
     }
     @Exposed
-    public void drawPixel(int x, int y, int R, int G, int B)
+    public void drawPixel(@Index int x, @Index int y, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)
     {
-        GraphicsBuffer.set(x,y,RGBGraphicsArray.rgbToDecimal(R,G,B));
+        Vector3i old = alpha==255 ? new Vector3i() : RGBGraphicsArray.decimalToRgb(GraphicsBuffer.get(x, y));
+        Vector2i pos = rotateLocal(x, y);
+        GraphicsBuffer.set(pos.x, pos.y, RGBGraphicsArray.rgbToDecimal(
+                applyAlpha(R, old.x, alpha),
+                applyAlpha(G, old.y, alpha),
+                applyAlpha(B, old.z, alpha)
+        ));
     }
     public void drawPixel(Vector point){
         drawPixel(point.x,point.y);
@@ -137,20 +242,52 @@ public class GraphicsInterface implements API
         drawPixel(x,y,color.x,color.y,color.z);
     }
 
+    public int average(int... nums){
+        int toltal = 0;
+        for (int i = 0; i < nums.length; i++){
+            toltal += nums[i];
+        }
+        return toltal / nums.length;
+    }
+
+    public Vector2i average(Vector2i... nums){
+        int toltalX = 0;
+        int toltalY = 0;
+        for (int i = 0; i < nums.length; i++){
+            toltalX += nums[i].x;
+            toltalY += nums[i].y;
+        }
+        return new Vector2i(toltalX / nums.length, toltalY / nums.length);
+    }
+
+    public Vector average(Vector... nums){
+        int toltalX = 0;
+        int toltalY = 0;
+        for (int i = 0; i < nums.length; i++){
+            toltalX += nums[i].x;
+            toltalY += nums[i].y;
+        }
+        return new Vector(toltalX / nums.length, toltalY / nums.length);
+    }
+
     @Exposed
-    public void drawRectangle(int x1, int y1, int x2, int y2, int R, int G, int B)//draws a rectangle between two points
+    public void drawRectangle(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)//draws a rectangle between two points
     {
+        startRotationSession(average(x1,x2), average(y1, y2));
         drawLine(x1,y1,x2,y1,R,G,B);
         drawLine(x2,y1,x2,y2,R,G,B);
         drawLine(x2,y2,x1,y2,R,G,B);
         drawLine(x1,y2,x1,y1,R,G,B);
+        endRotationSession();
     }
     @Exposed
-    public void drawRectangle(int x1, int y1, int x2, int y2){
+    public void drawRectangle(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
+        startRotationSession(average(x1,x2), average(y1, y2));
         drawLine(x1,y1,x2,y1);
         drawLine(x2,y1,x2,y2);
         drawLine(x2,y2,x1,y2);
         drawLine(x1,y2,x1,y1);
+        endRotationSession();
     }
     public void drawRectangle(Vector pointA, Vector pointB){
         drawRectangle(pointA.x,pointA.y,pointB.x,pointB.y);
@@ -167,6 +304,7 @@ public class GraphicsInterface implements API
 
     public void drawBezier(Vector pointA, Vector pointB, Vector pointC, Vector color)//draw a bezier curver through the provided points
     {
+        startRotationSession(average(pointA, pointB, pointC));
         int samples = Math.round((int)(pointA.distance(pointC)/3));
         int[] Xs = new int[samples + 1];
         int[] Ys = new int[samples + 1];
@@ -184,12 +322,13 @@ public class GraphicsInterface implements API
         {
             drawLine(Xs[i],Ys[i],Xs[i+1],Ys[i+1], color);
         }
+        endRotationSession();
     }
     public void drawBezier(Vector pointA, Vector pointB, Vector pointC){
         drawBezier(pointA, pointB, pointC, defualtColor);
     }
     @Exposed
-    public void drawBezier(int x1, int y1, int x2, int y2, int x3, int y3){
+    public void drawBezier(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index int x3, @Index int y3){
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3));
     }
     public void drawBezier(Vector pointA, Vector pointB, Vector pointC, int R, int G, int B){
@@ -199,7 +338,7 @@ public class GraphicsInterface implements API
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3),color);
     }
     @Exposed
-    public void drawBezier(int x1, int y1, int x2, int y2, int x3, int y3, int R, int G, int B){
+    public void drawBezier(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index int x3, @Index int y3, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         drawBezier(new Vector(x1,y1),new Vector(x2,y2),new Vector(x3,y3),new Vector(R,G,B));
     }
     private Vector interlopeDistance(Vector pointA, Vector pointB, double T)
@@ -218,6 +357,7 @@ public class GraphicsInterface implements API
 
     //draws a spline (bezier with more points)
     public void drawSpline(Vector[] points,Vector color){
+        startRotationSession(average(points));
         int samples=0;
         for (int i = 0; i < points.length - 1; i++){
             samples += Math.sqrt(Math.pow(Math.abs(points[i].x-points[i+1].x),2)+Math.pow(Math.abs(points[i].y-points[i+1].y),2));
@@ -229,8 +369,9 @@ public class GraphicsInterface implements API
         }
         for (int i = 0; i < samples - 1; i++)
         {
-            drawLine(draw[i],draw[i+1]);
+            drawLine(draw[i],draw[i+1], color);
         }
+        endRotationSession();
     }
     public void drawSpline(Vector[] points){
         drawSpline(points, defualtColor);
@@ -238,7 +379,7 @@ public class GraphicsInterface implements API
     public void drawSpline(Vector[] points,int R, int G, int B){
         drawSpline(points,new Vector(R,G,B));
     }
-    public void drawSpline(int[] Xs, int[] Ys,Vector color){
+    public void drawSpline(Integer[] Xs, Integer[] Ys,Vector color){
         Vector[] vecs = new Vector[Math.min(Xs.length,Ys.length)];
         for (int i = 0; i < Math.min(Xs.length,Ys.length);i++){
             vecs[i] = new Vector(Xs[i],Ys[i]);
@@ -246,14 +387,18 @@ public class GraphicsInterface implements API
         drawSpline(vecs,color);
     }
     @Exposed
-    public void drawSpline(int[] Xs, int[] Ys){
-        drawSpline(Xs,Ys, defualtColor);
+    public void drawSpline(List Xs, List Ys){
+        if (!Xs.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        if (!Ys.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #2: all vals in list must be numbers");
+        drawSpline(Xs.cast((val) -> val.toInt()).toArray(new Integer[]{}),Ys.cast((val) -> val.toInt()).toArray(new Integer[]{}), defualtColor);
     }
     @Exposed
-    public void drawSpline(int[] Xs, int[] Ys,int R,int G,int B){
-        drawSpline(Xs,Ys,new Vector(R,G,B));
+    public void drawSpline(List Xs, List Ys, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
+        if (!Xs.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        if (!Ys.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #2: all vals in list must be numbers");
+        drawSpline(Xs.cast((val) -> val.toInt()).toArray(new Integer[]{}),Ys.cast((val) -> val.toInt()).toArray(new Integer[]{}),new Vector(R,G,B));
     }
-    public void drawSpline(int[] cords,Vector color){
+    public void drawSpline(Integer[] cords,Vector color){
         Vector[] vecs = new Vector[cords.length/2*2];
         for (int i = 0; i < cords.length/2;i++){
             vecs[i] = new Vector(cords[i*2],cords[i*2+1]);
@@ -261,12 +406,14 @@ public class GraphicsInterface implements API
         drawSpline(vecs,color);
     }
     @Exposed
-    public void drawSpline(int[] cords){
-        drawSpline(cords,defualtColor);
+    public void drawSpline(List cords){
+        if (!cords.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[]{}),defualtColor);
     }
     @Exposed
-    public void drawSpline(int[] cords, int R,int G,int B){
-        drawSpline(cords,new Vector(R,G,B));
+    public void drawSpline(List cords, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
+        if (!cords.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[]{}),new Vector(R,G,B));
     }
 
     public Vector spline(Vector[] points,double T){
@@ -283,6 +430,7 @@ public class GraphicsInterface implements API
 
     public void drawCircle(Vector pointA, Vector pointB, Vector color)//draw a circle inbetween the two points
     {
+        startRotationSession(average(pointA, pointB));
         double radius = Math.abs(pointB.y-pointA.y)/2d;
         double scaleX = (double)Math.abs(pointB.x-pointA.x)/Math.abs(pointB.y-pointA.y);
         Vector point = new Vector((pointA.x+pointB.x)/2,(pointA.x+pointB.x)/2);
@@ -302,13 +450,14 @@ public class GraphicsInterface implements API
             drawLine(-Xs[i] + point.x,-Ys[i] + point.y,-Xs[i+1] + point.x,-Ys[i+1] + point.y, color);
             drawLine(Xs[i] + point.x,-Ys[i] + point.y,Xs[i+1] + point.x,-Ys[i+1] + point.y, color);
         }
+        endRotationSession();
     }
     @Exposed
-    public void drawCircle(int x1, int y1, int x2, int y2){
+    public void drawCircle(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),defualtColor);
     }
     @Exposed
-    public void drawCircle(int x1, int y1, int x2, int y2, int R, int G, int B){
+    public void drawCircle(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),new Vector(R,G,B));
     }
     public void drawCircle(Vector pointA, Vector pointB){
@@ -323,6 +472,7 @@ public class GraphicsInterface implements API
 
     public void drawCircle(Vector point, int radius, Vector color)//draw a circle of given radius around point
     {
+        startRotationSession(point);
         int samples = (int)Math.round(Math.PI * (double)radius / 6d);
         int[] Xs = new int[samples + 1];
         int[] Ys = new int[samples + 1];
@@ -334,17 +484,18 @@ public class GraphicsInterface implements API
         }
         for (int i = 0; i < samples; i++)
         {
-            drawLine(Xs[i] + point.x,Ys[i] + point.y,Xs[i+1] + point.x,Ys[i+1] + point.y, color);
-            drawLine(-Xs[i] + point.x,Ys[i] + point.y,-Xs[i+1] + point.x,Ys[i+1] + point.y, color);
-            drawLine(-Xs[i] + point.x,-Ys[i] + point.y,-Xs[i+1] + point.x,-Ys[i+1] + point.y, color);
-            drawLine(Xs[i] + point.x,-Ys[i] + point.y,Xs[i+1] + point.x,-Ys[i+1] + point.y, color);
+            drawLine(Xs[i] + point.x + 1,Ys[i] + point.y + 1,Xs[i+1] + point.x + 1,Ys[i+1] + point.y + 1, color);
+            drawLine(-Xs[i] + point.x + 1,Ys[i] + point.y + 1,-Xs[i+1] + point.x + 1,Ys[i+1] + point.y + 1, color);
+            drawLine(-Xs[i] + point.x + 1,-Ys[i] + point.y + 1,-Xs[i+1] + point.x + 1,-Ys[i+1] + point.y + 1, color);
+            drawLine(Xs[i] + point.x + 1,-Ys[i] + point.y + 1,Xs[i+1] + point.x + 1,-Ys[i+1] + point.y + 1, color);
         }
+        endRotationSession();
     }
     public void drawCircle(Vector point, int radius){
         drawCircle(point, radius, defualtColor);
     }
     @Exposed
-    public void drawCircle(int x, int y, int radius){
+    public void drawCircle(@Index int x, @Index int y, int radius){
         drawCircle(new Vector(x,y),radius);
     }
     public void drawCircle(int x, int y, int radius, Vector color){
@@ -354,7 +505,7 @@ public class GraphicsInterface implements API
         drawCircle(point, radius, new Vector(R,G,B));
     }
     @Exposed
-    public void drawCircle(int x, int y, int radius, int R, int G, int B){
+    public void drawCircle(@Index int x, @Index int y, int radius, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         drawCircle(new Vector(x,y),radius, new Vector(R,G,B));
     }
 
@@ -368,6 +519,7 @@ public class GraphicsInterface implements API
      * and (color) is color, duh
      */
     public void drawPolygon(Vector point,int n, int size, Vector color){
+        startRotationSession(point);
         double radius = (double)size;
         Vector[] points = new Vector[n + 1];
         for (int i = 0; i <= n; i++){
@@ -376,24 +528,25 @@ public class GraphicsInterface implements API
             if (angle<=90){
                 double radian = Math.toRadians(90-angle);
                 points[i] = new Vector((int)(Math.cos(radian)*radius),
-                        (int)(Math.sin(radian)*radius));
+                        -(int)(Math.sin(radian)*radius));
             }else if (angle<=180){
                 double radian = Math.toRadians(angle-90);
                 points[i] = new Vector((int)(Math.cos(radian)*radius),
-                        -(int)(Math.sin(radian)*radius));
+                        (int)(Math.sin(radian)*radius));
             }else if (angle<-270){
                 double radian = Math.toRadians(angle-180);
                 points[i] = new Vector(-(int)(Math.cos(radian)*radius),
-                        -(int)(Math.sin(radian)*radius));
+                        (int)(Math.sin(radian)*radius));
             }else{
                 double radian = Math.toRadians(angle-270);
                 points[i] = new Vector(-(int)(Math.cos(radian)*radius),
-                        (int)(Math.sin(radian)*radius));
+                        -(int)(Math.sin(radian)*radius));
             }
         }
         for (int i = 0; i < n; i++){
             drawLine(points[i].add(point),points[i+1].add(point),color);
         }
+        endRotationSession();
     }
     @Exposed
     public static int toRadius(int n,int apothem){
@@ -409,11 +562,11 @@ public class GraphicsInterface implements API
         drawPolygon(new Vector(x,y),n,size,color);
     }
     @Exposed
-    public void drawPolygon(int x, int y, int n, int size, int R, int G, int B){
+    public void drawPolygon(@Index int x, @Index int y, int n, int size, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         drawPolygon(new Vector(x,y),n,size,new Vector(R,G,B));
     }
     @Exposed
-    public void drawPolygon(int x, int y, int n, int size){
+    public void drawPolygon(@Index int x, @Index int y, int n, int size){
         drawPolygon(new Vector(x,y),n,size,defualtColor);
     }
 

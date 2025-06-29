@@ -125,6 +125,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("_VERSION", LuaValue.NIL);
         super.set("_NVRAM", new Lua_NV(globalManager.NVRam));
 
+        super.STDIN = null;
+        super.STDOUT = null;
+        super.STDERR = null;
+
         //load new luaj resource finder
         super.finder = new NeoFinder(globalManager.getParent().fs);
 

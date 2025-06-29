@@ -1,14 +1,17 @@
 package com.redtoast.simulation.parameter;
 
 import com.redtoast.simulation.base.CustomParameter;
+import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
+import org.jetbrains.annotations.Nullable;
+import com.redtoast.simulation.Runtime;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 
 public class ParameterRules {
-    private final LinkedList<ParameterRule> rules = new LinkedList<>();
+    public final LinkedList<ParameterRule> rules = new LinkedList<>();
     public boolean packExtra = false;
     public ParameterRule packRule;
 
@@ -48,7 +51,7 @@ public class ParameterRules {
         return this;
     }
 
-    public static ParameterCheckReturn checkParameters(Value[] values, ParameterRules ruleset){
+    public static ParameterCheckReturn checkParameters(Value[] values, ParameterRules ruleset, @Nullable Runtime runtime){
         if (ruleset.doAny()){
             return new ParameterCheckReturn(new FunctionInput(new LinkedList<>(Arrays.asList(values)), new LinkedList<>()));
         }
@@ -57,20 +60,28 @@ public class ParameterRules {
         for (int i = 0; i < Math.max(values.length, ruleset.rules.size()); i++){
             if (i < ruleset.rules.size()){
                 if (i < values.length){
-                    if (ruleset.rules.get(i).check(values[i])){
-                        output.add(values[i]);
-                    }else{
-                        return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
+                    try{
+                        if (ruleset.rules.get(i).check(values[i], runtime)){
+                            output.add(values[i]);
+                        }else{
+                            return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
+                        }
+                    }catch (LangError err){
+                        return new ParameterCheckReturn("Argument #"+i+": "+err.getMessage());
                     }
                 }else{
                     return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got null");
                 }
             }else{
                 if (ruleset.packExtra){
-                    if (ruleset.rules.get(i).check(values[i])){
-                        packed.add(values[i]);
-                    }else{
-                        return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
+                    try{
+                        if (ruleset.rules.get(i).check(values[i], runtime)){
+                            packed.add(values[i]);
+                        }else{
+                            return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
+                        }
+                    }catch (LangError err){
+                        return new ParameterCheckReturn("Argument #"+i+": "+err.getMessage());
                     }
                 }else{
                     return new ParameterCheckReturn("Argument #"+i+": Expected null, got "+values[i].typeName());
@@ -82,5 +93,20 @@ public class ParameterRules {
         }else{
             return new ParameterCheckReturn(new FunctionInput(output, new LinkedList<>()));
         }
+    }
+
+    public String toString(@Nullable Runtime runtime){
+        StringBuilder buffer = new StringBuilder();
+        buffer.append('(');
+        for (int i = 0; i < rules.size(); i++){
+            buffer.append(rules.get(i).toString(i, runtime));
+            if (i < rules.size() - 1) buffer.append(", ");
+        }
+        if (packExtra){
+            buffer.append(", ");
+            buffer.append(packRule.toString(rules.size(), runtime));
+        }
+        buffer.append(')');
+        return buffer.toString();
     }
 }

@@ -2,6 +2,7 @@ package com.redtoast.graphics;
 
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
+import org.joml.Vector3i;
 
 public class RGBGraphicsArray {
     public int[][] pixels;
@@ -23,12 +24,22 @@ public class RGBGraphicsArray {
     }
 
     public void set(int x, int y, int color){
+        if (x<0 || y < 0) return;
+        if (x>=sizex || y>=sizey) return;
         pixels[y][x] = color;
     }
 
     public static int rgbToDecimal(int red, int green, int blue) {
         //using formula from https://stackoverflow.com/a/18037185
         return (red << 16) & 0xFF0000 | (green << 8) & 0x00FF00 | blue & 0x0000FF;
+    }
+
+    public static Vector3i decimalToRgb(int decimal){
+        return new Vector3i(
+                (decimal & 0xFF0000) >> 16,
+                (decimal & 0x00FF00) >> 8,
+                (decimal & 0x0000FF)
+        );
     }
 
     public void writeScreenToPacketBuf(PacketByteBuf buf) {
