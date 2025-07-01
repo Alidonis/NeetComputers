@@ -16,7 +16,12 @@ public class RGBGraphicsArray {
     public RGBGraphicsArray(int[][] arr) {
         this.sizex = arr[0].length;
         this.sizey = arr.length;
-        pixels = arr;
+        pixels = new int[sizey][sizex];
+        for (int x = 0; x < sizex; x++){
+            for (int y = 0; y < sizey; y++){
+                pixels[y][x] = arr[y][x];
+            }
+        }
     }
 
     public int get(int x, int y) {

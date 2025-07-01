@@ -121,12 +121,6 @@ public class NeetComputers implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer _computer) {
-				return new GraphicsAPI(_computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer _computer) {
 				return new ChipAPI(_computer);
 			}
 		});
@@ -138,14 +132,8 @@ public class NeetComputers implements ModInitializer {
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Computer _computer) {
-				return new PaintAPI(_computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
 			public @NotNull API Create(Computer computer) {
-				return new GraphicsInterface(computer.getGraphics());
+				return new Screen(computer.getGraphics());
 			}
 		});
 	}

@@ -1,5 +1,6 @@
 package com.redtoast.APIS;
 
+import com.redtoast.graphics.FloadFillArray;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.Index;
@@ -7,16 +8,14 @@ import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 import com.redtoast.simulation.value.VarType;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-
-public class GraphicsInterface implements API
+public class Screen implements API
 {
     private final int height;
     private final int width;
@@ -91,7 +90,7 @@ public class GraphicsInterface implements API
         );
     }
 
-    public GraphicsInterface(RGBGraphicsArray graphics)
+    public Screen(RGBGraphicsArray graphics)
     {
         Graphics = graphics;
         Vector2i size = graphics.getSize();
@@ -105,7 +104,6 @@ public class GraphicsInterface implements API
     public void draw()//refreash graphics on screen
     {
         Graphics.pixels = GraphicsBuffer.pixels;
-        GraphicsBuffer = new RGBGraphicsArray(Graphics.pixels);
     }
 
     @Exposed
@@ -157,6 +155,10 @@ public class GraphicsInterface implements API
         setColor(R,G,B);
         alpha = A;
     }
+    @Exposed
+    public void setColor(@Index( strict = true ) @Range( range = 256 ) int A){
+        alpha = A;
+    }
     public void setColor(Vector color){
         setColor(Math.clamp(color.x,0,255),Math.clamp(color.y,0,255),Math.clamp(color.z,0,255));
     }
@@ -169,25 +171,27 @@ public class GraphicsInterface implements API
 
     @Exposed
     public void drawLine(@Index int x0, @Index int y0, @Index int x1, @Index int y1, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B) {
-        int dx = Math.abs(x1 - x0);
-        int dy = Math.abs(y1 - y0);
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
+        Vector2i p1 = rotateLocal(x0, y0);
+        Vector2i p2 = rotateLocal(x1, y1);
+        int dx = Math.abs(p2.x - p1.x);
+        int dy = Math.abs(p2.y - p1.y);
+        int sx = p1.x < p2.x ? 1 : -1;
+        int sy = p1.y < p2.y ? 1 : -1;
         int err = dx - dy;
 
         while (true) {
-            drawPixel(x0, y0, R, G, B);
+            rawDrawPixel(p1.x, p1.y, R, G, B);
 
-            if (x0 == x1 && y0 == y1) break;
+            if (p1.x == p2.x && p1.y == p2.y) break;
 
             int e2 = 2 * err;
             if (e2 > -dy) {
                 err = err - dy;
-                x0 = x0 + sx;
+                p1.x = p1.x + sx;
             }
             if (e2 < dx) {
                 err = err + dx;
-                y0 = y0 + sy;
+                p1.y = p1.y + sy;
             }
         }
     }
@@ -218,16 +222,19 @@ public class GraphicsInterface implements API
     {
         drawPixel(x, y, defualtColor);
     }
-    @Exposed
-    public void drawPixel(@Index int x, @Index int y, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)
-    {
+    private void rawDrawPixel(int x, int y, int R, int G, int B){
         Vector3i old = alpha==255 ? new Vector3i() : RGBGraphicsArray.decimalToRgb(GraphicsBuffer.get(x, y));
-        Vector2i pos = rotateLocal(x, y);
-        GraphicsBuffer.set(pos.x, pos.y, RGBGraphicsArray.rgbToDecimal(
+        GraphicsBuffer.set(x, y, RGBGraphicsArray.rgbToDecimal(
                 applyAlpha(R, old.x, alpha),
                 applyAlpha(G, old.y, alpha),
                 applyAlpha(B, old.z, alpha)
         ));
+    }
+    @Exposed
+    public void drawPixel(@Index int x, @Index int y, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)
+    {
+        Vector2i pos = rotateLocal(x, y);
+        rawDrawPixel(pos.x, pos.y, R, G, B);
     }
     public void drawPixel(Vector point){
         drawPixel(point.x,point.y);
@@ -240,6 +247,66 @@ public class GraphicsInterface implements API
     }
     public void drawPixel(int x, int y, Vector color){
         drawPixel(x,y,color.x,color.y,color.z);
+    }
+
+    public static double colorDistance(int R1, int G1, int B1, int R2, int G2, int B2) {
+        int R = R1 - R2;
+        int G = G1 - G2;
+        int B = B1 - B2;
+        return (double) (R + G + B) / 3;
+    }
+
+    @Exposed
+    public void floadFill(int x, int y,@Index( strict = true ) @Range( range = 256 ) int tolerance,@Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
+        if (x < 0 || x >= width) throw new LangError("Argument #0: value not in range [0-"+width+']');
+        if (y < 0 || y >= height) throw new LangError("Argument #1: value not in range [0-"+height+']');
+        if (tolerance==255){
+            fill(R, G, B);
+            return;
+        }
+        Vector3i baseColors = RGBGraphicsArray.decimalToRgb(GraphicsBuffer.get(x, y));
+        FloadFillArray FFA = new FloadFillArray(width, height) {
+            @Override
+            public void setPixel(int x, int y) {
+                rawDrawPixel(x, y, R, G, B);
+            }
+
+            @Override
+            public boolean isValid(int x, int y) {
+                Vector3i colors = RGBGraphicsArray.decimalToRgb(GraphicsBuffer.get(x, y));
+                if (tolerance==0) {
+                    if (colors.x != baseColors.x) return false;
+                    if (colors.y != baseColors.y) return false;
+                    return colors.z == baseColors.z;
+                }else{
+                    return colorDistance(colors.x, colors.y, colors.z, baseColors.x, baseColors.y, baseColors.z) <= tolerance;
+                }
+            }
+        };
+        FFA.start(x, y);
+    }
+
+    @Exposed
+    public void floadFill(int x, int y,@Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
+        floadFill(x, y, 0, R, G, B);
+    }
+
+    @Exposed
+    public void fill(@Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
+        for (int w = 0; w < width; w++){
+            for (int h = 0; h < height; h++){
+                rawDrawPixel(w,h,R,G,B);
+            }
+        }
+    }
+
+    @Exposed
+    public void fill(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
+        for (int w = Math.min(x1, x2); w < Math.max(x1, x2); w++){
+            for (int h = Math.min(y1, y2); h < Math.max(y1, y2); h++){
+                rawDrawPixel(w,h,R,G,B);
+            }
+        }
     }
 
     public int average(int... nums){
