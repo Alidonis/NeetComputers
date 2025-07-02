@@ -26,8 +26,9 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei}"
-	modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei}"
+	modCompileOnly("me.shedaniel:RoughlyEnoughItems-api:${project.rei}")
+	modCompileOnly("me.shedaniel:RoughlyEnoughItems-runtime:${project.rei}")
+
 }
 
 processResources {

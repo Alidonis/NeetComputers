@@ -91,6 +91,8 @@ public abstract class Computer {
     private Vector2i mousePos;
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
+    //state for defining if the computer is paused
+    private boolean paused = false;
     //crash message for crash events
     private String message = null;
     //represents que for events
@@ -99,6 +101,8 @@ public abstract class Computer {
     private computerSpecs specs;
     //table storing NVRam
     private NVTable NVRam;
+    //value holding last time computer ticked
+    private long tickTime = 0;
 
     //abstract methods
     /**
@@ -131,6 +135,7 @@ public abstract class Computer {
         specs = specifications;
         doesBinaryGraphics = specifications.doesBinaryGraphics;
         BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
+        tickTime = System.currentTimeMillis();
     }
 
     //generic load function all other load functions call after implementing data
@@ -291,6 +296,15 @@ public abstract class Computer {
     }
 
     //muli-line fetch methods
+    public ComputerStatus getStatus(){
+        if (IsOn && paused){
+            return ComputerStatus.PAUSED;
+        }else if (IsOn){
+            return ComputerStatus.ON;
+        }
+        if (isCrashed()) return ComputerStatus.CRASHED;
+        return ComputerStatus.OFF;
+    }
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         if (!doesBinaryGraphics) return null;
         return BinGraphics;
@@ -312,6 +326,8 @@ public abstract class Computer {
 
     //ticks the computer
     public void tick(World world){
+        short delta = (short) (System.currentTimeMillis() - tickTime);
+        tickTime = System.currentTimeMillis();
         if (loaded){
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, null);
@@ -319,7 +335,7 @@ public abstract class Computer {
             }
             if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null && !IsCrashed){
-                step();
+                step(delta);
                 for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp == this) {
                         PacketByteBuf temp = PacketByteBufs.create();
@@ -338,13 +354,14 @@ public abstract class Computer {
     }
 
     //steps the runtime forward (tick with less protection)
-    private void step(){
+    private void step(short delta){
         if (loaded){
             if (IsOn && runtime !=null && !IsCrashed){
                 if (runtime.isDead()){
                     stop();
                 }else{
                     if (IsOn) {
+                        runtime.TTL += delta;
                         runtime.tick();
                     }
                 }

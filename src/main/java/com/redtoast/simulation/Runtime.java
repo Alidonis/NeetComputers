@@ -27,6 +27,7 @@ public abstract class Runtime {
     public Computer parent;
     public Hashtable<String, Function> eventTable = new Hashtable<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
+    public int TTL = 0;
     private boolean inTick = false;
 
     public Runtime(Computer Parent, NVTable NVRam){
