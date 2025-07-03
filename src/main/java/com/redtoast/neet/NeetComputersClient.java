@@ -7,8 +7,13 @@ import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
@@ -24,6 +29,7 @@ public class NeetComputersClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, GraphicsScreen::new);
+
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
 			Object reiScreenRegistryInstance = reiScreenRegistryClass.getMethod("getInstance").invoke(null);

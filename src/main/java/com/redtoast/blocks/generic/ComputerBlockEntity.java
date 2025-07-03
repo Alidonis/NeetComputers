@@ -41,7 +41,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
         super(type, pos, state);
-        BlockEntity be = this;
+        ComputerBlockEntity be = this;
         computer = new Computer(specifications) {
             @Override
             public void saveNBT() {
@@ -49,8 +49,8 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
 
             @Override
-            public World getWorld() {
-                return be.getWorld();
+            public boolean isClient() {
+                return be.getWorld().isClient();
             }
 
             @Override
@@ -63,7 +63,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 return be;
             }
         };
-        computer.attachPeripheral(new ProjectorAPI(computer));
+        if (specifications.doesBinaryGraphics) computer.attachPeripheral(new ProjectorAPI(computer));
         graphics = computer.getGraphics();
     }
 

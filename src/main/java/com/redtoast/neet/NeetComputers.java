@@ -25,10 +25,13 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.client.render.VertexFormatElement;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -54,6 +57,7 @@ public class NeetComputers implements ModInitializer {
 	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
+
 
 	//internal config
 	public static final String version = "NeetComputers 0.1 beta";
@@ -98,7 +102,7 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new, DesktopComputerRenderer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
 
-		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(16));
+		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(1));
 		BulkRegistery.register("mobile_computer", modelComputer);
 		BulkRegistery.register(modelComputer, group);
 

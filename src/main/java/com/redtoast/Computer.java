@@ -115,7 +115,7 @@ public abstract class Computer {
      * gets a World object from parent
      * @return World
      */
-    public abstract World getWorld();
+    public abstract boolean isClient();
     /**
      * triggers a reloading of the drawing of binary graphics
      * imagine this as say sending the updated graphics array to all clients to be rendered
@@ -204,15 +204,19 @@ public abstract class Computer {
     public void start(){
         if (!IsOn && loaded && fs!=null && !IsCrashed){
             //wipes binary graphics
-            for (int x = 0; x < BinGraphics.getSize().x; x++){
-                for (int y = 0; y < BinGraphics.getSize().y; y++){
-                    BinGraphics.set(x,y,false);
+            if (doesBinaryGraphics){
+                for (int x = 0; x < BinGraphics.getSize().x; x++){
+                    for (int y = 0; y < BinGraphics.getSize().y; y++){
+                        BinGraphics.set(x,y,false);
+                    }
                 }
             }
+
             Graphics.clear();
             //starts assembling peripherals
             peripheralBuffer = new LinkedList<>();
             peripheralBuffer.addAll(peripheralWrappers);
+
             //overwrites runtime with a new instance
             Computer com = this;
             runtime = new Runtime(this, NVRam) {
@@ -397,7 +401,7 @@ public abstract class Computer {
     }
     //que's an event to the computer if server-side or sends event to server to be que'd if not
     public void queueEvent(EventGeneric event) {
-        if (getWorld().isClient()){
+        if (isClient()){
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeUuid(uuid);
             event.writeToPacket(buf);
