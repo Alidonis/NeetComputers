@@ -202,6 +202,11 @@ public abstract class Computer {
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
+        System.out.println(!IsOn);
+        System.out.println(loaded);
+        System.out.println(fs!=null);
+        System.out.println(!IsCrashed);
+        System.out.println(uuid);
         if (!IsOn && loaded && fs!=null && !IsCrashed){
             //wipes binary graphics
             if (doesBinaryGraphics){
@@ -330,11 +335,18 @@ public abstract class Computer {
 
     //ticks the computer
     public void tick(World world){
+//        if (specs.MachineName.equals("Portable Computer")) System.out.println(uuid);
+//        if (specs.MachineName.equals("Portable Computer")) System.out.println(1);
         short delta = (short) (System.currentTimeMillis() - tickTime);
+//        if (specs.MachineName.equals("Portable Computer")) System.out.println(2);
         tickTime = System.currentTimeMillis();
+//        if (specs.MachineName.equals("Portable Computer")) System.out.println(3);
         if (loaded){
+//            if (specs.MachineName.equals("Portable Computer")) System.out.println(4);
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
+//                if (specs.MachineName.equals("Portable Computer")) System.out.println(5);
                 fs = new FileSystem(build, pointer, null);
+                if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
                 attachPeripheral(fs);
             }
             if (fs!=null) maintainState();

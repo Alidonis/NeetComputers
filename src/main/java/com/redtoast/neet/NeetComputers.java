@@ -7,8 +7,12 @@ import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
+import com.redtoast.blocks.generic.ComputerBlockEntity;
+import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
+import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.items.generics.ComputerItem;
 import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
@@ -21,33 +25,48 @@ import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.VertexFormatElement;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.UUID;
 
 public class NeetComputers implements ModInitializer {
@@ -55,6 +74,7 @@ public class NeetComputers implements ModInitializer {
 	//create packet id's and screen handler
 	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
 	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
+	public static final Identifier SCREEN_INIT_PACKET = Identifier.of("neetcomputers", "graphics_init");
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
 
@@ -140,6 +160,37 @@ public class NeetComputers implements ModInitializer {
 				return new Screen(computer.getGraphics());
 			}
 		});
+
+        assert SCREEN_INIT_PACKET != null;
+        ServerPlayNetworking.registerGlobalReceiver(SCREEN_INIT_PACKET, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			//RGBGraphicsArray graphics = RGBGraphicsArray.fromPacket(packetByteBuf);
+			if (serverPlayerEntity.getMainHandStack().isEmpty()){
+				LOGGER.warn("received screen opening packet from player not holding computer");
+				return;
+			}
+			Item item = serverPlayerEntity.getMainHandStack().getItem();
+			if (item instanceof ComputerItem computerItem){
+//				serverPlayerEntity.openHandledScreen(new ExtendedScreenHandlerFactory() {
+//					@Override
+//					public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+//						computerItem.getComputer().getGraphics().writeScreenToPacketBuf(buf);
+//					}
+//
+//					@Override
+//					public Text getDisplayName() {
+//						return computerItem.getName();
+//					}
+//
+//					@Nullable
+//					@Override
+//					public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+//						return new GraphicsScreenHandler(syncId, computerItem.getComputer().getGraphics(), computerItem.getComputer());
+//					}
+//				});
+			}else{
+				LOGGER.warn("received screen opening packet from player not holding computer");
+			}
+        });
 	}
 
 	public void registerLanguage(LanguageGeneric language){
