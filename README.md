@@ -11,7 +11,7 @@ N.E.E.T. adds functional and easy to use computers that can run a wide array of 
 We provide all kinds of gadgets and gear to allow you to use the computers of the future, with ease. (ease not included)
 
 # Stats for nerds
-This is the section for those who want to make things for the mod and have the skills (or the desire to learn them) to do it!
+This is the section for those who want to make things for the mod and have the skills (or the desire to learn them) to do it! you can read the offical doc's [here!](https://github.com/redtoast/NeetDocumentation)
 
 If you're coming from pre-existing computer mods like Computer Craft or Open Computers I will provide this paragraph to explain why this mod exists and what it does differently. As for why, For a long time, I (the lead developer) have been a huge fan of Computer Craft (or CC for short), but frustrated with how it implements its features, until I decided making my own mod was worth a shot! I think that Open Computers (OC) is too complex for its own good, and incredibly unintuitive to non-dev players, this complexity also keeps it locked in late versions of Forge which I find unfortunate. As for CC it's simple to the point of hurting itself at points, with odd arbitrary restrictions and (in my opinion), suffering from large amounts of technical debt making expanding the mod harder for its lead developer. Of course I still love CC and OC (altho i never really used OC), CC provided years of happy memories and this mod is my take on improving that CC and OC laid the tracks for.
 
