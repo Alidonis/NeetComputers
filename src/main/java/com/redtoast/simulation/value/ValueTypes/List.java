@@ -1,10 +1,12 @@
 package com.redtoast.simulation.value.ValueTypes;
 
 import com.redtoast.simulation.value.Value;
+import org.jetbrains.annotations.NotNull;
+import org.luaj.vm2.ast.Str;
 
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * represents an N.E.E.T. computers list, interchangeable with {@link Tuple}
@@ -15,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see Exception
  * @see java.util.LinkedList
  */
-public class List {
+public class List implements Collection<Value>, Set<Value> {
     public interface listCheck{
         boolean check(Value value);
     }
@@ -51,9 +53,36 @@ public class List {
         return list;
     }
 
-    public void add(Value value){
-        vals.add(value);
+    @Override
+    public boolean remove(Object o) {
+        return vals.remove(o);
     }
+
+    @Override
+    public boolean containsAll(@NotNull Collection<?> c) {
+        return vals.containsAll(c);
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends Value> c) {
+        return vals.addAll(c);
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> c) {
+        return vals.removeAll(c);
+    }
+
+    @Override
+    public boolean retainAll(@NotNull Collection<?> c) {
+        return vals.retainAll(c);
+    }
+
+    @Override
+    public void clear() {
+        vals.clear();
+    }
+
     public Value get(int index){
         return vals.get(index);
     }
@@ -63,13 +92,56 @@ public class List {
     public int size(){
         return vals.size();
     }
+
+    @Override
+    public boolean isEmpty() {
+        return vals.isEmpty();
+    }
+
+    @Override
+    public boolean contains(Object o) {
+        return vals.contains(o);
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Value> iterator() {
+        return vals.iterator();
+    }
+
     public boolean isPacked(){return false;}
     public Value<List> asValue(){
         return Value.of(this);
     }
-    public Value[] toArray(){
+    public Value @NotNull [] toArray(){
         return vals.toArray(new Value[]{});
     }
+
+    @NotNull
+    @Override
+    @Deprecated
+    public <T> T @NotNull [] toArray(@NotNull T[] a) {
+        return a;
+    }
+
+    @Override
+    public boolean add(Value value){
+        vals.add(value);
+        return true;
+    }
+
+    @Override
+    public String toString(){
+        StringBuilder buffer = new StringBuilder();
+        buffer.append('[');
+        for (Value value : vals){
+            buffer.append(value.getValue().toString());
+            buffer.append(',');
+        }
+        buffer.setCharAt(buffer.length()-1, ']');
+        return buffer.toString();
+    }
+
     public List toList(){
         if (isPacked()){
             return new List(toArray());

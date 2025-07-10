@@ -160,8 +160,22 @@ public class NeetComputers implements ModInitializer {
 				return new Screen(computer.getGraphics());
 			}
 		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {
+				return new EventAPI(computer);
+			}
+		});
 
         assert SCREEN_INIT_PACKET != null;
+		ServerPlayNetworking.registerGlobalReceiver(new Identifier("neetcomputers","blind_event"), (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
+			EventGeneric event = EventGeneric.fromPacket(packetByteBuf);
+			int syncid = packetByteBuf.readInt();
+			if ((serverPlayerEntity.currentScreenHandler!=null && serverPlayerEntity.currentScreenHandler.syncId == syncid && serverPlayerEntity.currentScreenHandler instanceof GraphicsScreenHandler handler)){
+				Computer computer = handler.comp;
+				computer.queueEvent(event);
+			}
+		});
         ServerPlayNetworking.registerGlobalReceiver(SCREEN_INIT_PACKET, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
 			//RGBGraphicsArray graphics = RGBGraphicsArray.fromPacket(packetByteBuf);
 			if (serverPlayerEntity.getMainHandStack().isEmpty()){

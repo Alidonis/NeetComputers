@@ -134,6 +134,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf buf) {
         graphics.writeScreenToPacketBuf(buf);
+        buf.writeUuid(computer.getUuid());
     }
 
     @Override

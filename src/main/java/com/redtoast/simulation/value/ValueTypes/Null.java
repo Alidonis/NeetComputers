@@ -22,4 +22,6 @@ public class Null{
     public Value<Null> asValue(){
         return Value.NULL;
     }
+    @Override
+    public String toString() {return "null";}
 }

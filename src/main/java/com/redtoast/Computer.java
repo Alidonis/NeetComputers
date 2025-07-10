@@ -96,7 +96,9 @@ public abstract class Computer {
     //crash message for crash events
     private String message = null;
     //represents que for events
-    private @Deprecated final LinkedList<EventGeneric> eventQue = new LinkedList<>();
+    private final LinkedList<EventGeneric> eventQue = new LinkedList<>();
+    //list of all event callbacks
+    private final LinkedList<EventGeneric.eventCallback> eventCallbacks = new LinkedList<>();
     //specify computer specifications
     private computerSpecs specs;
     //table storing NVRam
@@ -202,11 +204,6 @@ public abstract class Computer {
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
-        System.out.println(!IsOn);
-        System.out.println(loaded);
-        System.out.println(fs!=null);
-        System.out.println(!IsCrashed);
-        System.out.println(uuid);
         if (!IsOn && loaded && fs!=null && !IsCrashed){
             //wipes binary graphics
             if (doesBinaryGraphics){
@@ -233,6 +230,11 @@ public abstract class Computer {
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
                     return com.getEventQue();
+                }
+
+                @Override
+                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
+                    return eventCallbacks;
                 }
             };
 
@@ -298,7 +300,7 @@ public abstract class Computer {
     }
     public int getAddress(){return fs.pointer;}
     private LinkedList<Peripheral> getPeripherals() {return peripheralBuffer;}
-    private LinkedList<EventGeneric> getEventQue() {return eventQue;}
+    public LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
     public computerSpecs getSpecifications(){
         return specs;
@@ -335,16 +337,10 @@ public abstract class Computer {
 
     //ticks the computer
     public void tick(World world){
-//        if (specs.MachineName.equals("Portable Computer")) System.out.println(uuid);
-//        if (specs.MachineName.equals("Portable Computer")) System.out.println(1);
         short delta = (short) (System.currentTimeMillis() - tickTime);
-//        if (specs.MachineName.equals("Portable Computer")) System.out.println(2);
         tickTime = System.currentTimeMillis();
-//        if (specs.MachineName.equals("Portable Computer")) System.out.println(3);
         if (loaded){
-//            if (specs.MachineName.equals("Portable Computer")) System.out.println(4);
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
-//                if (specs.MachineName.equals("Portable Computer")) System.out.println(5);
                 fs = new FileSystem(build, pointer, null);
                 if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
                 attachPeripheral(fs);
@@ -422,6 +418,9 @@ public abstract class Computer {
             eventQue.add(event);
         }
     }
+    public void addEventCallback(EventGeneric.eventCallback callback){
+        eventCallbacks.add(callback);
+    }
 
     //writes current state to NBT tag
     public NbtCompound writeNBT(NbtCompound nbt){
@@ -458,6 +457,11 @@ public abstract class Computer {
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
                     return com.getEventQue();
+                }
+
+                @Override
+                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
+                    return eventCallbacks;
                 }
 
             };

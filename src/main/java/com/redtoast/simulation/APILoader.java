@@ -2,6 +2,7 @@ package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.annotations.*;
+import com.redtoast.simulation.base.Yeild;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
@@ -14,6 +15,7 @@ import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.CustomParameter;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -318,17 +320,20 @@ public class APILoader {
                             }
                             try {
                                 method.invoke(obj, processArgs(method, parameters, runtime));
-                            }catch (Throwable e){
+                            }catch (LangError error){
+                                return Value.asError(error.getMessage());
+                            }catch (Yeild yeild){
+                                assert runtime != null;
+                                Objects.requireNonNull(runtime.getRunningThread()).yield();
+                                return Value.NULL;
+                            } catch (Throwable e){
                                 Throwable unwrappedThrow = e.getCause();
-                                if (unwrappedThrow instanceof LangError){
-                                    return Value.asError(unwrappedThrow.getMessage());
-                                }else{
-                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-                                    }
-                                    Function.logError(unwrappedThrow.getMessage());
-                                    return Value.asError("Unexpected java error, check log for information");
+
+                                for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                    System.out.println("NC ["+track.getLineNumber()+"]: "+track);
                                 }
+                                Function.logError(unwrappedThrow.getMessage());
+                                return Value.asError("Unexpected java error, check log for information");
                             }
                             return Value.NULL;
                         }
@@ -346,17 +351,20 @@ public class APILoader {
                                     return Value.NULL;
                                 }
                                 return (Value) retun;
-                            }catch (Throwable e){
+                            }catch (LangError error){
+                                return Value.asError(error.getMessage());
+                            }catch (Yeild yeild){
+                                assert runtime != null;
+                                Objects.requireNonNull(runtime.getRunningThread()).yield();
+                                return Value.NULL;
+                            } catch (Throwable e){
                                 Throwable unwrappedThrow = e.getCause();
-                                if (unwrappedThrow instanceof LangError){
-                                    return Value.asError(unwrappedThrow.getMessage());
-                                }else{
-                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-                                    }
-                                    Function.logError(unwrappedThrow.getMessage());
-                                    return Value.asError("Unexpected java error, check log for information");
+
+                                for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                    System.out.println("NC ["+track.getLineNumber()+"]: "+track);
                                 }
+                                Function.logError(unwrappedThrow.getMessage());
+                                return Value.asError("Unexpected java error, check log for information");
                             }
                         }
                     };
@@ -374,17 +382,20 @@ public class APILoader {
                                 }else{
                                     return Value.of(retun);
                                 }
-                            }catch (Throwable e){
+                            }catch (LangError error){
+                                return Value.asError(error.getMessage());
+                            }catch (Yeild yeild){
+                                assert runtime != null;
+                                Objects.requireNonNull(runtime.getRunningThread()).yield();
+                                return Value.NULL;
+                            } catch (Throwable e){
                                 Throwable unwrappedThrow = e.getCause();
-                                if (unwrappedThrow instanceof LangError){
-                                    return Value.asError(unwrappedThrow.getMessage());
-                                }else{
-                                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-                                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-                                    }
-                                    Function.logError(unwrappedThrow.getMessage());
-                                    return Value.asError("Unexpected java error, check log for information");
+
+                                for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                                    System.out.println("NC ["+track.getLineNumber()+"]: "+track);
                                 }
+                                Function.logError(unwrappedThrow.getMessage());
+                                return Value.asError("Unexpected java error, check log for information");
                             }
                         }
                     };

@@ -8,20 +8,25 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 
+import java.util.UUID;
+
 
 public class GraphicsScreenHandler extends ScreenHandler {
     private RGBGraphicsArray graphics;
     public Computer comp;
+    public UUID uuid;
 
     public GraphicsScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(NeetComputers.GRAPHICS_SCREEN_HANDLER, syncId);
         graphics = RGBGraphicsArray.fromPacket(buf);
+        uuid = buf.readUuid();
     }
 
     public GraphicsScreenHandler(int syncId, RGBGraphicsArray arr, Computer a) {
         super(NeetComputers.GRAPHICS_SCREEN_HANDLER, syncId);
         graphics = arr;
         comp = a;
+        uuid = a.getUuid();
     }
 
     public void updateGraphics(RGBGraphicsArray graphics) {

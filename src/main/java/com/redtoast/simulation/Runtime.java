@@ -25,7 +25,7 @@ public abstract class Runtime {
     private boolean kill = false;
     public FileSystem fs;
     public Computer parent;
-    public Hashtable<String, Function> eventTable = new Hashtable<>();
+    public LinkedList<EventGeneric> eventPool = new LinkedList<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
     public int TTL = 0;
     private boolean inTick = false;
@@ -86,6 +86,11 @@ public abstract class Runtime {
     public abstract LinkedList<EventGeneric> getEvents();
 
     /**
+     * retrieves the event callbacks from the parent computer
+     */
+    public abstract LinkedList<EventGeneric.eventCallback> getCallbacks();
+
+    /**
      * ticks all contained threads forward once and perform maintenance tasks
      */
     public void tick(){
@@ -93,6 +98,14 @@ public abstract class Runtime {
             if (threads.isEmpty()) {
                 kill = true;
                 return;
+            }
+            eventPool.clear();
+            while (!parent.getEventQue().isEmpty()) {
+                eventPool.add(parent.getEventQue().getFirst());
+                for (EventGeneric.eventCallback callback : getCallbacks()){
+                    callback.onEvent(parent.getEventQue().getFirst());
+                }
+                parent.getEventQue().remove();
             }
             LinkedList<Integer> deathQue = new LinkedList<>();
             for (int i = 0; i < threads.size(); i++) {

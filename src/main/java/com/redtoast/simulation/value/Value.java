@@ -94,6 +94,7 @@ public class Value<Type> {
     public static Value<?> of(Object value){
         return switch (value) {
             case null -> NULL;
+            case Value<?> val -> val;
             case Long val -> new Value<>((int) (long) val);
             case Short val -> new Value<>((int) (short) val);
             case Character val -> new Value<>(String.valueOf(val));
@@ -153,6 +154,7 @@ public class Value<Type> {
     public static Value<Exception> of(Exception value){
         return new Value<>(value);
     }
+    public static <T> Value<T> of (Value<T> value) {return value;}
     public static Value<List> of(Value[] values){
         return new Value<>(new List(values));
     }
@@ -277,6 +279,7 @@ public class Value<Type> {
     /**
      * de-encapsulates the internal value as a String
      * @return String or null
+     * @see #asString() get as string instead of de-encapsulating
      */
     public @Nullable String toString(){
         if (instanceOf(VarType.STRING)){
@@ -473,6 +476,15 @@ public class Value<Type> {
                 return "all";
         }
         return "null";
+    }
+
+    /**
+     * creates a string visualising the value, does not return encapsulated string values, see {@link String toString()}
+     * @return string form of value
+     */
+    public String asString(){
+        if (type==VarType.NULL) return "Value of <null>";
+        return "Value of <"+typeName()+' '+getValue().toString()+'>';
     }
 
     @Override

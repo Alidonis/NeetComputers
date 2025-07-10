@@ -1,9 +1,19 @@
 package com.redtoast.simulation;
 
+import com.redtoast.graphics.GraphicsScreenHandler;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedList;
+import java.util.Objects;
+import java.util.UUID;
 
 public class EventGeneric {
     private String Name;
@@ -13,104 +23,96 @@ public class EventGeneric {
         args = values;
     }
 
+    public EventGeneric(String name, Value... values){
+        Name = name;
+        args = new List(values);
+    }
+
     public String getName(){return Name;}
     public List getValues(){return args;}
+    public Value asValue(){
+        LinkedList<Value> list = new LinkedList<>(args);
+        list.add(0, Value.of(Name));
+        return Value.of(list);
+    }
 
     //writes the event into a packet, voids complex values
     public PacketByteBuf writeToPacket(PacketByteBuf packet){
         packet.writeString(Name);
 
-        short argCount = 0;
-        int typeKeys = 0;//stores the type of each arg, assigns 3 bits to set as a type
-
-        //count args and write types
-        for (int i = 0; i < args.size(); i++){
-            Value val = args.get(i);
-            if (val.instanceOf(VarType.NUMBER)){
-                typeKeys <<= 3;
-                if ((int)Math.floor(val.toDouble())==val.toInt()){
-                    if (!(val.toInt() >= Short.MIN_VALUE && val.toInt() <= Short.MAX_VALUE)){
-                        typeKeys++;
-                    }
-                }else{
-                    typeKeys += 2;
+        packet.writeShort(args.size());
+        for (Value<?> value : args){
+            switch (value.getType()){
+                case INT -> {
+                    packet.writeShort(0);
+                    packet.writeInt(value.toInt());
                 }
-                argCount++;
-            }else if (val.instanceOf(VarType.BOOLEAN)){
-                typeKeys <<= 3;
-                typeKeys += 3;
-                argCount++;
-            }else if (val.instanceOf(VarType.STRING)){
-                typeKeys <<= 3;
-                typeKeys += 4;
-                argCount++;
-            }else if (val.isNull()){
-                typeKeys <<= 3;
-                typeKeys += 5;
-                argCount++;
-            }
-        }
-
-        //write in data
-        packet.writeShort(argCount);
-        packet.writeInt(typeKeys);
-
-        //write the actual values into the packet, nil is not written and is simply assumed by the reader
-        for (int i = 0; i < args.size(); i++){
-            Value val = args.get(i);
-            if (val.instanceOf(VarType.NUMBER)){
-                typeKeys <<= 3;
-                if ((int)Math.floor(val.toDouble())==val.toInt()){
-                    if (val.toInt() >= Short.MIN_VALUE && val.toInt() <= Short.MAX_VALUE){
-                        packet.writeShort((short) (int) val.toInt());
-                    }else{
-                        packet.writeInt(val.toInt());
-                    }
-                }else{
-                    packet.writeDouble(val.toDouble());
+                case DOUBLE -> {
+                    packet.writeShort(1);
+                    packet.writeDouble(value.toDouble());
                 }
-            }else if (val.instanceOf(VarType.BOOLEAN)){
-                packet.writeBoolean(val.toBool());
-            }else if (val.instanceOf(VarType.STRING)){
-                packet.writeString(val.toString());
+                case FLOAT -> {
+                    packet.writeShort(2);
+                    packet.writeFloat(value.toFloat());
+                }
+                case STRING -> {
+                    packet.writeShort(3);
+                    packet.writeString(value.toString());
+                }
+                case BOOLEAN -> {
+                    packet.writeShort(4);
+                    packet.writeBoolean(Boolean.TRUE.equals(value.toBool()));
+                }
+                default -> packet.writeShort(5);
             }
         }
         return packet;
     }
 
+    private static VarType[] codex = new VarType[]{VarType.INT, VarType.DOUBLE, VarType.FLOAT, VarType.STRING, VarType.BOOLEAN, VarType.NULL};
     public static EventGeneric fromPacket(PacketByteBuf packet){
         String name = packet.readString();
-        short argCount = packet.readShort();
-        int types = packet.readInt();
+        int size = packet.readShort();
         List values = new List();
 
-        //retrieve from packet
-        for (int i = 0; i < argCount; i++){
-            short type = (short) (types%8);
-            types >>= 3;
+        for (int i = 0; i < size; i++){
+            VarType type = codex[packet.readShort()];
             switch (type){
-                case (0):
-                    values.add(Value.of(packet.readShort()));
-                case (1):
-                    values.add(Value.of(packet.readInt()));
-                case (2):
-                    values.add(Value.of(packet.readDouble()));
-                case (3):
-                    values.add(Value.of(packet.readBoolean()));
-                case (4):
-                    values.add(Value.of(packet.readString()));
-                case (5):
-                    values.add(Value.of());
+                case INT -> values.add(Value.of(packet.readInt()));
+                case DOUBLE -> values.add(Value.of(packet.readDouble()));
+                case FLOAT -> values.add(Value.of(packet.readFloat()));
+                case STRING -> values.add(Value.of(packet.readString()));
+                case BOOLEAN -> values.add(Value.of(packet.readBoolean()));
+                case NULL -> values.add(Value.NULL);
+                default -> Function.logError("event packet received with invalid type " + type);
             }
         }
 
-        //finalize the data harvested into a event class
-        int i = 0;
-        Value[] valuesArray = new Value[values.size()];
-        for (Value value : values.toArray()){
-            valuesArray[i] = value;
-            i++;
+        return new EventGeneric(name, values);
+    }
+
+    public void send(GraphicsScreenHandler handler){
+        PacketByteBuf buf = PacketByteBufs.create();
+        writeToPacket(buf);
+        buf.writeInt(handler.syncId);
+        ClientPlayNetworking.send(new Identifier("neetcomputers","blind_event"), buf);
+    }
+
+    @Override
+    public boolean equals(Object obj){
+        if (obj instanceof EventGeneric event){
+            return event.getName().equals(Name);
         }
-        return new EventGeneric(name, new List(valuesArray));
+        return super.equals(obj);
+    }
+
+    @Override
+    public String toString(){
+        return "event<"+getName()+"> "+args.toString();
+    }
+
+    @FunctionalInterface
+    public interface eventCallback{
+        void onEvent(EventGeneric eventGeneric);
     }
 }
