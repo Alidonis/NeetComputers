@@ -1,6 +1,7 @@
 package com.redtoast.Lua;
 
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.Filepath;
@@ -12,6 +13,7 @@ import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
+import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.compiler.LuaC;
@@ -26,7 +28,7 @@ import java.util.UUID;
 public class LuaGlobals extends Globals implements GlobalGeneric {
     private final LuaFunction LuaRequire;
     public LuaValue LuaDebug;
-    private LuaTranslater lua52;
+    protected LuaTranslater lua52;
     private final UUID uuid;
     private final GlobalManager manager;
     private boolean noForwarding = false;
@@ -113,9 +115,17 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LuaRequire = super.get("require").checkfunction();
         LuaDebug = super.get("debug");
 
+        //get lang
+        LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
+        if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
+        manager = globalManager;
+
         //remove unwanted base libs
-        super.set("package",LuaValue.NIL);
-        super.set("debug",LuaValue.NIL);
+        Table debug = APILoader.TableizeAPI(new DebugWrapper(LuaDebug, this), globalManager.getParent());
+        Varargs debugArgs = lua52.fromValue(debug.asValue());
+        assert debugArgs instanceof LuaValue;
+        super.set("package", LuaValue.NIL);
+        //super.set("debug", (LuaValue) debugArgs);
         super.set("file",LuaValue.NIL);
         super.set("dofile",LuaValue.NIL);
         super.set("loadfile",LuaValue.NIL);
@@ -127,11 +137,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         //load new luaj resource finder
         super.finder = new NeoFinder(globalManager.getParent().fs);
-
-        //get lang
-        LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
-        if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
-        manager = globalManager;
 
         //set up new require functionality with anti-abuse in mind
         Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs).asValue());
