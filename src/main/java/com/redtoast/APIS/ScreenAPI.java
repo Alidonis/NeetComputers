@@ -308,6 +308,11 @@ public class ScreenAPI implements API
         }
     }
 
+    @Exposed
+    public void fill(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
+        fill(x1, y1, x2, y2, defualtColor.x, defualtColor.y, defualtColor.z);
+    }
+
     public int average(int... nums){
         int toltal = 0;
         for (int i = 0; i < nums.length; i++){
@@ -456,12 +461,14 @@ public class ScreenAPI implements API
     public void drawSpline(List Xs, List Ys){
         if (!Xs.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
         if (!Ys.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #2: all vals in list must be numbers");
+        if (Xs.size()!= Ys.size()) throw new LangError("drawSpline called with balance of X and Y values");
         drawSpline(Xs.cast((val) -> val.toInt()).toArray(new Integer[]{}),Ys.cast((val) -> val.toInt()).toArray(new Integer[]{}), defualtColor);
     }
     @Exposed
     public void drawSpline(List Xs, List Ys, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         if (!Xs.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
         if (!Ys.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #2: all vals in list must be numbers");
+        if (Xs.size()!= Ys.size()) throw new LangError("drawSpline called with balance of X and Y values");
         drawSpline(Xs.cast((val) -> val.toInt()).toArray(new Integer[]{}),Ys.cast((val) -> val.toInt()).toArray(new Integer[]{}),new Vector(R,G,B));
     }
     public void drawSpline(Integer[] cords,Vector color){
@@ -474,11 +481,13 @@ public class ScreenAPI implements API
     @Exposed
     public void drawSpline(List cords){
         if (!cords.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        if (cords.size()%2==1) throw new LangError("Argument #1: list input contained a uneven amount of values (not valid list of coordinates)");
         drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[]{}),defualtColor);
     }
     @Exposed
     public void drawSpline(List cords, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         if (!cords.check((val) -> val.instanceOf(VarType.NUMBER))) throw new LangError("Argument #1: all vals in list must be numbers");
+        if (cords.size()%2==1) throw new LangError("Argument #1: list input contained a uneven amount of values (not valid list of coordinates)");
         drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[]{}),new Vector(R,G,B));
     }
 
