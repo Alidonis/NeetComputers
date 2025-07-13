@@ -39,30 +39,30 @@ public class ChipAPI implements API {
     }
 
     @Exposed
-    public int getThreadCount(){
+    public int getCoreCount(){
         return vm.getThreads().size();
     }
 
     @Exposed
-    public int getMaxThreadCount(){
+    public int getMaxCoreCount(){
         return computer.getSpecifications().MaxCores;
     }
 
     @Exposed
-    public String createThread(String script){
+    public String createCore(String script){
         if (vm.getThreads().size()>=computer.getSpecifications().MaxCores) throw new LangError("Thread cap for this machine reached, cant make more threads");
         UUID uuid = vm.MakeThread(script, "Lua 5.2");
         return uuid.toString();
     }
 
     @Exposed
-    public String getCurrentThread(){
+    public String getCurrentCore(){
         UUID uuid = vm.getRunningThread().getUuid();
         return uuid.toString();
     }
 
     @Exposed
-    public boolean killThread(String uuid){
+    public boolean killCore(String uuid){
         LinkedList<LangThread> threads = vm.getThreads();
         for (LangThread thread : threads){
             if (thread.getUuid().toString().equals(uuid)){
