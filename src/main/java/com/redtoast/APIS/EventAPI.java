@@ -7,6 +7,7 @@ import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
+import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 
 import java.util.Hashtable;
@@ -55,6 +56,11 @@ public class EventAPI implements API {
         Tuple tuple = Value.of(computer.getRuntime().eventPool).toTuple();
         if (clear) computer.getRuntime().eventPool.clear();
         return tuple;
+    }
+
+    @Exposed
+    public void queEvent(String eventName, Value<?>... args){
+        computer.getEventQue().add(0, new EventGeneric(eventName, new List(args)));
     }
 
     @Exposed
