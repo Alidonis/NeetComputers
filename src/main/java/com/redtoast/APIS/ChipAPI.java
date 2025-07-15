@@ -79,6 +79,9 @@ public class ChipAPI implements API {
     }
 
     @Exposed
+    public void crash(String message){computer.crash(message);}
+
+    @Exposed
     public String version(){
         return NeetComputers.version;
     }

@@ -93,6 +93,38 @@ public class FileSystem implements API {
         return table;
     }
 
+    @Exposed
+    public boolean createPartition(String name){
+        boolean marker = FileHelper.validatePathStatic(name+":\\");
+        if (!marker) return false;
+        if (getPartition(name)!=null) return false;
+        basePath.resolve(name).toFile().mkdir();
+        build.partitions.add(new Partition(name, false, false, "0"));
+        return true;
+    }
+
+    @Exposed
+    public boolean setPartitionHidden(String name, boolean state){
+        for (int i = 0; i < build.partitions.size(); i++){
+            if (build.partitions.get(i).path().equals(name)){
+                build.partitions.set(i, new Partition(name, build.partitions.get(i).readOnly(), state, build.partitions.get(i).source()));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Exposed
+    public boolean setReadOnly(String name){
+        for (int i = 0; i < build.partitions.size(); i++){
+            if (build.partitions.get(i).path().equals(name)){
+                build.partitions.set(i, new Partition(name, true, build.partitions.get(i).hidden(), build.partitions.get(i).source()));
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Exposed(nameOverride = "open")
     public Table LangOpenFile(String path){
         return LangOpenFile(path, "r");

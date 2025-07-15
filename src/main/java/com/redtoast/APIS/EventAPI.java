@@ -60,7 +60,7 @@ public class EventAPI implements API {
 
     @Exposed
     public void queEvent(String eventName, Value<?>... args){
-        computer.getEventQue().add(0, new EventGeneric(eventName, new List(args)));
+        computer.getEventQue().add(new EventGeneric(eventName, new List(args)));
     }
 
     @Exposed

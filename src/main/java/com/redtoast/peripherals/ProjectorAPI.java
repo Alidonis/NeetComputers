@@ -67,6 +67,6 @@ public class ProjectorAPI implements API {
 
     @Override
     public String getLabel() {
-        return "holographic_screen";
+        return "projector screen";
     }
 }
