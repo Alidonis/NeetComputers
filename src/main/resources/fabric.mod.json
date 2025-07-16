@@ -9,8 +9,8 @@
 		"Wind Clan"
 	],
 	"contact": {
-		"homepage": "https://github.com/redtoast/NeetComputers",
-		"sources": ""
+		"homepage": "https://red-toast.net/neetcomputers",
+		"sources": "https://github.com/redtoast/NeetComputers"
 	},
 	"license": "MIT",
 	"icon": "icon.png",
@@ -33,7 +33,7 @@
 	"depends": {
 		"fabricloader": ">=0.15.11",
 		"minecraft": "~1.20.1",
-		"java": ">=21",
+		"java": ">=17",
 		"fabric-api": "*"
 	},
 	"suggests": {

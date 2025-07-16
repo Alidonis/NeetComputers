@@ -159,7 +159,7 @@ public class ScreenAPI implements API
         alpha = A;
     }
     public void setColor(Vector color){
-        setColor(Math.clamp(color.x,0,255),Math.clamp(color.y,0,255),Math.clamp(color.z,0,255));
+        setColor(color.x,color.y,color.z);
     }
 
     @Exposed

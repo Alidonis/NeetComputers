@@ -87,14 +87,13 @@ public class NVTable extends HashMap<String, Value> {
 
     public static Value deconvert(NbtElement element){
         if (element==null) return null;
-        Value value = switch (element){
-            case NbtByte val: yield Value.of(val.byteValue() != 0);
-            case NbtInt val: yield Value.of(val.intValue());
-            case NbtDouble val: yield Value.of(val.doubleValue());
-            case NbtFloat val: yield Value.of(val.floatValue());
-            case NbtString val: yield Value.of(val.asString());
-            default: yield null;
-        };
+        Value value;
+        if (element instanceof NbtByte val) value = Value.of(val.byteValue() != 0);
+        else if (element instanceof NbtInt val) value = Value.of(val.intValue());
+        else if (element instanceof NbtDouble val) value = Value.of(val.doubleValue());
+        else if (element instanceof NbtFloat val) value = Value.of(val.floatValue());
+        else if (element instanceof NbtString val) value = Value.of(val.asString());
+        else value = null;
         if (value!=null) return value;
         if (element instanceof NbtCompound compound){
             Table table = new Table();

@@ -6,6 +6,7 @@ import com.redtoast.simulation.value.ValueTypes.Function;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * The standard N.E.E.T. computer representation of a generic value
@@ -92,16 +93,14 @@ public class Value<Type> {
      * @return Value
      */
     public static Value<?> of(Object value){
-        return switch (value) {
-            case null -> NULL;
-            case Value<?> val -> val;
-            case Long val -> new Value<>((int) (long) val);
-            case Short val -> new Value<>((int) (short) val);
-            case Character val -> new Value<>(String.valueOf(val));
-            case Value[] val -> Value.of(val);
-            case java.util.List<?> val -> Value.of(val);
-            default -> new Value<>(value);
-        };
+        if (value == null) return NULL;
+        if (value instanceof Value<?> val) return val;
+        if (value instanceof Long val) return new Value<>((int) (long) val);
+        if (value instanceof Short val) return new Value<>((int) (short) val);
+        if (value instanceof Character val) return new Value<>(String.valueOf(val));
+        if (value instanceof Value[] val) return Value.of(val);
+        if (value instanceof java.util.List<?> val) return Value.of(val);
+        return new Value<>(value);
     }
     /**
      * bulk converts a varible amount of args into a encapsulated {@link List}
@@ -159,8 +158,7 @@ public class Value<Type> {
         return new Value<>(new List(values));
     }
     public static Value<List> of(java.util.List<Value> values){
-        LinkedList<Value> list = new LinkedList<>();
-        list.addAll(values);
+        LinkedList list = new LinkedList<>(values);
         return new Value<>(new List(list));
     }
     public static Value<Null> of(){
