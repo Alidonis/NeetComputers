@@ -78,7 +78,7 @@ public class LuaThread extends LangThread {
     @Override
     public void tick(){
         if (!isAlive()) return;
-        double util = (double) specs.Batches / runtime.threads.size();
+        double util = specs.Batches;
         util *= specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1;
         ticket += (short) Math.round(util);
         int threadCount = runtime.threads.size();

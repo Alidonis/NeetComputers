@@ -28,7 +28,7 @@ public abstract class Runtime {
     public LinkedList<EventGeneric> eventPool = new LinkedList<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
     public int TTL = 0;
-    private boolean inTick = false;
+    public boolean inTick = false;
 
     public Runtime(Computer Parent, NVTable NVRam){
         globalManager = new GlobalManager(this, NVRam);

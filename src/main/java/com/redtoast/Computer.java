@@ -105,6 +105,8 @@ public abstract class Computer {
     private NVTable NVRam;
     //value holding last time computer ticked
     private long tickTime = 0;
+    //tells the computer to shut down at the end of a tick cycle
+    private boolean deadManWalking = false;
 
     //abstract methods
     /**
@@ -263,9 +265,13 @@ public abstract class Computer {
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (IsOn){
-            runtime=null;
-            IsOn =false;
-            saveNBT();
+            if (runtime.inTick){
+                deadManWalking = true;
+            }else{
+                runtime=null;
+                IsOn =false;
+                saveNBT();
+            }
         }
     }
 
@@ -348,6 +354,10 @@ public abstract class Computer {
             if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null && !IsCrashed){
                 step(delta);
+                if (deadManWalking){
+                    deadManWalking = false;
+                    stop();
+                }
                 for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp == this) {
                         PacketByteBuf temp = PacketByteBufs.create();

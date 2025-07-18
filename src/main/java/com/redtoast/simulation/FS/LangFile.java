@@ -182,4 +182,24 @@ public class LangFile implements API {
             default -> throw new LangError("Invalid format");
         };
     }
+
+    @Exposed
+    public String read(int amount){
+        if (!open) throw new LangError("Attempt to use a closed file");
+        if (!canRead) throw new LangError("Access denied");
+        int newcur = cursor+amount;
+        if (newcur<0){
+            newcur = 0;
+        }
+        if (newcur>byteBuffer.size()){
+            newcur = byteBuffer.size();
+        }
+        if (newcur==cursor) return "";
+        StringBuilder buffer = new StringBuilder();
+        for (int i = Math.min(newcur, cursor); i < Math.max(newcur, cursor); i++){
+            buffer.append((char) (byte) byteBuffer.get(i));
+        }
+        cursor = newcur;
+        return buffer.toString();
+    }
 }
