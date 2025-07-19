@@ -132,30 +132,14 @@ public class FileSystem implements API {
 
     @Exposed(nameOverride = "open")
     public Table LangOpenFile(String path, String mode){
-        openMode enumMode = FileHelper.getMode(mode);
+        OpeningMode openingMode = FileHelper.getMode(mode);
         Filepath filepath = getFile(path);
-        return switch (enumMode){
-            case INVALID -> throw new LangError("Invalid open mode");
-            case READ -> {
-                if (filepath.isInvalid()) throw new LangError("Invalid file path");
-                if (!filepath.exists()) throw new LangError("No such file");
-                if (!filepath.isFile()) throw new LangError("Not a file");
-                if (!filepath.canRead()) throw new LangError("Access denied");
-                yield LangizeFile(filepath, enumMode);
-            }
-            case WRITE, APPEND -> {
-                if (filepath.isInvalid()) throw new LangError("Invalid file path");
-                if (!filepath.isFile() && filepath.exists()) throw new LangError("Not a file");
-                if (!filepath.canWrite()) throw new LangError("Access denied");
-                yield LangizeFile(filepath, enumMode);
-            }
-            case WRITEPLUS, APPENDPLUS -> {
-                if (filepath.isInvalid()) throw new LangError("Invalid file path");
-                if (!filepath.isFile() && filepath.exists()) throw new LangError("Not a file");
-                if (!filepath.canWrite() || !filepath.canRead()) throw new LangError("Access denied");
-                yield LangizeFile(filepath, enumMode);
-            }
-        };
+        if (filepath.isDirectory()) throw new LangError("Not a file");
+        if (openingMode.invalid()) throw new LangError("Invalid open mode");
+        if (!filepath.exists() && !openingMode.create()) throw new LangError("Not a file");
+        if (openingMode.canRead() && !filepath.canRead()) throw new LangError("Access denied");
+        if (openingMode.canWrite() && !filepath.canWrite()) throw new LangError("Access denied");
+        return LangizeFile(filepath, openingMode);
     }
 
     @Exposed
@@ -232,7 +216,7 @@ public class FileSystem implements API {
         }
     }
 
-    public Table LangizeFile(Filepath filepath, openMode mode){
+    public Table LangizeFile(Filepath filepath, OpeningMode mode){
         return APILoader.TableizeAPI(new LangFile(filepath, this, mode), null);
     }
 }

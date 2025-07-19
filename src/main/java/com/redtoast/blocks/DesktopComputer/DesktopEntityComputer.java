@@ -11,7 +11,7 @@ public class DesktopEntityComputer extends ComputerBlockEntity{
         super(BulkRegistery.fetchBlockEntityType("desktop_computer"), pos, state, new computerSpecs()
             .setBinaryGraphicsSize(11, 6)
             .setColorGraphicsSize(192,108)
-            .setIPS(500)
+            .setIPS(80000)
             .setMaxCores(3)
             .setCoreUtilizationBonus(0)
             .setMachineName("Desktop Computer")

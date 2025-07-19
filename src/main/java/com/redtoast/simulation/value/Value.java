@@ -5,6 +5,7 @@ import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -73,6 +74,8 @@ public class Value<Type> {
             type = VarType.TUPLE;
         }else if (val instanceof List){
             type = VarType.LIST;
+        }else if (val instanceof Bytes){
+            type = VarType.BYTES;
         }else if (val instanceof Function){
             type = VarType.FUNCTION;
         }else if (val instanceof Exception){
@@ -98,8 +101,10 @@ public class Value<Type> {
         if (value instanceof Long val) return new Value<>((int) (long) val);
         if (value instanceof Short val) return new Value<>((int) (short) val);
         if (value instanceof Character val) return new Value<>(String.valueOf(val));
-        if (value instanceof Value[] val) return Value.of(val);
-        if (value instanceof java.util.List<?> val) return Value.of(val);
+        if (value instanceof Bytes val) return of(val);
+        if (value instanceof byte[] val) return of(val);
+        if (value instanceof Value[] val) return of(val);
+        if (value instanceof java.util.List<?> val) return of(val);
         return new Value<>(value);
     }
     /**
@@ -152,6 +157,12 @@ public class Value<Type> {
     }
     public static Value<Exception> of(Exception value){
         return new Value<>(value);
+    }
+    public static Value<Bytes> of(Bytes bytes){
+        return new Value<>(bytes);
+    }
+    public static Value<Bytes> of(byte[] bytes){
+        return new Value<>(new Bytes(bytes));
     }
     public static <T> Value<T> of (Value<T> value) {return value;}
     public static Value<List> of(Value[] values){
@@ -280,8 +291,23 @@ public class Value<Type> {
      * @see #asString() get as string instead of de-encapsulating
      */
     public @Nullable String toString(){
-        if (instanceOf(VarType.STRING)){
+        if (type==VarType.STRING){
             return (String) value;
+        }else if (instanceOf(VarType.BYTES)){
+            return new String(((Bytes) value).getData(), StandardCharsets.UTF_8);
+        }else{
+            return null;
+        }
+    }
+    /**
+     * de-encapsulates the internal value as a Bytes object
+     * @return Bytes or null
+     */
+    public @Nullable Bytes toBytes(){
+        if (instanceOf(VarType.BYTES)){
+            return (Bytes) value;
+        }else if (instanceOf(VarType.STRING)){
+            return new Bytes(((String) value).getBytes());
         }else{
             return null;
         }
@@ -405,6 +431,8 @@ public class Value<Type> {
                 case NULL, FLOAT, INT, DOUBLE, STRING, BOOLEAN, TABLE, LIST: return true;
             }
         }
+        if (comparison==VarType.STRING && type==VarType.BYTES) return true;
+        if (comparison==VarType.BINARY && (type==VarType.BYTES || type==VarType.STRING)) return true;
         if (comparison==VarType.NUMBER && type==VarType.INT) return true;
         if (comparison==VarType.NUMBER && type==VarType.DOUBLE) return true;
         if (comparison==VarType.NUMBER && type==VarType.FLOAT) return true;
@@ -468,6 +496,8 @@ public class Value<Type> {
                 return "function";
             case EXCEPTION:
                 return "exemption";
+            case BYTES:
+                return "bytes";
             case PRIMITIVE:
                 return "primitive";
             case ANY:

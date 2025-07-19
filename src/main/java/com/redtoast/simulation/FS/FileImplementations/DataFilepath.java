@@ -9,6 +9,7 @@ import net.minecraft.util.Identifier;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 
 public class DataFilepath implements Filepath {
@@ -126,6 +127,30 @@ public class DataFilepath implements Filepath {
 
     @Override
     public boolean append(byte[] bytes) throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        return false;
+    }
+
+    @Override
+    public byte[] readAllBinary() throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        if (!isFile()) return null;
+        if (exists()){
+            InputStream reader = NeetComputers.datahandling.getResource(new Identifier("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getInputStream();
+            return reader.readAllBytes();
+        }else{
+            return null;
+        }
+    }
+
+    @Override
+    public boolean writeBinary(byte[] bytes) throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        return false;
+    }
+
+    @Override
+    public boolean appendBinary(byte[] bytes) throws IOException {
         if (invalid) throw new IOException("Invalid file path");
         return false;
     }

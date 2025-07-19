@@ -21,7 +21,7 @@ package com.redtoast;
 public class computerSpecs {
     @Deprecated public int MaxCores = 6;
     @Deprecated public double CoreUtilizationBonus = 0;
-    @Deprecated public int BatchSize = 500;
+    @Deprecated public int BatchSize = 10;
     @Deprecated public int Batches = 58;
     @Deprecated public boolean doesBinaryGraphics = false;
     @Deprecated public boolean doesRBGGraphics = false;
@@ -65,17 +65,17 @@ public class computerSpecs {
      * sets the amount of instructions the computer can execute per second (assuming the computer is ticked 20 times a second), think of this as the
      * speed of the computer.
      * <p>
-     *     a fast computer would run at maybe 580,000 IPS
+     *     a fast computer would run at maybe 100,000 IPS
      * </p>
      * <p>
-     *     and a slow one would maybe run around 100,000 IPS
+     *     and a slow one would maybe run around 10,000 IPS
      * </p>
      * @return this
      */
     public computerSpecs setIPS(int IPS){
         int IPT = IPS / 20;
-        Batches = IPT / 500;
-        BatchSize = 500;
+        Batches = IPT / 10;
+        BatchSize = 10;
         return this;
     }
 

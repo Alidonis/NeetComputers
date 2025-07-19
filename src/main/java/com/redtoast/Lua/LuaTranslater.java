@@ -11,6 +11,9 @@ import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.lib.VarArgFunction;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     private abstract static class FunctionWrapper extends VarArgFunction {
         @Override
@@ -45,7 +48,10 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                 return LuaValue.valueOf((boolean) var.getValue());
             case STRING:
                 assert var.getValue() instanceof String;
-                return LuaValue.valueOf((String) var.getValue());
+                return LuaValue.valueOf(var.getValue().toString());
+            case BYTES:
+                assert var.getValue() instanceof Bytes;
+                return LuaValue.valueOf(Objects.requireNonNull(var.toBytes()).getData());
             case TABLE:
                 assert var.getValue() instanceof Table;
                 Table table = (Table) var.getValue();
@@ -131,8 +137,13 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
             return Value.of(val.todouble());
         }else if (val instanceof LuaBoolean){
             return Value.of(val.toboolean());
-        }else if (val instanceof LuaString){
-            return Value.of(val.toString());
+        }else if (val instanceof LuaString varl){
+            byte[] exactBytes = Arrays.copyOfRange(
+                    varl.m_bytes,
+                    varl.m_offset,
+                    varl.m_offset + varl.m_length
+            );
+            return Value.of(exactBytes);
         }else if (val instanceof LuaTable table){
             Table tabll = new Table();
             Value[] vals = new Value[table.length()];

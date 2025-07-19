@@ -16,6 +16,9 @@ public interface Filepath {
     String readAll() throws IOException;
     boolean write(byte[] bytes) throws IOException;
     boolean append(byte[] bytes) throws IOException;
+    byte[] readAllBinary() throws IOException;
+    boolean writeBinary(byte[] bytes) throws IOException;
+    boolean appendBinary(byte[] bytes) throws IOException;
     boolean delete() throws IOException;
     Filepath[] listFiles() throws IOException;
     boolean mkdirs()  throws IOException;

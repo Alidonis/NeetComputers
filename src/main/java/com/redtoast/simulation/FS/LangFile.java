@@ -3,6 +3,9 @@ package com.redtoast.simulation.FS;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Bytes;
+import net.minecraft.entity.ai.brain.task.BreedTask;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,44 +13,32 @@ import java.util.*;
 
 public class LangFile implements API {
     public final Filepath internal;
-    public final openMode mode;
+    public final OpeningMode mode;
     public final FileSystem fs;
     public boolean canRead;
     public boolean canWrite;
     public boolean open = true;
     public int cursor = 0;
     public LinkedList<Byte> byteBuffer = new LinkedList<>();
-    public LangFile(Filepath filepath, FileSystem fs, openMode mode){
+    public LangFile(Filepath filepath, FileSystem fs, OpeningMode mode){
         internal = filepath;
         this.mode = mode;
         this.fs = fs;
+        canRead = mode.canRead();
+        canWrite = mode.canWrite();
         try{
-            switch (mode){
-                case READ -> {
-                    canRead=true;
-                    canWrite=false;
-                }
-                case WRITE, APPEND -> {
-                    canRead=false;
-                    canWrite=true;
-                }
-                case WRITEPLUS, APPENDPLUS -> {
-                    canRead=true;
-                    canWrite=true;
-                }
-            }
-            switch (mode){
-                case READ, APPEND, APPENDPLUS -> {
-                    if (filepath.exists()){
-                        for (byte _byte : filepath.readAll().getBytes()){
-                            byteBuffer.add(_byte);
-                        }
+            if (filepath.exists() && !mode.truncate() && filepath.canRead()){
+                if (mode.binary()){
+                    for (byte _byte : filepath.readAllBinary()){
+                        byteBuffer.add(_byte);
+                    }
+                }else{
+                    for (byte _byte : filepath.readAll().getBytes()){
+                        byteBuffer.add(_byte);
                     }
                 }
             }
-            switch (mode){
-                case WRITE, APPEND, WRITEPLUS -> {filepath.createNewFile();}
-            }
+            if (mode.create()) filepath.createNewFile();
         }catch (Throwable e){
             if (e instanceof IOException){
                 throw new LangError(e.getMessage());
@@ -66,12 +57,14 @@ public class LangFile implements API {
     public void flush(){
         if (!open) throw new LangError("Attempt to use a closed file");
         try{
-            switch (mode){
-                case WRITE, WRITEPLUS, APPEND, APPENDPLUS -> {
-                    byte[] data = new byte[byteBuffer.size()];
-                    for (int i = 0; i < byteBuffer.size(); i++){
-                        data[i] = byteBuffer.get(i);
-                    }
+            if (mode.canWrite()) {
+                byte[] data = new byte[byteBuffer.size()];
+                for (int i = 0; i < byteBuffer.size(); i++){
+                    data[i] = byteBuffer.get(i);
+                }
+                if (mode.binary()){
+                    internal.writeBinary(data);
+                }else{
                     internal.write(data);
                 }
             }
@@ -131,25 +124,38 @@ public class LangFile implements API {
     }
 
     @Exposed
-    public void write(String bytes){
+    public void write(Bytes bytes){
         if (!open) throw new LangError("Attempt to use a closed file");
         if (!canWrite) throw new LangError("Access denied");
-        for (byte _byte : bytes.getBytes()){
-            byteBuffer.add(_byte);
+        if (mode.binary()){
+            for (byte _byte : bytes.getData()){
+                byteBuffer.add(_byte);
+            }
+        }else{
+            for (byte _byte : new String(bytes.getData(), StandardCharsets.UTF_8).getBytes()){
+                byteBuffer.add(_byte);
+            }
         }
     }
 
     @Exposed
-    public String read(){
+    public Value read(){
         return read("l");
     }
 
+    private int indexof(byte[] data, char charicter){
+        for (int i = 0; i < data.length; i++){
+            if (data[i] == (byte) charicter) return i;
+        }
+        return -1;
+    }
+
     @Exposed
-    public String read(String format){
+    public Value read(String format){
         if (!open) throw new LangError("Attempt to use a closed file");
         if (!canRead) throw new LangError("Access denied");
         if (format.length()!=1)  throw new LangError("Invalid format");
-        if (byteBuffer.size()==cursor) return "";
+        if (byteBuffer.size()==cursor) return Value.of("");
         return switch (format.charAt(0)){
             case 'l', 'L' -> {
                 List<Byte> bytes = byteBuffer.subList(cursor, byteBuffer.size());
@@ -157,17 +163,35 @@ public class LangFile implements API {
                 for (int i =0; i < bytes.size(); i++){
                     data[i] = bytes.get(i);
                 }
-                String text = new String(data, StandardCharsets.UTF_8);
-                int endpoint = text.indexOf("\n");
-                if (endpoint==-1){
-                    cursor = byteBuffer.size();
-                    yield text;
-                }
-                cursor = cursor + endpoint + 1;
-                if (format.charAt(0)=='l'){
-                    yield text.substring(0,endpoint);
+                if (mode.binary()){
+                    int endpoint = indexof(data, '\n');
+                    if (endpoint==-1){
+                        cursor = byteBuffer.size();
+                        yield Value.of(data);
+                    }
+                    cursor = cursor + endpoint + 1;
+                    if (format.charAt(0)=='l'){
+                        yield Value.of(data);
+                    }else{
+                        byte[] newdata = new byte[data.length+1];
+                        for (int i = 0; i <= data.length; i++){
+                            newdata[i] = i==data.length ? data[i] : (byte) '\n';
+                        }
+                        yield Value.of(newdata);
+                    }
                 }else{
-                    yield text.substring(0,endpoint) + '\n';
+                    String text = new String(data, StandardCharsets.UTF_8);
+                    int endpoint = text.indexOf("\n");
+                    if (endpoint==-1){
+                        cursor = byteBuffer.size();
+                        yield Value.of(text);
+                    }
+                    cursor = cursor + endpoint + 1;
+                    if (format.charAt(0)=='l'){
+                        yield Value.of(text.substring(0,endpoint));
+                    }else{
+                        yield Value.of(text.substring(0,endpoint) + '\n');
+                    }
                 }
             }
             case 'a' -> {
@@ -177,14 +201,18 @@ public class LangFile implements API {
                 for (int i =0; i < bytes.size(); i++){
                     data[i] = bytes.get(i);
                 }
-                yield new String(data, StandardCharsets.UTF_8);
+                if (mode.binary()){
+                    yield Value.of(data);
+                }else{
+                    yield Value.of(new String(data, StandardCharsets.UTF_8));
+                }
             }
             default -> throw new LangError("Invalid format");
         };
     }
 
     @Exposed
-    public String read(int amount){
+    public Value read(int amount){
         if (!open) throw new LangError("Attempt to use a closed file");
         if (!canRead) throw new LangError("Access denied");
         int newcur = cursor+amount;
@@ -194,12 +222,21 @@ public class LangFile implements API {
         if (newcur>byteBuffer.size()){
             newcur = byteBuffer.size();
         }
-        if (newcur==cursor) return "";
-        StringBuilder buffer = new StringBuilder();
-        for (int i = Math.min(newcur, cursor); i < Math.max(newcur, cursor); i++){
-            buffer.append((char) (byte) byteBuffer.get(i));
+        if (newcur==cursor) return Value.of("");
+        if (mode.binary()){
+            byte[] data = new byte[Math.abs(newcur-cursor)];
+            for (int i = Math.min(newcur, cursor); i < Math.max(newcur, cursor); i++){
+                data[i - Math.min(newcur, cursor)] = byteBuffer.get(i);
+            }
+            cursor = newcur;
+            return Value.of(data);
+        }else{
+            StringBuilder buffer = new StringBuilder();
+            for (int i = Math.min(newcur, cursor); i < Math.max(newcur, cursor); i++){
+                buffer.append((char) (byte) byteBuffer.get(i));
+            }
+            cursor = newcur;
+            return Value.of(buffer.toString());
         }
-        cursor = newcur;
-        return buffer.toString();
     }
 }

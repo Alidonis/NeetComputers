@@ -77,6 +77,21 @@ public class NullFilepath implements Filepath {
     }
 
     @Override
+    public byte[] readAllBinary() throws IOException {
+        throw new IOException("Invalid file path");
+    }
+
+    @Override
+    public boolean writeBinary(byte[] bytes) throws IOException {
+        throw new IOException("Invalid file path");
+    }
+
+    @Override
+    public boolean appendBinary(byte[] bytes) throws IOException {
+        throw new IOException("Invalid file path");
+    }
+
+    @Override
     public boolean delete() throws IOException {
         throw new IOException("Invalid file path");
     }

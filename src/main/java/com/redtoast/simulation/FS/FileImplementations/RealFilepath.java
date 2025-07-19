@@ -5,8 +5,10 @@ import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.Partition;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -147,6 +149,46 @@ public class RealFilepath implements Filepath {
         writer.write(new String(bytes, StandardCharsets.UTF_8));
         writer.close();
         return true;
+    }
+
+    @Override
+    public byte[] readAllBinary() throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        if (!isFile()) return null;
+        Path spath = root.resolve(relPath);
+        try {
+            return Files.readAllBytes(spath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean writeBinary(byte[] bytes) throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        if (!isFile()) return false;
+        if (!canWrite()) return false;
+        Path spath = root.resolve(relPath);
+        try (OutputStream out = new FileOutputStream(spath.toFile(), false)) {
+            out.write(bytes);
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean appendBinary(byte[] bytes) throws IOException {
+        if (invalid) throw new IOException("Invalid file path");
+        if (!isFile()) return false;
+        if (!canWrite()) return false;
+        Path spath = root.resolve(relPath);
+        try (OutputStream out = new FileOutputStream(spath.toFile(), true)) {
+            out.write(bytes);
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

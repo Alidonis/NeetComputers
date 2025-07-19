@@ -1,7 +1,7 @@
 package com.redtoast.simulation.FS;
 
 import com.redtoast.simulation.FS.FileImplementations.DataFilepath;
-import com.redtoast.simulation.FS.FileImplementations.DualFilepath;
+import com.redtoast.simulation.FS.FileImplementations.OverlyingFilepath;
 import com.redtoast.simulation.FS.FileImplementations.NullFilepath;
 import com.redtoast.simulation.FS.FileImplementations.RealFilepath;
 
@@ -17,7 +17,8 @@ public class FileHelper {
                     if (partition.readOnly()){
                         return dataFilepath;
                     }else{
-                        return new DualFilepath(dataFilepath, new RealFilepath(fs.basePath.resolve(components[0]), normalizedPath, fs), fs);
+                        RealFilepath realFilepath = new RealFilepath(fs.basePath.resolve(components[0]), normalizedPath, fs);
+                        return new OverlyingFilepath(realFilepath, dataFilepath, fs);
                     }
                 }else{
                     return new RealFilepath(fs.basePath.resolve(components[0]), normalizedPath, fs);
@@ -108,25 +109,36 @@ public class FileHelper {
         return source.charAt(0) == '-';
     }
 
-    public static openMode getMode(String mode){
-        if (mode.length()>2) return openMode.INVALID;
-        if (mode.isBlank()) return openMode.INVALID;
-        openMode enumm = switch (mode.toLowerCase().charAt(0)){
-            case 'r' -> openMode.READ;
-            case 'w' -> openMode.WRITE;
-            case 'a' -> openMode.APPEND;
-            default -> openMode.INVALID;
-        };
-        if (mode.length()==1){
-            return enumm;
-        }else if (mode.charAt(1)=='+'){
-            return switch (enumm){
-                case READ, APPEND -> openMode.APPENDPLUS;
-                case WRITE -> openMode.WRITEPLUS;
-                default -> openMode.INVALID;
-            };
+    public static OpeningMode getMode(String mode){
+        if (mode.length()>2) return new OpeningMode(false, false, false, false, false,true);
+        if (mode.isBlank()) return new OpeningMode(false, false, false, false, false,true);
+        mode = mode.toLowerCase();
+        if (mode.equals("r")){
+            return new OpeningMode(true, false, false, false, false,false);
+        }else if (mode.equals("w")){
+            return new OpeningMode(false, true, true, false, true,false);
+        }else if(mode.equals("a")){
+            return new OpeningMode(false, false, false, false, true,false);
+        }else if(mode.equals("r+")){
+            return new OpeningMode(true, true, false, false, false,false);
+        }else if(mode.equals("w+")){
+            return new OpeningMode(true, true, true, false, true,false);
+        }else if(mode.equals("a+")){
+            return new OpeningMode(true, true, false, false, true,false);
+        }else if(mode.equals("rb")){
+            return new OpeningMode(true, false, false, true, false,false);
+        }else if(mode.equals("wb")){
+            return new OpeningMode(false, true, true, true, true,false);
+        }else if(mode.equals("ab")){
+            return new OpeningMode(false, true, false, true, true,false);
+        }else if(mode.equals("rb+") || mode.equals("r+b")){
+            return new OpeningMode(true, true, false, true, false,false);
+        }else if(mode.equals("wb+") || mode.equals("w+b")){
+            return new OpeningMode(true, true, true, true, true,false);
+        }else if(mode.equals("ab+") || mode.equals("a+b")){
+            return new OpeningMode(true, true, false, false, true,false);
         }else{
-            return openMode.INVALID;
+            return new OpeningMode(false, false, false, false, false,true);
         }
     }
 }

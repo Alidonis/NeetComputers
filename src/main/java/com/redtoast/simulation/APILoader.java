@@ -118,6 +118,8 @@ public class APILoader {
                     type = (VarType.LIST);
                 }else if (parameters[i].getType()==Function[].class){
                     type = (VarType.FUNCTION);
+                }else if (parameters[i].getType()==Bytes[].class){
+                    type = VarType.BINARY;
                 }
                 if (parameters[i].isAnnotationPresent(CustomRule.class)){
                     String rulename = parameters[i].getAnnotation(CustomRule.class).rule();
@@ -157,6 +159,8 @@ public class APILoader {
                     type = (VarType.LIST);
                 }else if (parameters[i].getType()==Function.class){
                     type = (VarType.FUNCTION);
+                }else if (parameters[i].getType()==Bytes.class){
+                    type = VarType.BINARY;
                 }
                 if (parameters[i].isAnnotationPresent(CustomRule.class)){
                     String rulename = parameters[i].getAnnotation(CustomRule.class).rule();
@@ -250,6 +254,13 @@ public class APILoader {
                         if (input.get(i).getValue() instanceof Function val) pack[d] = val;
                     }
                     args[i] = pack;
+                }else if (parameters[i].getType()== Bytes.class){
+                    List packed = input.getPacked();
+                    Bytes[] pack = new Bytes[packed.size()];
+                    for (int d = 0; d < packed.size(); d++){
+                        if (input.get(i).getValue() instanceof Bytes val) pack[d] = val;
+                    }
+                    args[i] = pack;
                 }else if (parameters[i].getType()== Value.class){
                     List packed = input.getPacked();
                     Value[] pack = new Value[packed.size()];
@@ -260,7 +271,7 @@ public class APILoader {
                 }
             }else{
                 if (parameters[i].getType()==String.class){
-                    if (input.get(i).getValue() instanceof String val) args[i] = val;
+                    args[i] = input.get(i).toString();
                 }else if (parameters[i].getType()==int.class){
                     int offset = parameters[i].isAnnotationPresent(Index.class) ? (runtime!=null ? (runtime.thread.getLang().equals("Lua 5.2") ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;//the road to hell is paved with good intentions, twice
                     args[i] = input.get(i).toInt() - offset;
@@ -278,6 +289,8 @@ public class APILoader {
                     if (input.get(i).getValue() instanceof List val) args[i] = val;
                 }else if (parameters[i].getType()==Function.class){
                     if (input.get(i).getValue() instanceof Function val) args[i] = val;
+                }else if (parameters[i].getType()==Bytes.class){
+                    args[i] = input.get(i).toBytes();
                 }else if (parameters[i].getType()==Value.class){
                     args[i] = input.get(i);
                 }
