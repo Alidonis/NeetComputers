@@ -2,9 +2,7 @@ package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
-import com.redtoast.simulation.FS.FileHelper;
-import com.redtoast.simulation.FS.FileSystem;
-import com.redtoast.simulation.FS.Filepath;
+import com.redtoast.simulation.FS.*;
 import com.redtoast.simulation.value.NVTable;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
@@ -14,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -23,9 +22,8 @@ public abstract class Runtime {
     public final GlobalManager globalManager;
     public LangThread thread;
     private boolean kill = false;
-    public FileSystem fs;
+    public FileSpace fs;
     public Computer parent;
-    public LinkedList<EventGeneric> eventPool = new LinkedList<>();
     public LinkedList<LangThread> threads = new LinkedList<>();
     public int TTL = 0;
     public boolean inTick = false;
@@ -40,20 +38,26 @@ public abstract class Runtime {
      * Creates the runtimes initial thread, automatically ran by computer parent class
      */
     public void load(){
-        Filepath entryFile = fs.getFile(FileHelper.normalize(fs.build.entrypoint));
-        if (entryFile.exists()){
-            inTick=true;
-            try{
-                MakeThread(entryFile.readAll(), "Lua 5.2");
-            }catch (Throwable e){
-                debug.info("Computer encountered error at entrypoint: {}", e.toString());
+        assert fs instanceof BootableFilespace;
+        BootableFilespace bootableFilespace = (BootableFilespace) fs;
+        try {
+            boolean canBoot = bootableFilespace.canBoot();
+            if (!canBoot){
+                debug.warn("Computer refused to boot");
                 kill=true;
             }
-            inTick=false;
-        }else{
-            debug.info("Entrypoint not found for computer, computer failed to start!");
+            BootableFilespace.BootPath bootPath = bootableFilespace.fetchBootPath();
+            try{
+                MakeThread(bootPath.entryPoint().readAll(), bootPath.language().getVersion());
+            }catch (Throwable e){
+                debug.warn("Computer encountered error at entrypoint: {}", e.toString());
+                kill=true;
+            }
+        }catch (IOException ioException){
+            debug.warn("Computer failed to boot ({})", ioException.getMessage());
             kill=true;
         }
+        System.out.println("booting complete");
     }
 
     /**
@@ -99,9 +103,7 @@ public abstract class Runtime {
                 kill = true;
                 return;
             }
-            eventPool.clear();
             while (!parent.getEventQue().isEmpty()) {
-                eventPool.add(parent.getEventQue().getFirst());
                 for (EventGeneric.eventCallback callback : getCallbacks()){
                     callback.onEvent(parent.getEventQue().getFirst());
                 }

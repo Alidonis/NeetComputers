@@ -7,7 +7,7 @@ import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.items.generics.ComputerItem;
 import com.redtoast.items.mobileComputer;
@@ -51,7 +51,7 @@ import java.util.UUID;
 public class NeetComputers implements ModInitializer {
 
 	//create packet id's and screen handler
-	public static final ScreenHandlerType<GraphicsScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(GraphicsScreenHandler::new));
+	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(RGBScreenHandler::new));
 	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
 	public static final Identifier SCREEN_INIT_PACKET = Identifier.of("neetcomputers", "graphics_init");
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
@@ -75,7 +75,7 @@ public class NeetComputers implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		ServerLifecycleEvents.SERVER_STARTED.register(NeetComputers::updateServer);
+		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputers::updateServer);
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
 			@Override
 			public Identifier getFabricId() {
@@ -150,7 +150,7 @@ public class NeetComputers implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(new Identifier("neetcomputers","blind_event"), (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
 			EventGeneric event = EventGeneric.fromPacket(packetByteBuf);
 			int syncid = packetByteBuf.readInt();
-			if ((serverPlayerEntity.currentScreenHandler!=null && serverPlayerEntity.currentScreenHandler.syncId == syncid && serverPlayerEntity.currentScreenHandler instanceof GraphicsScreenHandler handler)){
+			if ((serverPlayerEntity.currentScreenHandler!=null && serverPlayerEntity.currentScreenHandler.syncId == syncid && serverPlayerEntity.currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
 				computer.queueEvent(event);
 			}

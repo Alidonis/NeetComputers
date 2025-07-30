@@ -163,13 +163,13 @@ public class ScreenAPI implements API
     }
 
     @Exposed
-    public void drawLine(@Index int x1, @Index int y1, @Index int x2, @Index int y2)//draws a line, duh
+    public void drawLine(@Index int x1, @Index int y1, int x2, int y2)//draws a line, duh
     {
         drawLine(x1,height-y1,x2,height-y2,defualtColor.x,defualtColor.y,defualtColor.z);
     }
 
     @Exposed
-    public void drawLine(@Index int x0, @Index int y0, @Index int x1, @Index int y1, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B) {
+    public void drawLine(@Index int x0, @Index int y0, int x1, int y1, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B) {
         Vector2i p1 = rotateLocal(x0, y0);
         Vector2i p2 = rotateLocal(x1, y1);
         int dx = Math.abs(p2.x - p1.x);
@@ -300,7 +300,7 @@ public class ScreenAPI implements API
     }
 
     @Exposed
-    public void fill(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
+    public void fill(@Index int x1, @Index int y1,  int x2,  int y2, @Index( strict = true ) @Range( range = 256 ) int R,@Index( strict = true ) @Range( range = 256 ) int G,@Index( strict = true ) @Range( range = 256 ) int B){
         for (int w = Math.min(x1, x2); w < Math.max(x1, x2); w++){
             for (int h = Math.min(y1, y2); h < Math.max(y1, y2); h++){
                 rawDrawPixel(w,h,R,G,B);
@@ -309,7 +309,7 @@ public class ScreenAPI implements API
     }
 
     @Exposed
-    public void fill(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
+    public void fill(@Index int x1, @Index int y1, int x2, int y2){
         fill(x1, y1, x2, y2, defualtColor.x, defualtColor.y, defualtColor.z);
     }
 
@@ -342,7 +342,7 @@ public class ScreenAPI implements API
     }
 
     @Exposed
-    public void drawRectangle(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)//draws a rectangle between two points
+    public void drawRectangle(@Index int x1, @Index int y1, int x2, int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B)//draws a rectangle between two points
     {
         startRotationSession(average(x1,x2), average(y1, y2));
         drawLine(x1,y1,x2,y1,R,G,B);
@@ -352,7 +352,7 @@ public class ScreenAPI implements API
         endRotationSession();
     }
     @Exposed
-    public void drawRectangle(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
+    public void drawRectangle(@Index int x1, @Index int y1, int x2, int y2){
         startRotationSession(average(x1,x2), average(y1, y2));
         drawLine(x1,y1,x2,y1);
         drawLine(x2,y1,x2,y2);
@@ -528,11 +528,11 @@ public class ScreenAPI implements API
         endRotationSession();
     }
     @Exposed
-    public void drawCircle(@Index int x1, @Index int y1, @Index int x2, @Index int y2){
+    public void drawCircle(@Index int x1, @Index int y1, int x2, int y2){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),defualtColor);
     }
     @Exposed
-    public void drawCircle(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
+    public void drawCircle(@Index int x1, @Index int y1, int x2, int y2, @Index( strict = true ) @Range( range = 256 ) int R, @Index( strict = true ) @Range( range = 256 ) int G, @Index( strict = true ) @Range( range = 256 ) int B){
         drawCircle(new Vector(x1,y1),new Vector(x2,y2),new Vector(R,G,B));
     }
     public void drawCircle(Vector pointA, Vector pointB){

@@ -10,7 +10,7 @@ public class DesktopEntityComputer extends ComputerBlockEntity{
     public DesktopEntityComputer(BlockPos pos, BlockState state) {
         super(BulkRegistery.fetchBlockEntityType("desktop_computer"), pos, state, new computerSpecs()
             .setBinaryGraphicsSize(11, 6)
-            .setColorGraphicsSize(192,108)
+            .setColorGraphicsSize(384,288)
             .setIPS(80000)
             .setMaxCores(3)
             .setCoreUtilizationBonus(0)

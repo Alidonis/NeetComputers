@@ -3,6 +3,7 @@ package com.redtoast.Lua;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
+import com.redtoast.simulation.FS.FileSpace;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.GlobalManager;
@@ -35,9 +36,9 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     private final Hashtable<Value, Value> queue = new Hashtable<>();
 
     private static class NeoFinder implements ResourceFinder{
-        private final FileSystem fs;
+        private final FileSpace fs;
         private int cursor = 0;
-        public NeoFinder(FileSystem fs){
+        public NeoFinder(FileSpace fs){
             this.fs = fs;
         }
         @Override
@@ -68,8 +69,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
     private static class LuaRequire extends Function{
         private final LuaFunction require;
-        private final FileSystem fs;
-        public LuaRequire(LuaFunction require, FileSystem fs){
+        private final FileSpace fs;
+        public LuaRequire(LuaFunction require, FileSpace fs){
             super("require", new ParameterRules(VarType.STRING));
             this.require = require;
             this.fs = fs;

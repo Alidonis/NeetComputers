@@ -10,7 +10,7 @@ public class LargeEntityComputer extends ComputerBlockEntity {
     public LargeEntityComputer(BlockPos pos, BlockState state) {
         super(BulkRegistery.fetchBlockEntityType("large_computer"), pos, state, new computerSpecs()
             .setBinaryGraphicsSize(12, 11)
-            .setColorGraphicsSize(192,108)
+            .setColorGraphicsSize(384,288)
             .setIPS(30000)
             .setMaxCores(6)
             .setCoreUtilizationBonus(15)

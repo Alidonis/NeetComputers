@@ -2,20 +2,18 @@ package com.redtoast.simulation;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.annotations.*;
-import com.redtoast.simulation.base.Yeild;
+import com.redtoast.simulation.base.*;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
-import com.redtoast.simulation.base.LangError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
-import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.CustomParameter;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.ast.Str;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class APILoader {
     private final Runtime ParentRuntime;
     private static final Logger logger = LoggerFactory.getLogger("NeetComputers: API loading");
+    private static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
 
     /**
@@ -66,14 +65,14 @@ public class APILoader {
         ParentRuntime.globalManager.put(label, apiTable.asValue());
     }
 
-    public static Table TableizeAPI(API api, @Nullable Runtime runtime){
+    public static Table TableizeAPI(Exposable api, @Nullable Runtime runtime){
         Function[] functions = translateAPI(api, runtime);
         Table apiTable = new Table();
         for (Function func : functions){
             if (func.getName()!=null){
                 apiTable.put(func.getName(), func.asValue());
             }else{
-                logger.warn("Issue encountered loading api '{}': nameless function (try .setName on runtime implimented functions)", api.getLabel());
+                logger.warn("Issue encountered loading api '{}': nameless function (try .setName on runtime implimented functions)", api.getClass().getName());
             }
         }
         return apiTable;
@@ -299,7 +298,23 @@ public class APILoader {
         return args;
     }
 
-    private static Function[] translateAPI(API obj, @Nullable Runtime runtime){
+    public static void profilerFunction(long startTime, String function, @Nullable Runtime runtime){
+        short timeSpent = (short) (System.currentTimeMillis() - startTime);
+        if (timeSpent>100){
+            profiler.warn(function +" exited 100 milliseconds ("+timeSpent+")");
+            if (runtime!=null && runtime.getRunningThread()!=null){
+                runtime.getRunningThread().taxJavaLag((short) 1000);
+            }
+        }
+        if (runtime!=null && runtime.getRunningThread()!=null){
+            runtime.getRunningThread().taxJavaLag(timeSpent);
+        }
+        if (timeSpent>10 && runtime!=null && runtime.getRunningThread()!=null){
+            runtime.getRunningThread().yield();
+        }
+    }
+
+    private static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime){
         Class<?> _class = obj.getClass();
         Hashtable<String, LinkedList<Function>> functions = new Hashtable<>();
         Hashtable<String, CustomParameter> customParameters = new Hashtable<>();
@@ -324,6 +339,12 @@ public class APILoader {
             if (method.isAnnotationPresent(Exposed.class)){
                 ParameterRules ruleset = rulesFromMethod(method, customParameters);
                 Function function;
+                String funcname;
+                if (method.getAnnotation(Exposed.class).nameOverride().isBlank()){
+                    funcname = method.getName();
+                }else{
+                    funcname = method.getAnnotation(Exposed.class).nameOverride();
+                }
                 if (method.getReturnType()==Void.TYPE){
                     function = new Function(ruleset) {
                         @Override
@@ -332,7 +353,9 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
+                                long timeStarted = System.currentTimeMillis();
                                 method.invoke(obj, processArgs(method, parameters, runtime));
+                                profilerFunction(timeStarted, funcname + ruleset.toString(runtime), runtime);
                             }catch (LangError error){
                                 return Value.asError(error.getMessage());
                             }catch (Yeild yeild){
@@ -359,10 +382,12 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
+                                long timeStarted = System.currentTimeMillis();
                                 Object retun = method.invoke(obj, processArgs(method, parameters, runtime));
                                 if (retun==null){
                                     return Value.NULL;
                                 }
+                                profilerFunction(timeStarted, funcname + ruleset.toString(runtime), runtime);
                                 return (Value) retun;
                             }catch (LangError error){
                                 return Value.asError(error.getMessage());
@@ -389,7 +414,9 @@ public class APILoader {
                                 obj.onCall(runtime.thread);
                             }
                             try {
+                                long timeStarted = System.currentTimeMillis();
                                 Object retun = method.invoke(obj, processArgs(method, parameters, runtime));
+                                profilerFunction(timeStarted, funcname + ruleset.toString(runtime), runtime);
                                 if (retun==null){
                                     return Value.NULL;
                                 }else{
@@ -413,11 +440,7 @@ public class APILoader {
                         }
                     };
                 }
-                if (method.getAnnotation(Exposed.class).nameOverride().isBlank()){
-                    function.setName(method.getName());
-                }else{
-                    function.setName(method.getAnnotation(Exposed.class).nameOverride());
-                }
+                function.setName(funcname);
                 try{
                     functions.get(function.getName()).add(function);
                 }catch (java.lang.Exception weenier){

@@ -1,5 +1,6 @@
 package com.redtoast.simulation.FS;
 
+import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.builder.FileContext;
@@ -7,9 +8,12 @@ import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
+import net.minecraft.nbt.NbtCompound;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -19,13 +23,14 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
 
-public class FileSystem implements API {
+public class FileSystem implements BootablePartitionedFileSpace {
     public final SystemBuild build;
     public final int pointer;
+    public final Computer parent;
     public final Path basePath;
-    public final Hashtable<UUID, LangFile> map = new Hashtable<>();
+    public final Hashtable<UUID, FileHeader> map = new Hashtable<>();
 
-    public FileSystem(SystemBuild build, int pointer) {
+    public FileSystem(SystemBuild build, int pointer, Computer parent) {
         Path path;
         this.build = build;
         this.pointer = pointer;
@@ -36,10 +41,11 @@ public class FileSystem implements API {
         for (Partition partition : build.partitions){
             basePath.resolve(partition.path()).toFile().mkdir();
         }
+        this.parent = parent;
     }
 
-    public FileSystem(SystemBuild build, int pointer, FileContext context){
-        this(build, pointer);
+    public FileSystem(SystemBuild build, int pointer, FileContext context, Computer parent){
+        this(build, pointer, parent);
     }
 
     public Filepath getFile(String path){
@@ -62,11 +68,6 @@ public class FileSystem implements API {
             }
         }
         return null;
-    }
-
-    @Override
-    public String getLabel() {
-        return "file system";
     }
 
     @Exposed(nameOverride = "getPartitions")
@@ -115,7 +116,7 @@ public class FileSystem implements API {
     }
 
     @Exposed
-    public boolean setReadOnly(String name){
+    public boolean setPartitionReadOnly(String name){
         for (int i = 0; i < build.partitions.size(); i++){
             if (build.partitions.get(i).path().equals(name)){
                 build.partitions.set(i, new Partition(name, true, build.partitions.get(i).hidden(), build.partitions.get(i).source()));
@@ -126,12 +127,12 @@ public class FileSystem implements API {
     }
 
     @Exposed(nameOverride = "open")
-    public Table LangOpenFile(String path){
-        return LangOpenFile(path, "r");
+    public Table openFile(String path){
+        return openFile(path, "r");
     }
 
     @Exposed(nameOverride = "open")
-    public Table LangOpenFile(String path, String mode){
+    public Table openFile(String path, String mode){
         OpeningMode openingMode = FileHelper.getMode(mode);
         Filepath filepath = getFile(path);
         if (filepath.isDirectory()) throw new LangError("Not a file");
@@ -216,7 +217,30 @@ public class FileSystem implements API {
         }
     }
 
+    @Override
+    public NbtCompound saveAsNBT() {
+        return build.save();
+    }
+
+    public static FileSpace fetchFromNBT(NbtCompound data, Computer computer) {
+        return null;
+    }
+
     public Table LangizeFile(Filepath filepath, OpeningMode mode){
-        return APILoader.TableizeAPI(new LangFile(filepath, this, mode), null);
+        return APILoader.TableizeAPI(new FileHeader(filepath, this, mode), parent.getRuntime());
+    }
+
+    @Override
+    public @NotNull BootPath fetchBootPath() {
+        return new BootPath(getFile(FileHelper.normalize(build.entrypoint)), NeetComputers.getLanguage("Lua 5.2"));
+    }
+
+    @Override
+    public boolean canBoot() throws IOException{
+        Filepath file = getFile(FileHelper.normalize(build.entrypoint));
+        if (!file.exists()) throw new IOException("File does not exist");
+        if (!file.isFile()) throw new IOException("File cant be a directory");
+        if (!file.canRead()) throw new IOException("File not readable");
+        return true;
     }
 }

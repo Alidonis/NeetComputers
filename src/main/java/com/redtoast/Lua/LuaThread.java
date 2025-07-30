@@ -77,6 +77,7 @@ public class LuaThread extends LangThread {
 
     @Override
     public void tick(){
+        clearJavaLag();
         if (!isAlive()) return;
         double util = specs.Batches;
         util *= specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1;
@@ -86,6 +87,10 @@ public class LuaThread extends LangThread {
             if (runtime.parent.isCrashed()) kill("Parent computer crashed");
             if (!isAlive()) return;
             step();
+            if (isAlive()){
+                short tax = (short) getJavaTaxBulk((short) (10*specs.BatchSize));
+                ticket -= (short) (tax * 25);
+            }
             if (threadCount!=runtime.threads.size() && isAlive()){
                 ticket += (short) (Math.round(util) - (specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1));
             }
@@ -95,5 +100,10 @@ public class LuaThread extends LangThread {
     @Override
     public String getSource(){
         return "lua:"+globals.debuglib.traceback(1).split(":")[2];
+    }
+
+    @Override
+    public void crash(String message) {
+        runtime.parent.crash(message);
     }
 }

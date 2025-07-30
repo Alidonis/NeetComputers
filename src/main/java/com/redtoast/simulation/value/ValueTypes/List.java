@@ -130,8 +130,13 @@ public class List implements Collection<Value>, Set<Value> {
         return true;
     }
 
+    public void removeFirst(){
+        vals.remove();
+    }
+
     @Override
     public String toString(){
+        if (vals.isEmpty()) return "[]";
         StringBuilder buffer = new StringBuilder();
         buffer.append('[');
         for (Value value : vals){
@@ -155,5 +160,13 @@ public class List implements Collection<Value>, Set<Value> {
         }else{
             return new Tuple(toArray());
         }
+    }
+
+    public List duplicate(){
+        List clone = new List();
+        for (Value<?> value : vals){
+            clone.vals.add(value);
+        }
+        return clone;
     }
 }

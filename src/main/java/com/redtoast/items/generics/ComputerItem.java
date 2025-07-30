@@ -2,7 +2,7 @@ package com.redtoast.items.generics;
 
 import com.redtoast.Computer;
 import com.redtoast.computerSpecs;
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -155,7 +155,7 @@ public class ComputerItem extends Item {
                     public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
                         if (!specifications.doesRBGGraphics) return null;
                         Computer computer = getComputer(stack);
-                        return new GraphicsScreenHandler(syncId, computer.getGraphics(), computer);
+                        return new RGBScreenHandler(syncId, computer.getGraphics(), computer);
                     }
                 });
 //                PacketByteBuf temp = PacketByteBufs.create();

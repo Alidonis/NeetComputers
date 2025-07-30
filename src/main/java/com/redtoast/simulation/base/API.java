@@ -1,6 +1,5 @@
 package com.redtoast.simulation.base;
 
-public interface API {
+public interface API extends Exposable {
     String getLabel();
-    default void onCall(LangThread thread){}
 }

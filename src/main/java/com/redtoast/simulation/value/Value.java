@@ -168,7 +168,7 @@ public class Value<Type> {
     public static Value<List> of(Value[] values){
         return new Value<>(new List(values));
     }
-    public static Value<List> of(java.util.List<Value> values){
+    public static Value<List> of(java.util.List<?> values){
         LinkedList list = new LinkedList<>(values);
         return new Value<>(new List(list));
     }

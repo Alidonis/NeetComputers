@@ -1,6 +1,6 @@
 package com.redtoast.simulation;
 
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
@@ -9,11 +9,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
-import java.util.Objects;
-import java.util.UUID;
 
 public class EventGeneric {
     private String Name;
@@ -91,7 +88,7 @@ public class EventGeneric {
         return new EventGeneric(name, values);
     }
 
-    public void send(GraphicsScreenHandler handler){
+    public void send(RGBScreenHandler handler){
         PacketByteBuf buf = PacketByteBufs.create();
         writeToPacket(buf);
         buf.writeInt(handler.syncId);

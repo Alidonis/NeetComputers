@@ -8,15 +8,17 @@ import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
-import com.redtoast.simulation.value.ValueTypes.Tuple;
 
 import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class EventAPI implements API {
-    private Computer computer;
-    private Hashtable<String, LinkedList<Function>> callbackTable = new Hashtable<>();
-    private LinkedList<Function> unmappedCallbacks = new LinkedList<>();
+    private final Computer computer;
+    private final Hashtable<String, LinkedList<Function>> callbackTable = new Hashtable<>();
+    private final LinkedList<Function> unmappedCallbacks = new LinkedList<>();
+    private final List eventQueue = new List();
+    private boolean clearQueue = false;
+
     public EventAPI(Computer computer){
         this.computer = computer;
         computer.addEventCallback(this::internalOnEvent);
@@ -25,7 +27,7 @@ public class EventAPI implements API {
     public void internalOnEvent(EventGeneric eventGeneric){
         for (Function function : unmappedCallbacks){
             try{
-                function.call(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toTuple())));
+                function.call(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toList())));
             }catch (Exception ignored){
                 Function.logError(ignored.toString());
             }
@@ -39,6 +41,14 @@ public class EventAPI implements API {
                 }
             }
         }
+        if (clearQueue) {
+            clearQueue = false;
+            eventQueue.clear();
+        }
+        if (eventQueue.size()>=100){
+            eventQueue.removeFirst();
+        }
+        eventQueue.add(eventGeneric.asValue());
     }
 
     @Override
@@ -47,19 +57,19 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public Tuple getEventQue(){
-        return getEventQue(true);
+    public List getEventQueue(){
+        return eventQueue;
     }
 
     @Exposed
-    public Tuple getEventQue(boolean clear){
-        Tuple tuple = Value.of(computer.getRuntime().eventPool).toTuple();
-        if (clear) computer.getRuntime().eventPool.clear();
-        return tuple;
+    public int clearEventQueue(){
+        int size = eventQueue.size();
+        eventQueue.clear();
+        return size;
     }
 
     @Exposed
-    public void queEvent(String eventName, Value<?>... args){
+    public void queueEvent(String eventName, Value<?>... args){
         computer.getEventQue().add(new EventGeneric(eventName, new List(args)));
     }
 

@@ -4,7 +4,7 @@ import com.redtoast.Computer;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.computerSpecs;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.NeetComputers;
@@ -145,7 +145,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         if (!computer.getSpecifications().doesBinaryGraphics) return null;
-        return new GraphicsScreenHandler(syncId,graphics,computer);
+        return new RGBScreenHandler(syncId,graphics,computer);
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {

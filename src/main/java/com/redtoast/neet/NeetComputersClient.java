@@ -2,15 +2,14 @@ package com.redtoast.neet;
 
 import com.redtoast.blocks.generic.ComputerBlockEntity;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.GraphicsScreen;
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBGraphicsScreen;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
-import org.joml.Vector2i;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +22,7 @@ public class NeetComputersClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
-		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, GraphicsScreen::new);
+		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
@@ -31,13 +30,11 @@ public class NeetComputersClient implements ClientModInitializer {
 
 			reiScreenRegistryClass
 				.getMethod("registerExclusionZones", Class.class, Function.class)
-				.invoke(reiScreenRegistryInstance, GraphicsScreen.class, (Function<GraphicsScreen, List<Rectangle>>) screen -> {
-					RGBGraphicsArray graphics = screen.handler.getGraphics();
-					Vector2i size = graphics.getSize();
-					int x = screen.width / 2 - size.x() * (GraphicsScreen.screenMult / 2);
-					int y = screen.height / 2 - size.y() * (GraphicsScreen.screenMult / 2);
-					int w = size.x() * GraphicsScreen.screenMult;
-					int h = size.y() * GraphicsScreen.screenMult;
+				.invoke(reiScreenRegistryInstance, RGBGraphicsScreen.class, (Function<RGBGraphicsScreen, List<Rectangle>>) screen -> {
+					int x = screen.screenPos1.x;
+					int y = screen.screenPos1.y;
+					int w = screen.screenPos2.x - screen.screenPos1.x;
+					int h = screen.screenPos2.y - screen.screenPos1.y;
 					return List.of(new Rectangle(x, y, w, h));
 				});
 		} catch (ClassNotFoundException e) {
@@ -49,8 +46,8 @@ public class NeetComputersClient implements ClientModInitializer {
         assert NeetComputers.SCREEN_PACKET_ID != null;
         ClientPlayNetworking.registerGlobalReceiver(NeetComputers.SCREEN_PACKET_ID, (client, handler, buf, responseSender) -> {
             assert client.player != null;
-            if (client.player.currentScreenHandler instanceof GraphicsScreenHandler) {
-				((GraphicsScreenHandler) client.player.currentScreenHandler).updateGraphics(RGBGraphicsArray.fromPacket(buf));
+            if (client.player.currentScreenHandler instanceof RGBScreenHandler) {
+				((RGBScreenHandler) client.player.currentScreenHandler).updateGraphics(RGBGraphicsArray.fromPacket(buf));
 			}
 			client.execute(() -> {
 				// Everything in this lambda is run on the render thread

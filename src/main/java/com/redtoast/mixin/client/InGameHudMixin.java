@@ -1,6 +1,6 @@
 package com.redtoast.mixin.client;
 
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
@@ -19,7 +19,7 @@ public class InGameHudMixin {
 
     @Unique
     private static void logic(CallbackInfo ci){
-        if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.currentScreenHandler instanceof GraphicsScreenHandler) {
+        if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.currentScreenHandler instanceof RGBScreenHandler) {
             ci.cancel();
         }
     }
