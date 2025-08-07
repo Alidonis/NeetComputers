@@ -2,6 +2,7 @@ package com.redtoast.blocks.generic;
 
 import com.redtoast.Computer;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
+import com.redtoast.blocks.GenericConsumerBlock;
 import com.redtoast.computerSpecs;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
@@ -9,6 +10,10 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.peripherals.ProjectorAPI;
+import com.redtoast.simulation.base.Peripheral;
+import com.redtoast.simulation.networkInterfaces.NetworkProvider;
+import com.redtoast.simulation.peripheralInterfaces.PeripheralConsumer;
+import com.redtoast.simulation.peripheralInterfaces.PeripheralProvider;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
@@ -34,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory {
+public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralConsumer, PeripheralProvider {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
@@ -96,6 +101,16 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     public void writeNbt(NbtCompound nbt) {
         nbt = computer.writeNBT(nbt);
         super.writeNbt(nbt);
+    }
+
+    @Override
+    public void attachPeripheral(PeripheralProvider api) {
+
+    }
+
+    @Override
+    public void connectToNetwork(NetworkProvider networkProvider) {
+
     }
 
     @Override
@@ -176,4 +191,29 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     }
 
     public Computer getComputer() {return computer;}
+
+    @Override
+    public void onPeripheralAttached(Peripheral api, PeripheralProvider source) {
+
+    }
+
+    @Override
+    public void onPeripheralDetached(PeripheralProvider source) {
+
+    }
+
+    @Override
+    public boolean canAcceptPeripherals(PeripheralProvider source) {
+        return computer.isOn();
+    }
+
+    @Override
+    public Peripheral generateAPI(PeripheralConsumer source) {
+        return null;
+    }
+
+    @Override
+    public boolean isAccessible(PeripheralConsumer source) {
+        return false;
+    }
 }

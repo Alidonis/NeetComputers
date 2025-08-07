@@ -4,10 +4,11 @@ import com.redtoast.Computer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.Peripheral;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 import com.redtoast.simulation.base.API;
 
-public class ProjectorAPI implements API {
+public class ProjectorAPI implements Peripheral {
     Computer computer;
     BinaryGraphicsArray graphics;
     int sizex, sizey;
@@ -68,5 +69,10 @@ public class ProjectorAPI implements API {
     @Override
     public String getLabel() {
         return "projector screen";
+    }
+
+    @Override
+    public boolean expired() {
+        return false;
     }
 }

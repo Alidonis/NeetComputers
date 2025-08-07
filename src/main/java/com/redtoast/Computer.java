@@ -1,7 +1,7 @@
 package com.redtoast;
 
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.GraphicsScreenHandler;
+import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.*;
 import com.redtoast.simulation.FS.FileSystem;
@@ -11,13 +11,11 @@ import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.value.NVTable;
-import com.redtoast.simulation.value.ValueTypes.Table;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -81,8 +79,6 @@ public abstract class Computer {
     private short clock = 0;
     //object representing colored graphics (gui)
     private RGBGraphicsArray Graphics;
-    //stores pre-wrapped peripherals
-    private LinkedList<Peripheral> peripheralWrappers;
     //stores un-wrapped peripherals to be wrapped with runtime context
     private final LinkedList<API> unwrappedPeripherals = new LinkedList<>();
     //stores the peripherals has access to during runtime
@@ -219,7 +215,6 @@ public abstract class Computer {
             Graphics.clear();
             //starts assembling peripherals
             peripheralBuffer = new LinkedList<>();
-            peripheralBuffer.addAll(peripheralWrappers);
 
             //overwrites runtime with a new instance
             Computer com = this;
@@ -359,7 +354,7 @@ public abstract class Computer {
                     stop();
                 }
                 for (PlayerEntity p : world.getPlayers()) {
-                    if (p.currentScreenHandler instanceof GraphicsScreenHandler g && g.comp == this) {
+                    if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) {
                         PacketByteBuf temp = PacketByteBufs.create();
                         Graphics.writeScreenToPacketBuf(temp);
                         ServerPlayNetworking.send((ServerPlayerEntity) p, NeetComputers.SCREEN_PACKET_ID, temp);
@@ -391,31 +386,9 @@ public abstract class Computer {
         }
     }
 
-    //IO methods
-    public void attachPeripheral(Peripheral peripheral){
-        for (Peripheral Peripheral : peripheralWrappers) {
-            if (Peripheral.uuid.equals(peripheral.uuid)) {
-                return;
-            }
-        }
-        peripheralWrappers.add(peripheral);
-    }
     //adds a context sensitive
-    public void attachPeripheral(API peripheral){
-        if (peripheralWrappers == null){
-            peripheralWrappers = new LinkedList<>();
-        }
+    public void attachPeripheral(com.redtoast.simulation.base.Peripheral peripheral){
         unwrappedPeripherals.add(peripheral);
-    }
-    //removes a peripheral based of its uuid
-    public boolean detachPeripheral(UUID uuid){
-        for (int i = 0; i < peripheralWrappers.size(); i++){
-            if (peripheralWrappers.get(i).uuid.equals(uuid)){
-                peripheralWrappers.remove(i);
-                return true;
-            }
-        }
-        return false;
     }
     //que's an event to the computer if server-side or sends event to server to be que'd if not
     public void queueEvent(EventGeneric event) {
@@ -456,7 +429,6 @@ public abstract class Computer {
         if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
             peripheralBuffer = new LinkedList<>();
-            peripheralBuffer.addAll(peripheralWrappers);
             Computer com = this;
             runtime = new Runtime(this, NVRam) {
                 @Override
