@@ -20,4 +20,14 @@ public class Bytes {
     public byte[] getData(){
         return data;
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if (obj instanceof String str){
+            return str.getBytes().equals(data);
+        }else if (obj instanceof Bytes bytes){
+            return bytes.data.equals(data);
+        }
+        return super.equals(obj);
+    }
 }

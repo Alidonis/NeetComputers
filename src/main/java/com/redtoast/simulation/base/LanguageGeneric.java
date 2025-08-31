@@ -8,4 +8,6 @@ public interface LanguageGeneric {
     String getVersion();
     LanguageTranslater generateTranslationClass();
     LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, computerSpecs specifications);
+    boolean bumpIndexs();
+    boolean dynamicNumbers();
 }

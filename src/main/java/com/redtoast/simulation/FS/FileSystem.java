@@ -6,9 +6,7 @@ import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.builder.FileContext;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.LangError;
-import com.redtoast.simulation.base.LanguageGeneric;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
@@ -135,11 +133,11 @@ public class FileSystem implements BootablePartitionedFileSpace {
     public Table openFile(String path, String mode){
         OpeningMode openingMode = FileHelper.getMode(mode);
         Filepath filepath = getFile(path);
-        if (filepath.isDirectory()) throw new LangError("Not a file");
-        if (openingMode.invalid()) throw new LangError("Invalid open mode");
-        if (!filepath.exists() && !openingMode.create()) throw new LangError("Not a file");
-        if (openingMode.canRead() && !filepath.canRead()) throw new LangError("Access denied");
-        if (openingMode.canWrite() && !filepath.canWrite()) throw new LangError("Access denied");
+        if (filepath.isDirectory()) throw new ExposedError("Not a file");
+        if (openingMode.invalid()) throw new ExposedError("Invalid open mode");
+        if (!filepath.exists() && !openingMode.create()) throw new ExposedError("Not a file");
+        if (openingMode.canRead() && !filepath.canRead()) throw new ExposedError("Access denied");
+        if (openingMode.canWrite() && !filepath.canWrite()) throw new ExposedError("Access denied");
         return LangizeFile(filepath, openingMode);
     }
 
@@ -152,12 +150,12 @@ public class FileSystem implements BootablePartitionedFileSpace {
     @Exposed
     public boolean makeDir(String path){
         Filepath file = getFile(path);
-        if (!file.canWrite()) throw new LangError("Access denied");
+        if (!file.canWrite()) throw new ExposedError("Access denied");
         try{
             return file.mkdirs();
         }catch (Exception exception){
             if (exception instanceof IOException){
-                throw new LangError(exception.getMessage());
+                throw new ExposedError(exception.getMessage());
             }else{
                 throw new RuntimeException(exception);
             }
@@ -179,9 +177,9 @@ public class FileSystem implements BootablePartitionedFileSpace {
     @Exposed
     public List getChildren(String path){
         Filepath file = getFile(path);
-        if (file.isInvalid()) throw new LangError("Invalid file path");
-        if (!file.exists()) throw new LangError("File does not exist");
-        if (!file.isDirectory()) throw new LangError("Not a directory");
+        if (file.isInvalid()) throw new ExposedError("Invalid file path");
+        if (!file.exists()) throw new ExposedError("File does not exist");
+        if (!file.isDirectory()) throw new ExposedError("Not a directory");
         try{
             Filepath[] files = file.listFiles();
             String[] paths = new String[files.length];
@@ -192,7 +190,7 @@ public class FileSystem implements BootablePartitionedFileSpace {
             return new List((Object[]) paths);
         }catch (Exception exception){
             if (exception instanceof IOException){
-                throw new LangError(exception.getMessage());
+                throw new ExposedError(exception.getMessage());
             }else{
                 throw new RuntimeException(exception);
             }
@@ -201,16 +199,16 @@ public class FileSystem implements BootablePartitionedFileSpace {
 
     @Exposed
     public boolean delete(String path){
-        if (FileHelper.normalize(path).equals(FileHelper.normalize(build.entrypoint))) throw new LangError("Access denied");
+        if (FileHelper.normalize(path).equals(FileHelper.normalize(build.entrypoint))) throw new ExposedError("Access denied");
         Filepath file = getFile(path);
-        if (file.isInvalid()) throw new LangError("Invalid file path");
-        if (!file.exists()) throw new LangError("File does not exist");
-        if (!file.canWrite()) throw new LangError("Access denied");
+        if (file.isInvalid()) throw new ExposedError("Invalid file path");
+        if (!file.exists()) throw new ExposedError("File does not exist");
+        if (!file.canWrite()) throw new ExposedError("Access denied");
         try{
             return file.delete();
         }catch (Exception exception){
             if (exception instanceof IOException){
-                throw new LangError(exception.getMessage());
+                throw new ExposedError(exception.getMessage());
             }else{
                 throw new RuntimeException(exception);
             }

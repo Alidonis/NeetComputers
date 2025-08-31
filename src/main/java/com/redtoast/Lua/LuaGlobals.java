@@ -4,11 +4,10 @@ import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
-import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.GlobalManager;
 import com.redtoast.simulation.base.GlobalGeneric;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
@@ -81,10 +80,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
             assert path != null;
             if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
                 Filepath filepath = fs.getFile(path+".lua");
-                if (filepath.isInvalid()) throw new LangError("Invalid file path");
-                if (!filepath.exists()) throw new LangError("No such file");
-                if (!filepath.isFile()) throw new LangError("Not a file");
-                if (!filepath.canRead()) throw new LangError("Access denied");
+                if (filepath.isInvalid()) throw new ExposedError("Invalid file path");
+                if (!filepath.exists()) throw new ExposedError("No such file");
+                if (!filepath.isFile()) throw new ExposedError("Not a file");
+                if (!filepath.canRead()) throw new ExposedError("Access denied");
                 LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
                 assert translater != null;
                 try{
@@ -130,11 +129,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("file",LuaValue.NIL);
         super.set("dofile",LuaValue.NIL);
         super.set("loadfile",LuaValue.NIL);
-        super.set("setmetatable", LuaValue.NIL);
-        super.set("getmetatable", LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
         super.set("_VERSION", LuaValue.NIL);
-        super.set("_NVRAM", new Lua_NV(globalManager.NVRam));
 
         //load new luaj resource finder
         super.finder = new NeoFinder(globalManager.getParent().fs);

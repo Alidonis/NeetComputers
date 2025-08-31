@@ -47,7 +47,7 @@ public class Value<Type> {
      */
     public final static Value<Boolean> FALSE = Value.of(false);
 
-    private Type value;
+    private final Type value;
     private VarType type = VarType.NULL;
     private Table metaTable = null;
     private boolean hasMetadata = false;
@@ -286,6 +286,17 @@ public class Value<Type> {
         }
     }
     /**
+     * de-encapsulates the internal value as a function
+     * @return Function or null
+     */
+    public @Nullable Function toFunction(){
+        if (instanceOf(VarType.FUNCTION)){
+            return (Function) value;
+        }else{
+            return null;
+        }
+    }
+    /**
      * de-encapsulates the internal value as a String
      * @return String or null
      * @see #asString() get as string instead of de-encapsulating
@@ -376,7 +387,7 @@ public class Value<Type> {
      * @return Table or null
      */
     public @Nullable Table getMetaTable(){
-        return metaTable;
+        return (value instanceof ComplexValue<?> cv) ? cv.getMetaTable() : null;
     }
 
     /**
@@ -520,6 +531,6 @@ public class Value<Type> {
         if (obj instanceof Value<?> _value){
             return _value.getValue().equals(value);
         }
-        return super.equals(obj);
+        return value.equals(obj);
     }
 }

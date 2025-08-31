@@ -14,8 +14,8 @@ import org.joml.Vector2i;
 public class RGBGraphicsScreen extends BoilerplateScreen {
 
     /*allocates the space (in percents) that the screen will be fit into (not including the border)*/
-    protected double horizontalBufferSpace = 70;
-    protected double verticalBufferSpace = 60;
+    protected double horizontalBufferSpace = 85;
+    protected double verticalBufferSpace = 80;
 
     /*stores the two points that the screen is between*/
     public Vector2i screenPos1 = null;
@@ -119,6 +119,7 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        onTick(mouseX, mouseY);
         super.render(context, mouseX, mouseY, delta);
         context.fill(
                 screenPos1.x - 4,

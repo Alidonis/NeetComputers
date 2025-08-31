@@ -30,7 +30,6 @@ public class NVTable extends HashMap<String, Value> {
             return value;
         }
         super.put(key, value);
-        computer.saveNBT();
         return value;
     }
 

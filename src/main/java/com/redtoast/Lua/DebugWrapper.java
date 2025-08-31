@@ -3,7 +3,7 @@ package com.redtoast.Lua;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import org.luaj.vm2.LuaValue;
 
@@ -28,7 +28,7 @@ public class DebugWrapper implements API {
 
     @Exposed
     public Value gethook(Value... args){
-        throw new LangError("Debug.gethook is disabled for N.E.E.T. computers V"+ NeetComputers.version);
+        throw new ExposedError("Debug.gethook is disabled for N.E.E.T. computers V"+ NeetComputers.version);
         //return globals.lua52.toValue(debug.get("gethook").invoke(globals.lua52.fromValue(Value.of(args).toTuple().asValue())));
     }
 
@@ -44,7 +44,7 @@ public class DebugWrapper implements API {
 
     @Exposed
     public Value getmetatable(Value... args){
-        throw new LangError("Debug.getmetatable is disabled for N.E.E.T. computers V"+ NeetComputers.version);
+        throw new ExposedError("Debug.getmetatable is disabled for N.E.E.T. computers V"+ NeetComputers.version);
         //return globals.lua52.toValue(debug.get("getmetatable").invoke(globals.lua52.fromValue(Value.of(args).toTuple().asValue())));
     }
 
@@ -75,7 +75,7 @@ public class DebugWrapper implements API {
 
     @Exposed
     public Value setmetatable(Value... args){
-        throw new LangError("Debug.setmetatable is disabled for N.E.E.T. computers V"+ NeetComputers.version);
+        throw new ExposedError("Debug.setmetatable is disabled for N.E.E.T. computers V"+ NeetComputers.version);
         //return globals.lua52.toValue(debug.get("setmetatable").invoke(globals.lua52.fromValue(Value.of(args).toTuple().asValue())));
     }
 

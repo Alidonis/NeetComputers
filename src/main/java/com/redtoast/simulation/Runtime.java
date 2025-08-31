@@ -51,6 +51,7 @@ public abstract class Runtime {
                 MakeThread(bootPath.entryPoint().readAll(), bootPath.language().getVersion());
             }catch (Throwable e){
                 debug.warn("Computer encountered error at entrypoint: {}", e.toString());
+                e.printStackTrace();
                 kill=true;
             }
         }catch (IOException ioException){

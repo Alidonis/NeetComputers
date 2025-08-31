@@ -23,7 +23,9 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtByte;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -43,6 +45,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
+    private boolean corrupted = false;
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
         super(type, pos, state);
@@ -99,7 +102,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
 
     @Override
     public void writeNbt(NbtCompound nbt) {
-        nbt = computer.writeNBT(nbt);
+        if (!corrupted) nbt = computer.writeNBT(nbt);
         super.writeNbt(nbt);
     }
 
@@ -116,17 +119,24 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     @Override
     public void readNbt(NbtCompound nbt) {
         super.readNbt(nbt);
-        if (nbt.contains("uuid") && !collectedComputer){
-            collectedComputer=true;
-            if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
-                computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
-                graphics = computer.getGraphics();
+        corrupted = false;//evalCorruption(nbt);
+        if (!corrupted){
+            if (nbt.contains("uuid") && !collectedComputer){
+                collectedComputer=true;
+                if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
+                    computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
+                    graphics = computer.getGraphics();
+                }
             }
+            computer.load(nbt);
         }
-        computer.load(nbt);
     }
 
     public ActionResult onUse(PlayerEntity player, BlockState state){
+        if (corrupted) {
+            player.sendMessage(Text.literal("NBT DATA CORRUPTED, the files are still being stored server-side"));
+            return ActionResult.SUCCESS;
+        }
         if (!player.isSneaking() && !player.isUsingItem() && computer.isOn()){
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
             if (screenHandlerFactory != null) {
@@ -167,6 +177,12 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
+                if (computerBlock.corrupted){
+                    BlockState current = world.getBlockState(blockPos);
+                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
+                    return;
+                }
+                if (!computerBlock.computer.isLoaded()) return;
                 computerBlock.computer.tick(world);
                 if (computerBlock.computer.isOn()){
                     if (!ComputerStorage.storage.contains(computerBlock.computer)){
@@ -191,6 +207,14 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     public Computer getComputer() {return computer;}
+
+    private boolean evalCorruption(NbtCompound nbt){
+        if (
+                (nbt.contains("Address") && (nbt.get("Address") instanceof NbtInt && nbt.getInt("Address") != 0)) &&
+                (nbt.contains("IsOn") && nbt.get("IsOn") instanceof NbtByte)
+        ) return false;
+        return true;
+    }
 
     @Override
     public void onPeripheralAttached(Peripheral api, PeripheralProvider source) {

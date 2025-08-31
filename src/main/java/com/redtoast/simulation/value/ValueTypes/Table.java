@@ -15,13 +15,13 @@ import java.util.function.BiConsumer;
  * @see Value
  * @see List
  * @see Tuple
- * @see Function
+ * @see Function/
  * @see Exception
  * @see Hashtable
  */
 public class Table implements ComplexValue<Table> {
-    private Hashtable<Value, Value> table = new Hashtable<>();
-    private Table metadata = null;
+    private final Hashtable<Value, Value> table = new Hashtable<>();
+    public Table metadata = null;
     public void put(Value key, Value value){
         table.put(key, value);
     }
@@ -35,15 +35,15 @@ public class Table implements ComplexValue<Table> {
     public Value get(Value key){
         return table.get(key);
     }
-    @Nullable
     public Value get(String key){
+        if (!table.containsKey(Value.of(key))) return Value.NULL;
         return table.get(Value.of(key));
     }
     public boolean contains(Value key){
-        return table.contains(key);
+        return table.containsKey(key);
     }
     public boolean contains(String key){
-        return table.contains(Value.of(key));
+        return table.containsKey(Value.of(key));
     }
     public void foreach(BiConsumer<? super Value, ? super Value> action){
         table.forEach(action);
@@ -68,6 +68,7 @@ public class Table implements ComplexValue<Table> {
 
     @Override
     public @Nullable Table getMetaTable() {
+        if (metadata==null) return new Table();
         return metadata;
     }
 
@@ -78,7 +79,7 @@ public class Table implements ComplexValue<Table> {
 
     @Override
     public void setMeta(Object key, Object value) {
-        if (metadata==null) return;
+        if (metadata==null) metadata = new Table();
         metadata.put(Value.of(key), Value.of(value));
     }
 

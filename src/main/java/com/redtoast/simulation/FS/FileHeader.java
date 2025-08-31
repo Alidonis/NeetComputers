@@ -2,7 +2,7 @@ package com.redtoast.simulation.FS;
 
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Bytes;
 
@@ -40,7 +40,7 @@ public class FileHeader implements Exposable {
             if (mode.create()) filepath.createNewFile();
         }catch (Throwable e){
             if (e instanceof IOException){
-                throw new LangError(e.getMessage());
+                throw new ExposedError(e.getMessage());
             }else{
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -49,7 +49,7 @@ public class FileHeader implements Exposable {
 
     @Exposed
     public void flush(){
-        if (!open) throw new LangError("Attempt to use a closed file");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
         try{
             if (mode.canWrite()) {
                 byte[] data = new byte[byteBuffer.size()];
@@ -64,7 +64,7 @@ public class FileHeader implements Exposable {
             }
         }catch (Throwable e){
             if (e instanceof IOException){
-                throw new LangError(e.getMessage());
+                throw new ExposedError(e.getMessage());
             }else{
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -73,7 +73,7 @@ public class FileHeader implements Exposable {
 
     @Exposed
     public void close(){
-        if (!open) throw new LangError("Attempt to use a closed file");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
         flush();
         open = false;
         byteBuffer.clear();
@@ -82,20 +82,20 @@ public class FileHeader implements Exposable {
     @Exposed
     public int seek(String whence, int offset){
         if (whence.equals("set")){
-            if (offset<0) throw new LangError("Invalid offset");
-            if (offset>byteBuffer.size()) throw new LangError("Invalid offset");
+            if (offset<0) throw new ExposedError("Invalid offset");
+            if (offset>byteBuffer.size()) throw new ExposedError("Invalid offset");
             cursor = offset;
         }else if(whence.equals("cur")){
             int notcursor = cursor+offset;
-            if (notcursor<0) throw new LangError("Invalid offset");
-            if (notcursor>byteBuffer.size()) throw new LangError("Invalid offset");
+            if (notcursor<0) throw new ExposedError("Invalid offset");
+            if (notcursor>byteBuffer.size()) throw new ExposedError("Invalid offset");
             cursor = notcursor;
         }else if(whence.equals("end")){
-            if (offset>0) throw new LangError("Invalid offset");
-            if (offset>byteBuffer.size()) throw new LangError("Invalid offset");
+            if (offset>0) throw new ExposedError("Invalid offset");
+            if (offset>byteBuffer.size()) throw new ExposedError("Invalid offset");
             cursor = byteBuffer.size() + offset;
         }else{
-            throw new LangError("Invalid option");
+            throw new ExposedError("Invalid option");
         }
         return cursor;
     }
@@ -112,15 +112,15 @@ public class FileHeader implements Exposable {
 
     @Exposed
     public void write(int bytes){
-        if (!open) throw new LangError("Attempt to use a closed file");
-        if (!canWrite) throw new LangError("Access denied");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
+        if (!canWrite) throw new ExposedError("Access denied");
         byteBuffer.add((byte) bytes);
     }
 
     @Exposed
     public void write(Bytes bytes){
-        if (!open) throw new LangError("Attempt to use a closed file");
-        if (!canWrite) throw new LangError("Access denied");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
+        if (!canWrite) throw new ExposedError("Access denied");
         if (mode.binary()){
             for (byte _byte : bytes.getData()){
                 byteBuffer.add(_byte);
@@ -146,10 +146,10 @@ public class FileHeader implements Exposable {
 
     @Exposed
     public Value read(String format){
-        if (!open) throw new LangError("Attempt to use a closed file");
-        if (!canRead) throw new LangError("Access denied");
-        if (format.length()!=1)  throw new LangError("Invalid format");
-        if (byteBuffer.size()==cursor) return Value.of("");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
+        if (!canRead) throw new ExposedError("Access denied");
+        if (format.length()!=1)  throw new ExposedError("Invalid format");
+        if (byteBuffer.size()==cursor) return null;
         return switch (format.charAt(0)){
             case 'l', 'L' -> {
                 List<Byte> bytes = byteBuffer.subList(cursor, byteBuffer.size());
@@ -201,14 +201,14 @@ public class FileHeader implements Exposable {
                     yield Value.of(new String(data, StandardCharsets.UTF_8));
                 }
             }
-            default -> throw new LangError("Invalid format");
+            default -> throw new ExposedError("Invalid format");
         };
     }
 
     @Exposed
     public Value read(int amount){
-        if (!open) throw new LangError("Attempt to use a closed file");
-        if (!canRead) throw new LangError("Access denied");
+        if (!open) throw new ExposedError("Attempt to use a closed file");
+        if (!canRead) throw new ExposedError("Access denied");
         int newcur = cursor+amount;
         if (newcur<0){
             newcur = 0;

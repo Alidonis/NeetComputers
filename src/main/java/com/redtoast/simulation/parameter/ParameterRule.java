@@ -1,7 +1,7 @@
 package com.redtoast.simulation.parameter;
 
 import com.redtoast.simulation.base.CustomParameter;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +70,7 @@ public class ParameterRule {
             return Value.VarName(type);
         }
     }
-    public boolean check(Value value, @Nullable Runtime runtime) throws LangError {
+    public boolean check(Value value, @Nullable Runtime runtime) throws ExposedError {
         if (!mode){
             if (!value.instanceOf(type)) {
                 showType = true;
@@ -80,9 +80,9 @@ public class ParameterRule {
         }else{
             if (value.instanceOf(VarType.NUMBER) && type==VarType.NUMBER){
                 if (doIndex && range == null){
-                    if (!evalRange(Objects.requireNonNull(value.toInt()), runtime)) throw new LangError("Invalid index, must be "+getIndex(runtime)+" or greater");
+                    if (!evalRange(Objects.requireNonNull(value.toInt()), runtime)) throw new ExposedError("Invalid index, must be "+getIndex(runtime)+" or greater");
                 }else if (range !=null){
-                    if (!evalRange(Objects.requireNonNull(value.toInt()), runtime)) throw new LangError("Invalid index between "+getIndex(runtime)+" and "+getRange(runtime));
+                    if (!evalRange(Objects.requireNonNull(value.toInt()), runtime)) throw new ExposedError("Invalid index between "+getIndex(runtime)+" and "+getRange(runtime));
                 }
             }
             return value.instanceOf(type);

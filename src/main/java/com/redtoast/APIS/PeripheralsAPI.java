@@ -1,15 +1,12 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
-import com.redtoast.simulation.annotations.CustomRule;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.CustomParameter;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.Peripheral;
 
@@ -23,23 +20,6 @@ public class PeripheralsAPI implements API {
     @Override
     public String getLabel() {
         return "peripherals";
-    }
-
-    @CustomRule(rule = "validPeripheral")
-    static class validPeripheral extends CustomParameter {
-        @Override
-        public boolean rule(Value arg) {
-            if (!arg.instanceOf(VarType.TABLE)) return false;
-            Table table = (Table) arg.getValue();
-            if (table.asValue().hasMetaTable()) return true;
-            if (table.asValue().getMetaTable("tag").isNull()) return false;
-            return table.asValue().getMetaTable("tag").toString().equals("peripheral");
-        }
-
-        @Override
-        public String getName() {
-            return "Valid Peripheral";
-        }
     }
 
     public PeripheralsAPI(Computer vm) {
@@ -72,14 +52,14 @@ public class PeripheralsAPI implements API {
     }
 
     @Exposed
-    public String getUUID(@CustomRule(rule = "validPeripheral") Table peripheral){
+    public String getUUID(Table peripheral){
         Value uuid = Value.of(peripheral.asValue().getMetaTable("uuid").toString());
         uuid.setMetaTable(metaUUID);
         return uuid.toString();
     }
 
     @Exposed
-    public String getType(@CustomRule(rule = "validPeripheral") Table peripheral){
+    public String getType(Table peripheral){
         return peripheral.asValue().getMetaTable("type").toString();
     }
 

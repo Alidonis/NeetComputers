@@ -35,7 +35,7 @@ public class RGBGraphicsArray {
     }
 
     public static int rgbToDecimal(int red, int green, int blue) {
-        //using formula from https://stackoverflow.com/a/18037185
+        /*using formula from https://stackoverflow.com/a/18037185*/
         return (red << 16) & 0xFF0000 | (green << 8) & 0x00FF00 | blue & 0x0000FF;
     }
 

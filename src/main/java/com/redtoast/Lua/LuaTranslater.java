@@ -4,6 +4,7 @@ import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.value.ComplexValue;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.ValueTypes.Exception;
@@ -24,10 +25,12 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     public Varargs fromValue(Value var){
         if (var==null) return LuaValue.NIL;
         Varargs data = fromValueWithoutMetadata(var);
-        if (var.hasMetaTable() && !var.instanceOf(VarType.TUPLE)){
-            assert data instanceof LuaValue;
-            Varargs val = fromValueWithoutMetadata(var.getMetaTable().asValue());
-            ((LuaValue) data).setmetatable((LuaValue) val);
+        if (var.getValue() instanceof ComplexValue<?> CV && CV.getMetaTable()!=null && !var.instanceOf(VarType.TUPLE)){
+            if (data instanceof LuaTable table){
+                Varargs val = fromValueWithoutMetadata(CV.getMetaTable().asValue());
+                assert val instanceof LuaTable;
+                table.setmetatable((LuaTable) val);
+            }
         }
         return data;
     }
@@ -115,8 +118,14 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     public Value<?> toValue(Varargs var){
         if (var instanceof LuaNil) return Value.NULL;
         Value<?> data = toValueWithoutMetadata(var);
-        if (var instanceof LuaValue val){
-            data.setMetaTable(toValueWithoutMetadata(val).toTable());
+        if (var instanceof LuaTable val){
+            if (val.getmetatable() != null) {
+                data.setMetaTable(toValue(val.getmetatable()).toTable());
+            } else {
+                data.setMetaTable(new Table());
+            }
+        }else{
+            data.setMetaTable(new Table());
         }
         return data;
     }

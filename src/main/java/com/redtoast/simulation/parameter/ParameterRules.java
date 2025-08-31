@@ -1,7 +1,7 @@
 package com.redtoast.simulation.parameter;
 
 import com.redtoast.simulation.base.CustomParameter;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +66,7 @@ public class ParameterRules {
                         }else{
                             return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
                         }
-                    }catch (LangError err){
+                    }catch (ExposedError err){
                         return new ParameterCheckReturn("Argument #"+i+": "+err.getMessage());
                     }
                 }else{
@@ -80,7 +80,7 @@ public class ParameterRules {
                         }else{
                             return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());
                         }
-                    }catch (LangError err){
+                    }catch (ExposedError err){
                         return new ParameterCheckReturn("Argument #"+i+": "+err.getMessage());
                     }
                 }else{

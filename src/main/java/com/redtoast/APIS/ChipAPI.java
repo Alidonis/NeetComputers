@@ -3,7 +3,7 @@ package com.redtoast.APIS;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.base.LangError;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
@@ -50,7 +50,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public String createCore(String script){
-        if (vm.getThreads().size()>=computer.getSpecifications().MaxCores) throw new LangError("Thread cap for this machine reached, cant make more threads");
+        if (vm.getThreads().size()>=computer.getSpecifications().MaxCores) throw new ExposedError("Thread cap for this machine reached, cant make more threads");
         UUID uuid = vm.MakeThread(script, "Lua 5.2");
         return uuid.toString();
     }

@@ -157,6 +157,8 @@ public abstract class Computer {
                 }
                 if (nbt.contains("ComputerID")){
                     uuid = nbt.getUuid("ComputerID");
+                }else{
+                    uuid = UUID.randomUUID();
                 }
             }
             if (nbt.contains("build")){
@@ -342,7 +344,7 @@ public abstract class Computer {
         tickTime = System.currentTimeMillis();
         if (loaded){
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
-                fs = new FileSystem(build, pointer, null);
+                fs = new FileSystem(build, pointer, this);
                 if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
                 attachPeripheral(fs);
             }

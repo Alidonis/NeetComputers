@@ -16,6 +16,8 @@ public class Null{
     public boolean equals(Object obj) {
         if (obj instanceof Null){
             return true;
+        }else if (obj == null){
+            return true;
         }
         return super.equals(obj);
     }

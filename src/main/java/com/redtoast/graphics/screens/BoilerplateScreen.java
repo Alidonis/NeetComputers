@@ -10,6 +10,8 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.Hashtable;
 
+import static org.lwjgl.glfw.GLFW.*;
+
 /**
  * Abstract class designed to hold most of the boilerplate and I/O functions of {@link RGBGraphicsScreen}
  * <p>not supposed to be used on its own</p>
@@ -28,26 +30,45 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
     //i am boilerplate, destroyer of file size
     @Override
     public boolean keyPressed(int keycode, int scancode, int modifiers){
-        EventGeneric event = new EventGeneric("keyPressed",
-                Value.of(keycode),
-                Value.of(GLFW.glfwGetKeyName(keycode, scancode)),
-                Value.of(modifiers)
-        );
-        event.send(handler);
+        int code = mapGlfwKeyToAsciiCode(keycode, modifiers);
+        if (code!=0){
+            EventGeneric event = new EventGeneric("keyPressed",
+                    Value.of(code),
+                    Value.of(code>14 ? (char) code : Value.NULL),
+                    Value.of(modifiers)
+            );
+            event.send(handler);
+        }
+        if (client.options.inventoryKey.matchesKey(keycode, scancode)) return true;
         return super.keyPressed(keycode, scancode, modifiers);
     }
     @Override
     public boolean keyReleased(int keycode, int scancode, int modifiers){
-        EventGeneric event = new EventGeneric("keyReleased",
-                Value.of(keycode),
-                Value.of(GLFW.glfwGetKeyName(keycode, scancode)),
-                Value.of(modifiers)
-        );
-        event.send(handler);
-        return super.keyPressed(keycode, scancode, modifiers);
+        int code = mapGlfwKeyToAsciiCode(keycode, modifiers);
+        if (code!=0){
+            EventGeneric event = new EventGeneric("keyReleased",
+                    Value.of(code),
+                    Value.of(code>14 ? (char) code : Value.NULL),
+                    Value.of(modifiers)
+            );
+            event.send(handler);
+        }
+        return super.keyReleased(keycode, scancode, modifiers);
     }
     public abstract Vector2i screenToGraphics(double screenX, double screenY);
-
+    public void onTick(int mouseX, int mouseY){
+        Vector2i pos = screenToGraphics(mouseX, mouseY);
+        if (pos!=null){
+            if (!dragTable.containsKey(-1) || !dragTable.get(-1).equals(pos)){
+                EventGeneric event = new EventGeneric("mouseMoved",
+                        Value.of(pos.x),
+                        Value.of(pos.y)
+                );
+                event.send(handler);
+            }
+            dragTable.put(-1, pos);
+        }
+    }
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int key){
         Vector2i pos = screenToGraphics(mouseX, mouseY);
@@ -132,5 +153,52 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             event.send(handler);
         }
         return super.mouseScrolled(mouseX, mouseY, scroll);
+    }
+    private int mapGlfwKeyToAsciiCode(int key, int mods) {
+        boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
+
+        if (key >= GLFW.GLFW_KEY_A && key <= GLFW.GLFW_KEY_Z) {
+            int base = 'a' + (key - GLFW.GLFW_KEY_A);
+            return shift ? Character.toUpperCase(base) : base;
+        }
+
+        if (key >= GLFW.GLFW_KEY_0 && key <= GLFW.GLFW_KEY_9) {
+            if (shift) {
+                return switch (key) {
+                    case GLFW.GLFW_KEY_1 -> '!';
+                    case GLFW.GLFW_KEY_2 -> '@';
+                    case GLFW.GLFW_KEY_3 -> '#';
+                    case GLFW.GLFW_KEY_4 -> '$';
+                    case GLFW.GLFW_KEY_5 -> '%';
+                    case GLFW.GLFW_KEY_6 -> '^';
+                    case GLFW.GLFW_KEY_7 -> '&';
+                    case GLFW.GLFW_KEY_8 -> '*';
+                    case GLFW.GLFW_KEY_9 -> '(';
+                    case GLFW.GLFW_KEY_0 -> ')';
+                    default -> 0;
+                };
+            } else {
+                return '0' + (key - GLFW.GLFW_KEY_0);
+            }
+        }
+
+        return switch (key) {
+            case GLFW_KEY_SPACE -> ' ';
+            case GLFW_KEY_APOSTROPHE -> shift ? '"' : '\'';
+            case GLFW_KEY_COMMA -> shift ? '<' : ',';
+            case GLFW_KEY_MINUS -> shift ? '_' : '-';
+            case GLFW_KEY_PERIOD -> shift ? '>' : '.';
+            case GLFW_KEY_SLASH -> shift ? '?' : '/';
+            case GLFW_KEY_SEMICOLON -> shift ? ':' : ';';
+            case GLFW_KEY_EQUAL -> shift ? '+' : '=';
+            case GLFW_KEY_LEFT_BRACKET -> shift ? '{' : '[';
+            case GLFW_KEY_BACKSLASH -> shift ? '|' : '\\';
+            case GLFW_KEY_RIGHT_BRACKET -> shift ? '}' : ']';
+            case GLFW_KEY_GRAVE_ACCENT -> shift ? '~' : '`';
+            case GLFW_KEY_ENTER -> 13;
+            case GLFW_KEY_BACKSPACE, GLFW_KEY_DELETE -> 8;
+            case GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT -> 14;
+            default -> 0;
+        };
     }
 }

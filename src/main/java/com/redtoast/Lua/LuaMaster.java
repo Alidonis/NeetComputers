@@ -22,4 +22,14 @@ public class LuaMaster implements LanguageGeneric {
     public LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, computerSpecs specifications) {
         return new LuaThread(script, parentRuntime, specifications);
     }
+
+    @Override
+    public boolean bumpIndexs() {
+        return true;
+    }
+
+    @Override
+    public boolean dynamicNumbers() {
+        return true;
+    }
 }
