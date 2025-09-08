@@ -20,6 +20,7 @@ public class Layer extends GraphicalAPI{
         super(graphics, runtime);
         uuid = UUID.randomUUID();
         memoryTable.put(uuid, this);
+        GraphicsBuffer.makeTransparent();
         Graphics = null;
     }
 

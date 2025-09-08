@@ -91,6 +91,7 @@ public class GraphicalAPI implements Exposable
         height = size.y;
         width = size.x;
         GraphicsBuffer = new RGBGraphicsArray(graphics.pixels);
+        GraphicsBuffer.makeOpaque();
         setColor(255,255,255);
         this.runtime = runtime;
     }
@@ -262,12 +263,9 @@ public class GraphicalAPI implements Exposable
         drawPixel(x, y, defualtColor);
     }
     protected void rawDrawPixel(int x, int y, int R, int G, int B){
-        Vector3i old = alpha==255 ? new Vector3i() : RGBGraphicsArray.decimalToRgb(GraphicsBuffer.get(x, y));
-        GraphicsBuffer.set(x, y, RGBGraphicsArray.rgbToDecimal(
-                applyAlpha(R, old.x, alpha),
-                applyAlpha(G, old.y, alpha),
-                applyAlpha(B, old.z, alpha)
-        ));
+        int color = (alpha << 24) | (R << 16) | (G << 8) | B;
+
+        GraphicsBuffer.set(x,y,RGBGraphicsArray.blendPixel(GraphicsBuffer.get(x,y), color));
     }
     @Exposed
     public void drawPixel(@Index int x, @Index int y, @Index( strict = true, offset=-1 ) @Range( range = 256 ) int R, @Index( strict = true, offset=-1 ) @Range( range = 256 ) int G, @Index( strict = true, offset=-1 ) @Range( range = 256 ) int B)

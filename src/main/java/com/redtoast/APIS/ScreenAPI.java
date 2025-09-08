@@ -25,7 +25,11 @@ public class ScreenAPI extends GraphicalAPI implements API {
     @Exposed
     public void draw()//refreash graphics on screen
     {
-        Graphics.pixels = GraphicsBuffer.pixels;
+        for (int x = 0; x < GraphicsBuffer.getSize().x; x++){
+            for (int y = 0; y < GraphicsBuffer.getSize().y; y++){
+                Graphics.set(x, y, GraphicsBuffer.get(x, y));
+            }
+        }
     }
 
     @Exposed

@@ -192,11 +192,14 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         }
 
         public void placeRec(double x1, double y1, double x2, double y2, int color){
+            /*blend the pixel with a black background, so that way transparency*/
+            color = RGBGraphicsArray.blendPixel(0xFF000000, color);
+
             /*splits the color channels as to be more friendly with rendering pipelines and less lick-ly to be misinterpreted*/
+            float a = 1f;//((color >> 24) & 0xFF) / 255f;
             float r = ((color >> 16) & 0xFF) / 255f;
             float g = ((color >> 8) & 0xFF) / 255f;
             float b = (color & 0xFF) / 255f;
-            float a = 1f;
 
             /*draws two triangles to increase the odds of our format being supported by modern renderers*/
             buffer.vertex(matrix, (float) x2, (float) y2, 0).color(r, g, b, a).next();

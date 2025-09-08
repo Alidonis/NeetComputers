@@ -24,6 +24,22 @@ public class RGBGraphicsArray {
         }
     }
 
+    public void makeOpaque(){
+        for (int y = 0; y < sizey; y++){
+            for (int x = 0; x < sizex; x++){
+                pixels[y][x] &= 0x00FFFFFF;
+            }
+        }
+    }
+
+    public void makeTransparent(){
+        for (int y = 0; y < sizey; y++){
+            for (int x = 0; x < sizex; x++){
+                pixels[y][x] |= 0xFF000000;
+            }
+        }
+    }
+
     public int get(int x, int y) {
         return pixels[y][x];
     }
@@ -37,6 +53,10 @@ public class RGBGraphicsArray {
     public static int rgbToDecimal(int red, int green, int blue) {
         /*using formula from https://stackoverflow.com/a/18037185*/
         return (red << 16) & 0xFF0000 | (green << 8) & 0x00FF00 | blue & 0x0000FF;
+    }
+
+    public static int opacityToDecimal(int alpha){
+        return (alpha << 24) & 0xFF000000;
     }
 
     public static Vector3i decimalToRgb(int decimal){
@@ -76,10 +96,35 @@ public class RGBGraphicsArray {
     }
 
     public void clear(){
-        for (int x = 0; x < getSize().x; x++){
-            for (int y = 0; y < getSize().y; y++){
-                set(x,y,0);
+        for (int y = 0; y < sizey; y++){
+            for (int x = 0; x < sizex; x++){
+                pixels[y][x] &= 0x00000000;
             }
         }
+    }
+
+    public static int blendPixel(int source, int color) {
+        int a1 = (source >> 24) & 0xFF;
+        int r1 = (source >> 16) & 0xFF;
+        int g1 = (source >> 8) & 0xFF;
+        int b1 = source & 0xFF;
+
+        int a2 = (color >> 24) & 0xFF;
+        int r2 = (color >> 16) & 0xFF;
+        int g2 = (color >> 8) & 0xFF;
+        int b2 = color & 0xFF;
+
+        float alpha1 = a1 / 255f;
+        float alpha2 = a2 / 255f;
+
+        float outA = alpha2 + alpha1 * (1 - alpha2);
+        if (outA <= 0) return 0;
+
+        int outR = Math.round((r2 * alpha2 + r1 * alpha1 * (1 - alpha2)) / outA);
+        int outG = Math.round((g2 * alpha2 + g1 * alpha1 * (1 - alpha2)) / outA);
+        int outB = Math.round((b2 * alpha2 + b1 * alpha1 * (1 - alpha2)) / outA);
+        int outAlpha = Math.round(outA * 255);
+
+        return (outAlpha << 24) | (outR << 16) | (outG << 8) | outB;
     }
 }
