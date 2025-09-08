@@ -4,7 +4,6 @@ import com.redtoast.Computer;
 import com.redtoast.computerSpecs;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.neet.ComputerStorage;
-import com.redtoast.peripherals.ProjectorAPI;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.model.BakedModel;
@@ -74,7 +73,6 @@ public class ComputerItem extends Item {
                 new AtomicBoolean(false),
                 saveCompound
         );
-        if (specifications.doesBinaryGraphics) Cstack.computer().get().attachPeripheral(new ProjectorAPI(Cstack.computer().get()));
         return Cstack;
     }
 

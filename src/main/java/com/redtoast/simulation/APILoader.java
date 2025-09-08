@@ -359,7 +359,7 @@ public class APILoader {
             public Value call(FunctionInput parameters) {
                 try {
                     if (runtime!=null){
-                        if (runtime.isDead()) return Value.asError("Attempt to call function from expired runtime (how did you get here)");
+                        if (runtime.isDead()) return Value.asError("Attempt to call function from kill runtime (how did you get here)");
                         obj.onCall(runtime.thread, method);
                     }
                     long timeStarted = System.currentTimeMillis();

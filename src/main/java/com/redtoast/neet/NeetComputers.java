@@ -14,11 +14,12 @@ import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
+import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
-import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -128,16 +129,32 @@ public class NeetComputers implements ModInitializer {
 				return new ChipAPI(computer);
 			}
 		});
+//		APILoader.register(new APIRegistry() {
+//			@Override
+//			public @NotNull API Create(Computer computer) {
+//				return new PeripheralsAPI(computer);
+//			}
+//		});
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
-				return new PeripheralsAPI(computer);
+				return new ScreenAPI(computer.getGraphics(), computer);
 			}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
-				return new ScreenAPI(computer.getGraphics(), computer);
+				return computer.getFs();
+			}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {
+				return new ProjectorAPI(computer);
+			}
+			@Override
+			public boolean predicate(Computer computer){
+				return computer.getSpecifications().doesBinaryGraphics;
 			}
 		});
 		APILoader.register(new APIRegistry() {

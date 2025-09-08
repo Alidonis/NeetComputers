@@ -1,5 +1,6 @@
 package com.redtoast;
 
+import com.redtoast.external.PeripheralProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -21,7 +22,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2i;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -74,7 +74,7 @@ public abstract class Computer {
     private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
-    private boolean doesBinaryGraphics = false;
+    private boolean doesBinaryGraphics;
     //increments every tick, loops back at 100
     private short clock = 0;
     //object representing colored graphics (gui)
@@ -83,8 +83,6 @@ public abstract class Computer {
     private final LinkedList<API> unwrappedPeripherals = new LinkedList<>();
     //stores the peripherals has access to during runtime
     private LinkedList<Peripheral> peripheralBuffer = new LinkedList<>();
-    //vector determining mouse pos
-    private Vector2i mousePos;
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
     //state for defining if the computer is paused
@@ -100,7 +98,7 @@ public abstract class Computer {
     //table storing NVRam
     private NVTable NVRam;
     //value holding last time computer ticked
-    private long tickTime = 0;
+    private long tickTime;
     //tells the computer to shut down at the end of a tick cycle
     private boolean deadManWalking = false;
 
@@ -346,7 +344,7 @@ public abstract class Computer {
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, this);
                 if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
-                attachPeripheral(fs);
+                //attachPeripheral(fs);
             }
             if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null && !IsCrashed){
@@ -389,8 +387,8 @@ public abstract class Computer {
     }
 
     //adds a context sensitive
-    public void attachPeripheral(com.redtoast.simulation.base.Peripheral peripheral){
-        unwrappedPeripherals.add(peripheral);
+    public void attachPeripheral(PeripheralProvider peripheralProvider){
+        //unwrappedPeripherals.add(peripheralProvider);
     }
     //que's an event to the computer if server-side or sends event to server to be que'd if not
     public void queueEvent(EventGeneric event) {

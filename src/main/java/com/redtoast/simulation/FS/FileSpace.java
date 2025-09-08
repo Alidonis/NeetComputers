@@ -1,13 +1,13 @@
 package com.redtoast.simulation.FS;
 
 import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.external.PeripheralProvider;
 import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.Peripheral;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import net.minecraft.nbt.NbtCompound;
 
-public interface FileSpace extends Peripheral {
+public interface FileSpace extends API {
     default String getLabel(){return "file system";}
 
     Filepath getFile(String path);

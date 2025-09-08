@@ -241,9 +241,4 @@ public class FileSystem implements BootablePartitionedFileSpace {
         if (!file.canRead()) throw new IOException("File not readable");
         return true;
     }
-
-    @Override
-    public boolean expired() {
-        return false;
-    }
 }
