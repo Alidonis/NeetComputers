@@ -7,6 +7,8 @@ import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
+import com.redtoast.external.PeripheralHarness;
+import com.redtoast.external.RuntimePeripheralContainer;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.items.generics.ComputerItem;
@@ -16,7 +18,6 @@ import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.simulation.EventGeneric;
-import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
@@ -144,9 +145,32 @@ public class NeetComputers implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
-				return computer.getFs();
+				ExternalAPI externalAPI = new ExternalAPI(computer);
+				computer.setPeripheralHarness(new PeripheralHarness() {
+					@Override
+					public void attached(RuntimePeripheralContainer peripheral) {
+						externalAPI.attached(peripheral);
+					}
+
+					@Override
+					public void detached(RuntimePeripheralContainer peripheral) {
+						externalAPI.detached(peripheral);
+					}
+
+					@Override
+					public void tick(short DeltaTime) {
+						externalAPI.tick(DeltaTime);
+					}
+				});
+				return externalAPI;
 			}
 		});
+//		APILoader.register(new APIRegistry() {
+//			@Override
+//			public @NotNull API Create(Computer computer) {
+//				return computer.getFs();
+//			}
+//		});
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
