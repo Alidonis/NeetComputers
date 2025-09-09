@@ -529,7 +529,7 @@ public class Value<Type> {
     @Override
     public boolean equals(Object obj){
         if (obj instanceof Value<?> _value){
-            return _value.getValue().equals(value);
+            return _value.value.equals(value);
         }
         return value.equals(obj);
     }
