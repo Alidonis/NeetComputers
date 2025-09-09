@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
@@ -113,6 +114,27 @@ public class APILoader {
     public static Table TableizeAPI(Exposable exposable, @Nullable Runtime runtime){
         try{
             Function[] functions = translateAPI(exposable, runtime);
+            Table apiTable = new Table();
+            for (Function func : functions){
+                if (func.getName()!=null){
+                    apiTable.put(func.getName(), func.asValue());
+                }else{
+                    throw new LoaderError("Issue encountered loading api '"+exposable.getClass().getName()+"': nameless function (try .setName on runtime implemented functions)");
+                }
+            }
+            return exposable.postProcessing(apiTable);
+        }catch (LoaderError loaderError){
+            throw new CrashException(new CrashReport(loaderError.message, loaderError));
+        }
+    }
+
+    /**
+     * Meant for internal use only, designed to stop closed peripherals from executing
+     */
+    @Deprecated
+    public static Table TableizeAPIWithCloseCondition(Exposable exposable, AtomicBoolean condition, Runtime runtime){
+        try{
+            Function[] functions = translateAPIWithCloseCondition(exposable, condition, runtime);
             Table apiTable = new Table();
             for (Function func : functions){
                 if (func.getName()!=null){
@@ -359,7 +381,7 @@ public class APILoader {
             public Value call(FunctionInput parameters) {
                 try {
                     if (runtime!=null){
-                        if (runtime.isDead()) return Value.asError("Attempt to call function from kill runtime (how did you get here)");
+                        if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
                         obj.onCall(runtime.thread, method);
                     }
                     long timeStarted = System.currentTimeMillis();
@@ -384,6 +406,23 @@ public class APILoader {
             }
         };
         temp.setName(funcname);
+        return temp;
+    }
+
+    /**
+     * Meant for internal use only, designed to stop closed peripherals from executing
+     */
+    @Deprecated
+    public static Function sandboxFunctionWithCloseCondition(Method method, Exposable obj, ParameterRules ruleset, AtomicBoolean condition, Runtime runtime){
+        Function tempFunction = sandboxFunction(method, obj, ruleset, runtime);
+        Function temp = new Function(tempFunction.getRules()) {
+            @Override
+            public Value call(FunctionInput parameters) {
+                if (!condition.get()) return Value.asError("Object closed");
+                return tempFunction.call(parameters);
+            }
+        };
+        temp.setName(tempFunction.getName());
         return temp;
     }
 
@@ -450,6 +489,37 @@ public class APILoader {
         };
     }
 
+    /**
+     * Meant for internal use only, designed to stop closed peripherals from executing
+     */
+    @Deprecated
+    private static Function packCachedFunctionWithCloseCondition(PackedFunctionCache functionCache, Exposable obj, AtomicBoolean condition, Runtime runtime){
+        return new Function(functionCache.name, ParameterRules.ANY) {
+            @Override
+            public Value call(FunctionInput parameters) {
+                LinkedList<String> errors = new LinkedList<>();
+                LinkedList<String> names = new LinkedList<>();
+                for (StaticFunctionCache staticFunction : functionCache.functions){
+                    ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), staticFunction.ruleset(), runtime);
+                    if (retur.isError()){
+                        errors.add(retur.getMessage());
+                        names.add(staticFunction.functionName() + staticFunction.ruleset().toString(runtime));
+                    }else{
+                        Function function = sandboxFunctionWithCloseCondition(staticFunction.method(), obj, staticFunction.ruleset(), condition, runtime);
+                        return function.call(retur.getFunctionInput());
+                    }
+                }
+                names.sort(String::compareTo);
+                StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                for (String string : names){
+                    error.append('\n');
+                    error.append(string);
+                }
+                return new Exception(error.toString()).asValue();
+            }
+        };
+    }
+
     private static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime) throws LoaderError {
         if (!cache.containsKey(obj.getClass())) {
             Class<?> _class = obj.getClass();
@@ -475,6 +545,41 @@ public class APILoader {
             }
             for (PackedFunctionCache packedFunctionCache : cachedLoader.packedFunctions()){
                 functions.add(packCachedFunction(packedFunctionCache, obj, runtime));
+            }
+            functions.sort(Comparator.comparing(Function::getName));
+            return functions.toArray(new Function[]{});
+        }
+    }
+
+    /**
+     * Meant for internal use only, designed to stop closed peripherals from executing
+     */
+    @Deprecated
+    private static Function[] translateAPIWithCloseCondition(Exposable obj, AtomicBoolean condition, Runtime runtime) throws LoaderError {
+        if (!cache.containsKey(obj.getClass())) {
+            Class<?> _class = obj.getClass();
+            Hashtable<String, LinkedList<Function>> functions = new Hashtable<>();
+            Method[] buffer = _class.getMethods();
+            for (Method method : buffer) {
+                if (method.isAnnotationPresent(Exposed.class)) {
+                    ParameterRules ruleset = rulesFromMethod(method);
+                    Function function = sandboxFunctionWithCloseCondition(method, obj, ruleset, condition, runtime);
+                    if (functions.containsKey(function.getName())) {
+                        functions.get(function.getName()).add(function);
+                    } else {
+                        functions.put(function.getName(), new LinkedList<>(Set.of(function)));
+                    }
+                }
+            }
+            return packFunctions(functions, runtime);
+        }else{
+            LoaderCache cachedLoader = cache.get(obj.getClass());
+            LinkedList<Function> functions = new LinkedList<>();
+            for (StaticFunctionCache staticFunctionCache : cachedLoader.functions()){
+                functions.add(sandboxFunctionWithCloseCondition(staticFunctionCache.method(), obj, staticFunctionCache.ruleset(), condition, runtime));
+            }
+            for (PackedFunctionCache packedFunctionCache : cachedLoader.packedFunctions()){
+                functions.add(packCachedFunctionWithCloseCondition(packedFunctionCache, obj, condition, runtime));
             }
             functions.sort(Comparator.comparing(Function::getName));
             return functions.toArray(new Function[]{});
