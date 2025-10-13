@@ -21,6 +21,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     private static ParameterRules ruleset = new ParameterRules(VarType.INT);
     private UUID uuid = null;
     private Integer lightLevel = null;
+    private Integer lightLevelCurrent = 0;
 
     public DynamicLightBlockEntity(BlockPos pos, BlockState state) {
         super(BulkRegistery.fetchBlockEntityType("dynamic_light"), pos, state);
@@ -47,6 +48,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
         }
         if (nbt.contains("light_level", NbtElement.INT_TYPE) && lightLevel==null){
             lightLevel = nbt.getInt("light_level");
+            lightLevelCurrent = nbt.getInt("light_level");
         }
     }
 
@@ -66,7 +68,9 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t){
         BlockEntity blockEntity = world.getBlockEntity(blockPos);
         if (blockEntity instanceof DynamicLightBlockEntity dynamicLightBlockEntity && dynamicLightBlockEntity.lightLevel!=null){
-            world.setBlockState(blockPos, blockState.with(DynamicLightBlock.LUMINANCE, Math.min(Math.max(dynamicLightBlockEntity.lightLevel, 0),15)), Block.NOTIFY_ALL);
+            if (dynamicLightBlockEntity.lightLevel < dynamicLightBlockEntity.lightLevelCurrent && dynamicLightBlockEntity.lightLevelCurrent>0) dynamicLightBlockEntity.lightLevelCurrent--;
+            if (dynamicLightBlockEntity.lightLevel > dynamicLightBlockEntity.lightLevelCurrent && dynamicLightBlockEntity.lightLevelCurrent<15) dynamicLightBlockEntity.lightLevelCurrent++;
+            world.setBlockState(blockPos, blockState.with(DynamicLightBlock.LUMINANCE, dynamicLightBlockEntity.lightLevelCurrent), Block.NOTIFY_ALL);
         }
     }
 

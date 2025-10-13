@@ -1,7 +1,37 @@
 {
   "variants": {
-    "": {
-      "model": "neetcomputers:block/dynamic_light"
+    "luminance=0" : {
+          "model": "neetcomputers:block/dynamic_light/0"
+    },"luminance=1" : {
+          "model": "neetcomputers:block/dynamic_light/1"
+    },"luminance=2" : {
+          "model": "neetcomputers:block/dynamic_light/2"
+    },"luminance=3" : {
+          "model": "neetcomputers:block/dynamic_light/3"
+    },"luminance=4" : {
+          "model": "neetcomputers:block/dynamic_light/4"
+    },"luminance=5" : {
+          "model": "neetcomputers:block/dynamic_light/5"
+    },"luminance=6" : {
+          "model": "neetcomputers:block/dynamic_light/6"
+    },"luminance=7" : {
+          "model": "neetcomputers:block/dynamic_light/7"
+    },"luminance=8" : {
+          "model": "neetcomputers:block/dynamic_light/8"
+    },"luminance=9" : {
+          "model": "neetcomputers:block/dynamic_light/9"
+    },"luminance=10" : {
+          "model": "neetcomputers:block/dynamic_light/10"
+    },"luminance=11" : {
+          "model": "neetcomputers:block/dynamic_light/11"
+    },"luminance=12" : {
+          "model": "neetcomputers:block/dynamic_light/12"
+    },"luminance=13" : {
+          "model": "neetcomputers:block/dynamic_light/13"
+    },"luminance=14" : {
+          "model": "neetcomputers:block/dynamic_light/14"
+    },"luminance=15" : {
+          "model": "neetcomputers:block/dynamic_light/15"
     }
   }
 }

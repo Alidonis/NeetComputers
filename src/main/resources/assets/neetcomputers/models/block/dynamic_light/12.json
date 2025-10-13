@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "neetcomputers:block/dynamic_light/15"
+    "all": "neetcomputers:block/dynamic_light/12"
   }
 }
