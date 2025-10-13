@@ -1,8 +1,7 @@
 package com.redtoast;
 
 import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PeripheralReciver;
-import com.redtoast.external.*;
+import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -57,7 +56,7 @@ import java.util.*;
  * @see GlobalManager
  * @see FileSystem
  */
-public abstract class Computer implements PeripheralReciver {
+public abstract class Computer implements PeripheralReceiver {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts

@@ -90,4 +90,22 @@ public class IOAPI implements API {
         }
         throw new ExposedError("Peripheral not found");
     }
+
+    @Exposed
+    public Value callFunction(String uuidString, String functionName, Value... args){
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidString);
+        }catch (IllegalArgumentException illegalArgumentException){
+            throw new ExposedError("UUID invalidly formatted");
+        }
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)){
+                for (String functionName2 : peripheralProvider.getFunctionNames()){
+                    if (functionName.equals(functionName2)) return peripheralProvider.callFunction(functionName, args);
+                }
+            }
+        }
+        throw new ExposedError("Peripheral not found");
+    }
 }

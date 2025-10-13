@@ -3,7 +3,7 @@ package com.redtoast.blocks.generic;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PeripheralReciver;
+import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
 import com.redtoast.blocks.modem.ModemBlock;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralReciver {
+public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralReceiver {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
