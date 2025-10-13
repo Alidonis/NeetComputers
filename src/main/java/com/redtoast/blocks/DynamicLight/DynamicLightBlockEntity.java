@@ -18,7 +18,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class DynamicLightBlockEntity extends BlockEntity implements PeripheralProvider {
-    private static ParameterRules ruleset = new ParameterRules(VarType.INT);
+    private static final ParameterRules ruleset = new ParameterRules(VarType.INT);
+    private static final ParameterRules ruleset2 = new ParameterRules();
     private UUID uuid = null;
     private Integer lightLevel = null;
     private Integer lightLevelCurrent = 0;
@@ -29,7 +30,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
 
     @Override
     public String[] getFunctionNames() {
-        return new String[]{"setLuminance"};
+        return new String[]{"setLuminance", "turnOn", "turnOff"};
     }
 
     @Override
@@ -54,15 +55,31 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
 
     @Override
     public Value<?> callFunction(String name, Value<?>... args) {
-        if (!Objects.equals(name, "setLuminance")){
-            Value.asError("Cant Find Function '"+name+"'");
+        if (Objects.equals(name, "setLuminance")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset, null);
+            if (retur.isError()){
+                return Value.asError(retur.getMessage());
+            }
+            lightLevel = retur.getFunctionInput().get(0).toInt();
+            return Value.NULL;
         }
-        ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset, null);
-        if (retur.isError()){
-            return Value.asError(retur.getMessage());
+        if (Objects.equals(name, "turnOff")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset2, null);
+            if (retur.isError()){
+                return Value.asError(retur.getMessage());
+            }
+            lightLevel = 0;
+            return Value.NULL;
         }
-        lightLevel = retur.getFunctionInput().get(0).toInt();
-        return Value.NULL;
+        if (Objects.equals(name, "turnOn")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset2, null);
+            if (retur.isError()){
+                return Value.asError(retur.getMessage());
+            }
+            lightLevel = 15;
+            return Value.NULL;
+        }
+        return Value.asError("Cant Find Function '"+name+"'");
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t){
