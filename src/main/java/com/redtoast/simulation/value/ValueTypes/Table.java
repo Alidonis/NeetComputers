@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
  * @see Value
  * @see List
  * @see Tuple
- * @see Function/
+ * @see Function
  * @see Exception
  * @see Hashtable
  */
@@ -87,5 +87,13 @@ public class Table implements ComplexValue<Table> {
     public Value getMeta(Object key) {
         if (metadata==null) return null;
         return metadata.get(Value.of(key));
+    }
+
+    public String[] getKeysString(){
+        String[] keys = new String[table.keySet().size()];
+        for (int i = 0; i < keys.length; i++){
+            keys[i] = table.keySet().toArray()[i].toString();
+        }
+        return keys;
     }
 }

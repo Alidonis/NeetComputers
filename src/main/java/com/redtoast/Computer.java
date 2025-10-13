@@ -1,5 +1,7 @@
 package com.redtoast;
 
+import com.redtoast.Connections.PeripheralProvider;
+import com.redtoast.Connections.PeripheralReciver;
 import com.redtoast.external.*;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
@@ -11,7 +13,9 @@ import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.NVTable;
+import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -25,10 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * the {@link Computer} class represents the entirty of a NeetComputers computer and its subclasses.
@@ -56,7 +57,7 @@ import java.util.UUID;
  * @see GlobalManager
  * @see FileSystem
  */
-public abstract class Computer implements PeripheralConsumer {
+public abstract class Computer implements PeripheralReciver {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts
@@ -84,9 +85,6 @@ public abstract class Computer implements PeripheralConsumer {
     private final LinkedList<API> unwrappedPeripherals = new LinkedList<>();
     //stores the peripherals has access to during runtime
     private LinkedList<Peripheral> peripheralBuffer = new LinkedList<>();
-    //contains all the computers available peripherals
-    private final Hashtable<UUID, RuntimePeripheralContainer> peripherals = new Hashtable<>();
-    private PeripheralHarness peripheralHarness = null;
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
     //state for defining if the computer is paused
@@ -291,6 +289,7 @@ public abstract class Computer implements PeripheralConsumer {
 
     //one line fetch methods
     public boolean isOn(){return IsOn;}
+    public boolean isDead(){return !IsOn;}
     public boolean isCrashed(){return IsCrashed;}
     public String getCrashMessage(){return IsCrashed ? message : null;}
     public boolean isLoaded(){return loaded;}
@@ -344,12 +343,11 @@ public abstract class Computer implements PeripheralConsumer {
     public void tick(World world){
         short delta = (short) (System.currentTimeMillis() - tickTime);
         tickTime = System.currentTimeMillis();
-        if (peripheralHarness!=null) peripheralHarness.tick(delta);
         if (loaded){
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, this);
                 if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
-                //attachPeripheral(fs);
+                attachPeripheral(fs);
             }
             if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null && !IsCrashed){
@@ -391,40 +389,38 @@ public abstract class Computer implements PeripheralConsumer {
         }
     }
 
-    public void attachPeripheral(PeripheralProvider peripheral){
-        RuntimePeripheralContainer runtimePeripheralContainer = new RuntimePeripheralContainer(peripheral, getRuntime());
-        peripherals.put(runtimePeripheralContainer.getProviderUuid(), runtimePeripheralContainer);
-        if (peripheralHarness!=null) peripheralHarness.attached(runtimePeripheralContainer);
+    //Attaches a simulated peripheral to the computer, it cant be detached afterward
+    public void attachPeripheral(API api){
+        unwrappedPeripherals.add(api);
     }
 
-    public boolean detachPeripheral(UUID peripheralProviderUuid){
-        if (peripherals.containsKey(peripheralProviderUuid)){
-            RuntimePeripheralContainer runtimePeripheralContainer = peripherals.get(peripheralProviderUuid);
-            if (peripheralHarness!=null){
-                peripheralHarness.detached(runtimePeripheralContainer);
-                peripherals.remove(peripheralProviderUuid);
-            }
-            return true;
+    //gets a list of all peripheral providers on the system
+    public List<PeripheralProvider> getPeripheralProviders(){
+        List<PeripheralProvider> list = scanForPeripherals();
+        for (Peripheral peripheral : peripheralBuffer){
+            list.add(new PeripheralProvider() {
+                @Override
+                public String[] getFunctionNames() {
+                    return Objects.requireNonNull(peripheral.table.toTable()).getKeysString();
+                }
+
+                @Override
+                public Value<?> callFunction(String name, Value<?>... args) {
+                    return Objects.requireNonNull(Objects.requireNonNull(peripheral.table.toTable()).get(name).toFunction()).call(FunctionInput.fromArray(args));
+                }
+
+                @Override
+                public String getTypeName() {
+                    return peripheral.peripheralType;
+                }
+
+                @Override
+                public UUID getUuid() {
+                    return peripheral.uuid;
+                }
+            });
         }
-        return false;
-    }
-
-    public Hashtable<UUID, RuntimePeripheralContainer> getPeripheralTable(){
-        return peripherals;
-    }
-
-    public boolean setPeripheralHarness(PeripheralHarness peripheralHarness) {
-        if (this.peripheralHarness!=null) return false;
-        this.peripheralHarness = peripheralHarness;
-        peripherals.forEach((key, value) -> {
-            if (value.discovered.get()){
-                peripheralHarness.attached(value);
-            }else{
-                peripheralHarness.detached(value);
-                peripherals.remove(key);
-            }
-        });
-        return true;
+        return list;
     }
 
     //que's an event to the computer if server-side or sends event to server to be que'd if not
@@ -484,6 +480,7 @@ public abstract class Computer implements PeripheralConsumer {
                 }
 
             };
+
             new APILoader(this);
             for (API api : unwrappedPeripherals){
                 peripheralBuffer.add(APILoader.WrapAPI(api, runtime));

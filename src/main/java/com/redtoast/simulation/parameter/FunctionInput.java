@@ -4,6 +4,7 @@ import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import org.spongepowered.asm.mixin.injection.invoke.arg.ArgumentIndexOutOfBoundsException;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class FunctionInput {
@@ -16,6 +17,11 @@ public class FunctionInput {
     public FunctionInput(LinkedList<Value> data, LinkedList<Value> packedData){
         values = data;
         packed = new List(packedData);
+    }
+
+    public static FunctionInput fromArray(Value<?>[] args) {
+        LinkedList<Value> list = new LinkedList<>(Arrays.asList(args));
+        return new FunctionInput(list);
     }
 
     public List getPacked(){

@@ -1,17 +1,20 @@
 package com.redtoast.blocks.generic;
 
 import com.redtoast.Computer;
+import com.redtoast.Connections.PeripheralBlock;
+import com.redtoast.Connections.PeripheralProvider;
+import com.redtoast.Connections.PeripheralReciver;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
+import com.redtoast.blocks.modem.ModemBlock;
 import com.redtoast.computerSpecs;
-import com.redtoast.external.PeripheralProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.networkInterfaces.NetworkProvider;
-import com.redtoast.simulation.peripheralInterfaces.PeripheralConsumer;
+import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
@@ -34,21 +37,36 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
-public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralConsumer, com.redtoast.simulation.peripheralInterfaces.PeripheralProvider {
+public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralReciver {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
     private boolean corrupted = false;
+    private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
         super(type, pos, state);
         ComputerBlockEntity be = this;
         computer = new Computer(specifications) {
+            @Override
+            public List<PeripheralProvider> scanForPeripherals() {
+                return be.scanForPeripherals();
+            }
+
+            @Override
+            public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
+                return be.sendFunctionCall(uuid, functionName, args);
+            }
+
             @Override
             public void saveNBT() {
                 markDirty();
@@ -174,6 +192,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
+                computerBlock.peripheralProviderCache = computerBlock.scanForPeripheralsInternal();
                 if (computerBlock.corrupted){
                     BlockState current = world.getBlockState(blockPos);
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
@@ -214,27 +233,81 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     @Override
-    public void onPeripheralAttached(PeripheralProvider api, com.redtoast.simulation.peripheralInterfaces.PeripheralProvider source) {
+    public List<com.redtoast.Connections.PeripheralProvider> scanForPeripherals(){
+        return peripheralProviderCache;
+    }
 
+    public List<com.redtoast.Connections.PeripheralProvider> scanForPeripheralsInternal() {
+        LinkedList<BlockPos> todoList = new LinkedList<>();
+        LinkedList<BlockPos> investigated = new LinkedList<>();
+        LinkedList<PeripheralProvider> peripherals = new LinkedList<>();
+        todoList.add(getPos());
+
+        World world = getWorld();
+
+        while (!todoList.isEmpty()){
+            BlockPos current = todoList.getFirst();
+            todoList.remove();
+            for (Direction direction : Direction.values()){
+                BlockPos investigating = current.offset(direction);
+                if (investigated.contains(investigating)) {
+                    continue;
+                }
+                BlockState block = world.getBlockState(investigating);
+                if (block!=null){
+                    if (block.getBlock() instanceof ModemBlock){
+                        todoList.add(investigating);
+                    }else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
+                        BlockEntity blockEntity = world.getBlockEntity(investigating);
+                        if (blockEntity instanceof PeripheralProvider provider){
+                            peripherals.add(provider);
+                        }
+                    }
+                }
+                investigated.add(investigating);
+            }
+        }
+
+        return peripherals;
     }
 
     @Override
-    public void onPeripheralDetached(com.redtoast.simulation.peripheralInterfaces.PeripheralProvider source) {
+    public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
+        for (PeripheralProvider peripheralProvider : peripheralProviderCache) {
+            if (peripheralProvider.getUuid() == uuid) {
+                return peripheralProvider.callFunction(functionName, args);
+            }
+        }
+//        LinkedList<BlockPos> todoList = new LinkedList<>();
+//        LinkedList<BlockPos> investigated = new LinkedList<>();
+//        todoList.add(getPos());
+//
+//        while (!todoList.isEmpty()){
+//            BlockPos current = todoList.get(0);
+//            todoList.remove();
+//            for (Direction direction : Direction.values()){
+//                BlockPos investigating = current.offset(direction);
+//                if (investigated.contains(investigating)) {
+//                    continue;
+//                }
+//                BlockState block = getWorld().getBlockState(investigating);
+//                if (block!=null){
+//                    if (block.getBlock() instanceof ModemBlock){
+//                        todoList.add(investigating);
+//                        investigated.add(investigating);
+//                    }else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
+//                        BlockEntity blockEntity = getWorld().getBlockEntity(investigating);
+//                        if (blockEntity instanceof PeripheralProvider provider){
+//                            if (provider.getUuid() == uuid){
+//                                return provider.callFunction(functionName, args);
+//                            }
+//                        }
+//                        investigated.add(investigating);
+//                    }
+//                }
+//            }
+//        }
 
-    }
-
-    @Override
-    public boolean canAcceptPeripherals(com.redtoast.simulation.peripheralInterfaces.PeripheralProvider source) {
-        return computer.isOn();
-    }
-
-    @Override
-    public PeripheralProvider generateAPI(PeripheralConsumer source) {
-        return null;
-    }
-
-    @Override
-    public boolean isAccessible(PeripheralConsumer source) {
-        return false;
+        return Value.asError("Peripheral not found");
     }
 }

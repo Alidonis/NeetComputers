@@ -1,9 +1,11 @@
 package com.redtoast.items.generics;
 
 import com.redtoast.Computer;
+import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.computerSpecs;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.neet.ComputerStorage;
+import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.model.BakedModel;
@@ -26,6 +28,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,6 +49,16 @@ public class ComputerItem extends Item {
         AtomicBoolean isClient = new AtomicBoolean(false);
         computerStack Cstack = new computerStack(
                 new AtomicReference<>(new Computer(specifications) {
+                    @Override
+                    public List<PeripheralProvider> scanForPeripherals() {
+                        return List.of();
+                    }
+
+                    @Override
+                    public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
+                        return Value.asError("Peripheral not found");
+                    }
+
                     @Override
                     public void saveNBT() {
                         for (String key : saveCompound.getKeys()){

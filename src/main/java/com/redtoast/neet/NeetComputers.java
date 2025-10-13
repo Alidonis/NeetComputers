@@ -5,10 +5,11 @@ import com.redtoast.Lua.LuaMaster;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
+import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
+import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
-import com.redtoast.external.PeripheralHarness;
-import com.redtoast.external.RuntimePeripheralContainer;
+import com.redtoast.blocks.modem.ModemBlock;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.items.generics.ComputerItem;
@@ -100,9 +101,17 @@ public class NeetComputers implements ModInitializer {
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
 
-		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque().luminance(state -> state.get(LargeBlockComputer.ON) ? 4 : 0));
+		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 4 : 0));
 		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new, DesktopComputerRenderer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
+
+		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
+		BulkRegistery.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("dynamic_light"), group);
+
+		Block modem = new ModemBlock(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque());
+		BulkRegistery.register("modem",modem, true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("modem"), group);
 
 		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(1));
 		BulkRegistery.register("mobile_computer", modelComputer);
@@ -130,41 +139,41 @@ public class NeetComputers implements ModInitializer {
 				return new ChipAPI(computer);
 			}
 		});
-//		APILoader.register(new APIRegistry() {
-//			@Override
-//			public @NotNull API Create(Computer computer) {
-//				return new PeripheralsAPI(computer);
-//			}
-//		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {
+				return new IOAPI(computer);
+			}
+		});
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
 				return new ScreenAPI(computer.getGraphics(), computer);
 			}
 		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				ExternalAPI externalAPI = new ExternalAPI(computer);
-				computer.setPeripheralHarness(new PeripheralHarness() {
-					@Override
-					public void attached(RuntimePeripheralContainer peripheral) {
-						externalAPI.attached(peripheral);
-					}
-
-					@Override
-					public void detached(RuntimePeripheralContainer peripheral) {
-						externalAPI.detached(peripheral);
-					}
-
-					@Override
-					public void tick(short DeltaTime) {
-						externalAPI.tick(DeltaTime);
-					}
-				});
-				return externalAPI;
-			}
-		});
+//		APILoader.register(new APIRegistry() {
+//			@Override
+//			public @NotNull API Create(Computer computer) {
+//				ExternalAPI externalAPI = new ExternalAPI(computer);
+//				computer.setPeripheralHarness(new PeripheralHarness() {
+//					@Override
+//					public void attached(RuntimePeripheralContainer peripheral) {
+//						externalAPI.attached(peripheral);
+//					}
+//
+//					@Override
+//					public void detached(RuntimePeripheralContainer peripheral) {
+//						externalAPI.detached(peripheral);
+//					}
+//
+//					@Override
+//					public void tick(short DeltaTime) {
+//						externalAPI.tick(DeltaTime);
+//					}
+//				});
+//				return externalAPI;
+//			}
+//		});
 //		APILoader.register(new APIRegistry() {
 //			@Override
 //			public @NotNull API Create(Computer computer) {
