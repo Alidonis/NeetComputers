@@ -51,6 +51,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
             lightLevel = nbt.getInt("light_level");
             lightLevelCurrent = nbt.getInt("light_level");
         }
+
     }
 
     @Override

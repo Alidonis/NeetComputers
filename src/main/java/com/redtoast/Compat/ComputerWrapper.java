@@ -1,0 +1,69 @@
+package com.redtoast.Compat;
+
+import com.redtoast.Computer;
+import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.value.Value;
+import dan200.computercraft.api.filesystem.Mount;
+import dan200.computercraft.api.filesystem.WritableMount;
+import dan200.computercraft.api.peripheral.IComputerAccess;
+import dan200.computercraft.api.peripheral.IPeripheral;
+import dan200.computercraft.api.peripheral.WorkMonitor;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Map;
+
+public class ComputerWrapper implements IComputerAccess {
+    private final Computer computer;
+    private final IPeripheral peripheral;
+
+    public ComputerWrapper(Computer computer, IPeripheral peripheral){
+        this.computer = computer;
+        this.peripheral = peripheral;
+    }
+
+    @Override
+    public @Nullable String mount(String desiredLocation, Mount mount, String driveName) {
+        return null;
+    }
+
+    @Override
+    public @Nullable String mountWritable(String desiredLocation, WritableMount mount, String driveName) {
+        return null;
+    }
+
+    @Override
+    public void unmount(@Nullable String location) {
+
+    }
+
+    @Override
+    public int getID() {
+        return ~computer.getAddress();
+    }
+
+    @Override
+    public void queueEvent(String event, @Nullable Object... arguments) {
+        computer.queueEvent(new EventGeneric(event, arguments==null ? new Value[0] : Value.of(arguments).getValue().toArray()));
+    }
+
+    @Override
+    public String getAttachmentName() {
+        return peripheral.getType()+"_1";
+    }
+
+    @Override
+    public Map<String, IPeripheral> getAvailablePeripherals() {
+        return Map.of(getAttachmentName(), peripheral);
+    }
+
+    @Override
+    public @Nullable IPeripheral getAvailablePeripheral(String name) {
+        if (name.equals(getAttachmentName())) return peripheral;
+        return null;
+    }
+
+    @Override
+    public WorkMonitor getMainThreadMonitor() {
+        return null;
+    }
+}

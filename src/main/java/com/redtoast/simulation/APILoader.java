@@ -233,7 +233,7 @@ public class APILoader {
         return rules;
     }
 
-    private static Object[] processArgs(Method method, FunctionInput input, @Nullable Context context){
+    public static Object[] processArgs(Method method, FunctionInput input, @Nullable Context context){
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
         for (int i = 0; i < args.length; i++){
@@ -374,20 +374,20 @@ public class APILoader {
 
     public record Context(Runtime runtime, LanguageGeneric language){}
 
-    public static Function sandboxFunction(Method method, Exposable obj, ParameterRules ruleset, @Nullable Runtime runtime){
-        String funcname = method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride();
+    public static Function sandboxFunction(Method method, Object obj, ParameterRules ruleset, @Nullable Runtime runtime){
+        String funcname = method.isAnnotationPresent(Exposed.class) ? method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride() : null;
         Function temp = new Function(ruleset) {
             @Override
             public Value call(FunctionInput parameters) {
                 try {
-                    if (runtime!=null){
+                    if (runtime!=null && obj instanceof Exposable exposable){
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
-                        obj.onCall(runtime.thread, method);
+                        exposable.onCall(runtime.thread, method);
                     }
                     long timeStarted = System.currentTimeMillis();
                     Context context = runtime!=null ? new Context(runtime, NeetComputers.getLanguage(runtime.getRunningThread().getLang())) : null;
                     Object retun = method.invoke(obj, processArgs(method, parameters, context));
-                    profilerFunction(timeStarted, funcname + ruleset.toString(context.runtime), context);
+                    if (context!=null) profilerFunction(timeStarted, funcname + ruleset.toString(context.runtime), context);
                     if (retun==null){
                         return Value.NULL;
                     }else{
@@ -395,12 +395,21 @@ public class APILoader {
                     }
                 }catch (ExposedError error){
                     return Value.asError(error.getMessage());
+                }catch (PassthroughError passthroughError){
+                    throw passthroughError;
                 }catch (Throwable e){
                     Throwable unwrappedThrow = e.getCause();
-                    for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-                        System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                    if (unwrappedThrow==null){
+                        for (StackTraceElement track : e.getStackTrace()){
+                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                        }
+                        Function.logError(e.getMessage());
+                    }else{
+                        for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+                        }
+                        Function.logError(unwrappedThrow.getMessage());
                     }
-                    Function.logError(unwrappedThrow.getMessage());
                     return Value.asError("Unexpected java error, check log for information");
                 }
             }

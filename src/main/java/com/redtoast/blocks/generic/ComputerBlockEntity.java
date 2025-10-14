@@ -1,5 +1,6 @@
 package com.redtoast.blocks.generic;
 
+import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.Connections.PeripheralProvider;
@@ -263,6 +264,12 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                             peripherals.add(provider);
                         }
                     }
+//                    else{
+//                        PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
+//                        if (provider!=null){
+//                            peripherals.add(provider);
+//                        }
+//                    }
                 }
                 investigated.add(investigating);
             }
@@ -278,35 +285,6 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                 return peripheralProvider.callFunction(functionName, args);
             }
         }
-//        LinkedList<BlockPos> todoList = new LinkedList<>();
-//        LinkedList<BlockPos> investigated = new LinkedList<>();
-//        todoList.add(getPos());
-//
-//        while (!todoList.isEmpty()){
-//            BlockPos current = todoList.get(0);
-//            todoList.remove();
-//            for (Direction direction : Direction.values()){
-//                BlockPos investigating = current.offset(direction);
-//                if (investigated.contains(investigating)) {
-//                    continue;
-//                }
-//                BlockState block = getWorld().getBlockState(investigating);
-//                if (block!=null){
-//                    if (block.getBlock() instanceof ModemBlock){
-//                        todoList.add(investigating);
-//                        investigated.add(investigating);
-//                    }else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
-//                        BlockEntity blockEntity = getWorld().getBlockEntity(investigating);
-//                        if (blockEntity instanceof PeripheralProvider provider){
-//                            if (provider.getUuid() == uuid){
-//                                return provider.callFunction(functionName, args);
-//                            }
-//                        }
-//                        investigated.add(investigating);
-//                    }
-//                }
-//            }
-//        }
 
         return Value.asError("Peripheral not found");
     }
