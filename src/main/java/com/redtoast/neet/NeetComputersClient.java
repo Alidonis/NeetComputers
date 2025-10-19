@@ -1,5 +1,6 @@
 package com.redtoast.neet;
 
+import com.redtoast.Connections.CableRenderer;
 import com.redtoast.blocks.generic.ComputerBlockEntity;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
@@ -7,6 +8,7 @@ import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
@@ -21,6 +23,9 @@ import java.util.function.Function;
 public class NeetComputersClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
+		// Setup pipe renderer
+		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
+
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 

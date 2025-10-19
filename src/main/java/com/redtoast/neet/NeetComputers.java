@@ -18,12 +18,14 @@ import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.APIS.ProjectorAPI;
+import com.redtoast.Connections.CableManager;
 import com.redtoast.simulation.EventGeneric;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
+import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -60,6 +62,7 @@ public class NeetComputers implements ModInitializer {
 	public static final Identifier SCREEN_INIT_PACKET = Identifier.of("neetcomputers", "graphics_init");
 	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
 	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
+	public static CableManager cableManager = null;
 
 
 	//internal config
@@ -80,6 +83,8 @@ public class NeetComputers implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputers::updateServer);
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> cableManager = CableManager.getServerState(server));
+
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
 			@Override
 			public Identifier getFabricId() {
@@ -117,11 +122,11 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register("mobile_computer", modelComputer);
 		BulkRegistery.register(modelComputer, group);
 
-		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(16));
+		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(1));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);
 		BulkRegistery.register(peripheralCableItem, group);
 
-		Item networkingCableItem = new networkingCable(new FabricItemSettings().maxCount(16));
+		Item networkingCableItem = new networkingCable(new FabricItemSettings().maxCount(1));
 		BulkRegistery.register("networking_cable", networkingCableItem);
 		BulkRegistery.register(networkingCableItem, group);
 
@@ -258,6 +263,7 @@ public class NeetComputers implements ModInitializer {
 			LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
 		}
+
 		//process lang translaters
 		if (!LangsLoaded){
 			LangsLoaded = true;

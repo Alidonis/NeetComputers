@@ -17,13 +17,13 @@ public class IDFactory extends PersistentState {
     }
     public static IDFactory createFromNbt(NbtCompound tag) {
         IDFactory state = new IDFactory();
-        state.PointerIteration = tag.getInt("PointerIteration");
+        PointerIteration = tag.getInt("PointerIteration");
         return state;
     }
 
     public static IDFactory createNew() {
         IDFactory state = new IDFactory();
-        state.PointerIteration = 0;
+        PointerIteration = 0;
         return state;
     }
 

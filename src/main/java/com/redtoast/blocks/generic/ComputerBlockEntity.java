@@ -2,9 +2,7 @@ package com.redtoast.blocks.generic;
 
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
-import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PeripheralReceiver;
+import com.redtoast.Connections.*;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
 import com.redtoast.blocks.modem.ModemBlock;
@@ -239,6 +237,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     public List<com.redtoast.Connections.PeripheralProvider> scanForPeripheralsInternal() {
+        if (!CableManager.getInstance().pipeExists(getWorld().getDimension(), getPos(), PipeType.PERIPHERAL)) return List.of();
         LinkedList<BlockPos> todoList = new LinkedList<>();
         LinkedList<BlockPos> investigated = new LinkedList<>();
         LinkedList<PeripheralProvider> peripherals = new LinkedList<>();
@@ -255,22 +254,27 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                     continue;
                 }
                 BlockState block = world.getBlockState(investigating);
-                if (block!=null){
-                    if (block.getBlock() instanceof ModemBlock){
-                        todoList.add(investigating);
-                    }else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
-                        BlockEntity blockEntity = world.getBlockEntity(investigating);
-                        if (blockEntity instanceof PeripheralProvider provider){
-                            peripherals.add(provider);
-                        }
+                if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
+                    BlockEntity blockEntity = world.getBlockEntity(investigating);
+                    if (blockEntity instanceof PeripheralProvider provider){
+                        peripherals.add(provider);
                     }
+                }
+                if (CableManager.getInstance().pipeExists(world.getDimension(), investigating, PipeType.PERIPHERAL)) {
+                    todoList.add(investigating);
+                }
+//                else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)) {
+//                    BlockEntity blockEntity = world.getBlockEntity(investigating);
+//                    if (blockEntity instanceof PeripheralProvider provider) {
+//                        peripherals.add(provider);
+//                    }
+//                }
 //                    else{
 //                        PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
 //                        if (provider!=null){
 //                            peripherals.add(provider);
 //                        }
 //                    }
-                }
                 investigated.add(investigating);
             }
         }

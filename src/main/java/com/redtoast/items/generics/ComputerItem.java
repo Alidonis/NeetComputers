@@ -33,7 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class ComputerItem extends Item {
+public class ComputerItem extends CustomRenderItem {
     private Hashtable<UUID, computerStack> memory = new Hashtable<>();
     public computerSpecs specifications;
 

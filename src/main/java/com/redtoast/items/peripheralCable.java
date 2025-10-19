@@ -1,9 +1,9 @@
 package com.redtoast.items;
 
-import net.minecraft.item.Item;
+import com.redtoast.Connections.PipeType;
 
-public class peripheralCable extends Item {
+public class peripheralCable extends ConnectorItem {
     public peripheralCable(Settings settings) {
-        super(settings);
+        super(settings, PipeType.PERIPHERAL);
     }
 }
