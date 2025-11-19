@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class APILoader {
     private final Runtime ParentRuntime;
     private static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
+    private static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
     private static final Hashtable<Class<? extends Exposable>, LoaderCache> cache = new Hashtable<>();
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
 
@@ -374,9 +375,9 @@ public class APILoader {
 
     public record Context(Runtime runtime, LanguageGeneric language){}
 
-    public static Function sandboxFunction(Method method, Object obj, ParameterRules ruleset, @Nullable Runtime runtime){
+    public static Function sandboxFunction(Method method, Object obj, ParameterRules ruleset, Runtime runtime){
         String funcname = method.isAnnotationPresent(Exposed.class) ? method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride() : null;
-        Function temp = new Function(ruleset) {
+        Function temp = new Function(runtime, ruleset) {
             @Override
             public Value call(FunctionInput parameters) {
                 try {
@@ -398,19 +399,20 @@ public class APILoader {
                 }catch (PassthroughError passthroughError){
                     throw passthroughError;
                 }catch (Throwable e){
-                    Throwable unwrappedThrow = e.getCause();
-                    if (unwrappedThrow==null){
-                        for (StackTraceElement track : e.getStackTrace()){
-                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-                        }
-                        Function.logError(e.getMessage());
-                    }else{
-                        for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-                        }
-                        Function.logError(unwrappedThrow.getMessage());
-                    }
-                    return Value.asError("Unexpected java error, check log for information");
+                    printJavaError(e);
+//                    Throwable unwrappedThrow = e.getCause();
+//                    if (unwrappedThrow==null){
+//                        for (StackTraceElement track : e.getStackTrace()){
+//                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+//                        }
+//                        Function.logError(e.getMessage());
+//                    }else{
+//                        for (StackTraceElement track : unwrappedThrow.getStackTrace()){
+//                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
+//                        }
+//                        Function.logError(unwrappedThrow.getMessage());
+//                    }
+                    return Value.asError("Unexpected internal error, check log for information");
                 }
             }
         };
@@ -424,11 +426,11 @@ public class APILoader {
     @Deprecated
     public static Function sandboxFunctionWithCloseCondition(Method method, Exposable obj, ParameterRules ruleset, AtomicBoolean condition, Runtime runtime){
         Function tempFunction = sandboxFunction(method, obj, ruleset, runtime);
-        Function temp = new Function(tempFunction.getRules()) {
+        Function temp = new Function(runtime, tempFunction.getRules()) {
             @Override
             public Value call(FunctionInput parameters) {
                 if (!condition.get()) return Value.asError("Object closed");
-                return tempFunction.call(parameters);
+                return tempFunction.invoke(parameters);
             }
         };
         temp.setName(tempFunction.getName());
@@ -442,7 +444,7 @@ public class APILoader {
             if (values.size()==1){
                 output[i.get()] = values.getFirst();
             }else{
-                output[i.get()] = new Function(key, ParameterRules.ANY) {
+                output[i.get()] = new Function(runtime, key, ParameterRules.ANY) {
                     @Override
                     public Value call(FunctionInput parameters) {
                         LinkedList<String> errors = new LinkedList<>();
@@ -450,7 +452,7 @@ public class APILoader {
                         for (Function function : values){
                             ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), function.getRules(), runtime);
                             if (!retur.isError()){
-                                return function.call(retur.getFunctionInput());
+                                return function.invoke(retur.getFunctionInput());
                             }else{
                                 errors.add(retur.getMessage());
                                 names.add(key + function.getRules().toString(runtime));
@@ -471,8 +473,74 @@ public class APILoader {
         return output;
     }
 
-    private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, @Nullable Runtime runtime){
-        return new Function(functionCache.name, ParameterRules.ANY) {
+    public static String generateJavaErrorLog(Throwable error){
+        StringBuilder builder = new StringBuilder();
+        int interations = 0;
+        ArrayList<String> glossary = new ArrayList<>();
+        Throwable buffer = error;
+        while (buffer!=null) {
+            /*write individual error and message*/
+            builder.append(interations==0 ? '-' : '>');
+            builder.append(':');
+            builder.append(buffer.getClass().getName());
+            if (buffer.getMessage()!=null){
+                builder.append("\n  [ ");
+                builder.append(buffer.getMessage());
+                builder.append(" ]");
+            }
+
+            /*appends stack trace*/
+            int stackNumber = 0;
+            for (StackTraceElement trace : buffer.getStackTrace()){
+                stackNumber++;
+                builder.append("\n    ");
+                builder.append(stackNumber);
+                builder.append(": [");
+                builder.append(trace.getLineNumber());
+                builder.append("] ");
+                builder.append(trace.getClassName());
+                builder.append('.');
+                builder.append(trace.getMethodName());
+                if (trace.getFileName()!=null){
+                    builder.append(" [");
+                    builder.append(trace.getFileName());
+                    if (trace.getLineNumber()>0){
+                        builder.append(':');
+                        builder.append(trace.getLineNumber());
+                    }
+                    builder.append(']');
+                }
+            }
+            if (stackNumber==0) builder.append("\n    0: No Valid Stack Trace Available!");
+            builder.append('\n');
+
+            /*add class to glossary in reverse order to simplify printing later*/
+            glossary.add(0,"  " + (interations + 1) + ':' + buffer.getClass().getName() + '\n');
+
+            /*shift through the error stack*/
+            interations++;
+            buffer = buffer.getCause();
+        }
+
+        /*prepend glossary to string builder*/
+        if (glossary.size()>1){
+            String title = "Glossary:\n";
+            builder.insert(0, new char[]{'\n','\n'}, 0 , 2);
+            for (String entry : glossary){
+                builder.insert(0, entry.toCharArray(), 0, entry.length());
+            }
+            builder.insert(0, title.toCharArray(), 0, title.length());
+        }
+
+        return "Stack Trace:\n" + builder;
+    }
+
+    public static void printJavaError(Throwable error){
+        errorLogger.warn(generateJavaErrorLog(error), error);
+    }
+
+    private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, Runtime runtime){
+        return new Function(runtime, functionCache.name, ParameterRules.ANY) {
             @Override
             public Value call(FunctionInput parameters) {
                 LinkedList<String> errors = new LinkedList<>();
@@ -484,7 +552,7 @@ public class APILoader {
                         names.add(staticFunction.functionName() + staticFunction.ruleset().toString(runtime));
                     }else{
                         Function function = sandboxFunction(staticFunction.method(), obj, staticFunction.ruleset(), runtime);
-                        return function.call(retur.getFunctionInput());
+                        return function.invoke(retur.getFunctionInput());
                     }
                 }
                 names.sort(String::compareTo);
@@ -503,7 +571,7 @@ public class APILoader {
      */
     @Deprecated
     private static Function packCachedFunctionWithCloseCondition(PackedFunctionCache functionCache, Exposable obj, AtomicBoolean condition, Runtime runtime){
-        return new Function(functionCache.name, ParameterRules.ANY) {
+        return new Function(runtime, functionCache.name, ParameterRules.ANY) {
             @Override
             public Value call(FunctionInput parameters) {
                 LinkedList<String> errors = new LinkedList<>();
@@ -515,7 +583,7 @@ public class APILoader {
                         names.add(staticFunction.functionName() + staticFunction.ruleset().toString(runtime));
                     }else{
                         Function function = sandboxFunctionWithCloseCondition(staticFunction.method(), obj, staticFunction.ruleset(), condition, runtime);
-                        return function.call(retur.getFunctionInput());
+                        return function.invoke(retur.getFunctionInput());
                     }
                 }
                 names.sort(String::compareTo);
