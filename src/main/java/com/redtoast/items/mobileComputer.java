@@ -26,8 +26,6 @@ public class mobileComputer extends ComputerItem {
                 .setBinaryGraphicsSize(5, 6)
                 .setColorGraphicsSize(81,108)
                 .setIPS(130000)
-                .setMaxCores(2)
-                .setCoreUtilizationBonus(0)
                 .setMachineName("Portable Computer")
         );
     }

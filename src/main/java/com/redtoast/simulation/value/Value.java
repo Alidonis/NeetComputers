@@ -46,6 +46,10 @@ public class Value<Type> {
      * static Value representation of false
      */
     public final static Value<Boolean> FALSE = Value.of(false);
+    /**
+     * static Value control for yielding a function
+     */
+    public final static Value<ControlType> YIELD = (Value<ControlType>) Value.of(new ControlType());
 
     private final Type value;
     private VarType type = VarType.NULL;
@@ -78,6 +82,8 @@ public class Value<Type> {
             type = VarType.BYTES;
         }else if (val instanceof Function){
             type = VarType.FUNCTION;
+        }else if (val instanceof ControlType){
+            type = VarType.CONTROL;
         }else if (val instanceof Exception){
             type = VarType.EXCEPTION;
         }
@@ -505,6 +511,8 @@ public class Value<Type> {
                 return "tuple";
             case FUNCTION:
                 return "function";
+            case CONTROL:
+                return "control type";
             case EXCEPTION:
                 return "exemption";
             case BYTES:

@@ -11,7 +11,7 @@ public class GetCC {
     public static PeripheralProvider getPeripheral(BlockPos pos, World world, Computer computer){
         try {
             //Class.forName("dan200.computercraft.api.peripheral.IPeripheral;");
-            return CCT.searchForCCT(pos, world);
+            return CCT.searchForCCT(pos, world, computer);
         }// catch (ClassNotFoundException e) {
             // LOGGER = LoggerFactory.getLogger("NeetComputers");
            // LOGGER.warn("Computer Craft not installed");

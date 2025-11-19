@@ -12,8 +12,6 @@ public class DesktopEntityComputer extends ComputerBlockEntity{
             .setBinaryGraphicsSize(11, 6)
             .setColorGraphicsSize(384,288)
             .setIPS(160000)
-            .setMaxCores(3)
-            .setCoreUtilizationBonus(0)
             .setMachineName("Desktop Computer")
         );
     }

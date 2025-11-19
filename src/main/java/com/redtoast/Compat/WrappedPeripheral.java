@@ -1,7 +1,9 @@
 package com.redtoast.Compat;
 
+import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.simulation.APILoader;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
@@ -11,6 +13,7 @@ import dan200.computercraft.api.lua.MethodResult;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.util.math.BlockPos;
 import org.checkerframework.checker.units.qual.A;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -23,9 +26,11 @@ public class WrappedPeripheral implements PeripheralProvider {
     private final String[] functionNames;
     private final Hashtable<Method, Function> functionLookup = new Hashtable<>();
     private final BlockPos pos;
+    private final Runtime runtime;
 
-    public WrappedPeripheral(IPeripheral peripheral, BlockPos pos){
+    public WrappedPeripheral(IPeripheral peripheral, BlockPos pos, Computer computer){
         this.peripheral = peripheral;
+        runtime = computer.getRuntime();
         Class<?> clazz = peripheral.getClass();
         Method[] functions = clazz.getMethods();
         LinkedList<String> names = new LinkedList<>();
@@ -37,7 +42,9 @@ public class WrappedPeripheral implements PeripheralProvider {
                 }else{
                     names.addAll(Arrays.asList(annotation.value()));
                 }
-                functionLookup.put(method, APILoader.sandboxFunction(method, peripheral, ParameterRules.ANY, null));
+                Function buffer = APILoader.sandboxFunction(method, peripheral, ParameterRules.ANY, runtime);
+                //if (annotation.mainThread()) buffer.makeMainThread();
+                functionLookup.put(method, buffer);
             }
         }
         functionNames = names.toArray(new String[0]);
@@ -64,7 +71,7 @@ public class WrappedPeripheral implements PeripheralProvider {
                 }
                 for (String string : names){
                     if (string.equals(name)) {
-                        return functionLookup.get(method).call(FunctionInput.fromArray(Args));
+                        return functionLookup.get(method).invoke(FunctionInput.fromArray(Args));
                     }
                 }
             }

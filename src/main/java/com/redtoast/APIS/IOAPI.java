@@ -23,7 +23,7 @@ public class IOAPI implements API {
         private final UUID uuid;
 
         public WrappedFunction(Computer computer, UUID uuid, String functionName){
-            super(functionName, ParameterRules.ANY);
+            super(computer.getRuntime(), functionName, ParameterRules.ANY);
             this.computer = computer;
             this.uuid = uuid;
         }

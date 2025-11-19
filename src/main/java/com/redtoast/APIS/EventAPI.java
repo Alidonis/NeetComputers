@@ -25,7 +25,7 @@ public class EventAPI implements API {
     public void internalOnEvent(EventGeneric eventGeneric){
         for (Function function : unmappedCallbacks){
             try{
-                function.call(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toList())));
+                function.invoke(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toList())));
             }catch (Exception ignored){
                 Function.logError(ignored.toString());
             }
@@ -33,7 +33,7 @@ public class EventAPI implements API {
         if (callbackTable.containsKey(eventGeneric.getName())){
             for (Function function : callbackTable.get(eventGeneric.getName())){
                 try{
-                    function.call(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toTuple())));
+                    function.invoke(new FunctionInput(new LinkedList<>(eventGeneric.asValue().toTuple())));
                 }catch (Exception ignored){
                     Function.logError(ignored.toString());
                 }

@@ -118,9 +118,12 @@ public class NeetComputers implements ModInitializer {
 		BulkRegistery.register("modem",modem, true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("modem"), group);
 
-		Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(1));
-		BulkRegistery.register("mobile_computer", modelComputer);
-		BulkRegistery.register(modelComputer, group);
+		/**
+		 * unstable item removed from game, will re-add when stable
+		 * Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(1));
+		 * BulkRegistery.register("mobile_computer", modelComputer);
+		 * BulkRegistery.register(modelComputer, group);
+		 */
 
 		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(1));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);

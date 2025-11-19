@@ -10,11 +10,9 @@ import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.base.API;
 import com.redtoast.neet.NeetComputers;
-import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.NVTable;
-import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -25,6 +23,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.ast.Str;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -80,10 +79,6 @@ public abstract class Computer implements PeripheralReceiver {
     private short clock = 0;
     //object representing colored graphics (gui)
     private RGBGraphicsArray Graphics;
-    //stores un-wrapped peripherals to be wrapped with runtime context
-    private final LinkedList<API> unwrappedPeripherals = new LinkedList<>();
-    //stores the peripherals has access to during runtime
-    private LinkedList<Peripheral> peripheralBuffer = new LinkedList<>();
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
     //state for defining if the computer is paused
@@ -101,7 +96,10 @@ public abstract class Computer implements PeripheralReceiver {
     //value holding last time computer ticked
     private long tickTime;
     //tells the computer to shut down at the end of a tick cycle
-    private boolean deadManWalking = false;
+    private boolean killFlag = false;
+    //stores hard library's
+    private final Hashtable<String, API> hardLibrarys = new Hashtable<>();
+    private final Hashtable<String, String> libraryAliases = new Hashtable<>();
 
     //abstract methods
     /**
@@ -214,17 +212,10 @@ public abstract class Computer implements PeripheralReceiver {
             }
 
             Graphics.clear();
-            //starts assembling peripherals
-            peripheralBuffer = new LinkedList<>();
 
             //overwrites runtime with a new instance
             Computer com = this;
             runtime = new Runtime(this, NVRam) {
-                @Override
-                public LinkedList<Peripheral> getPeripherals() {
-                    return com.getPeripherals();
-                }
-
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
                     return com.getEventQue();
@@ -238,9 +229,6 @@ public abstract class Computer implements PeripheralReceiver {
 
             //adds context-sensitive peripherals
             new APILoader(this);
-            for (API api : unwrappedPeripherals){
-                peripheralBuffer.add(APILoader.WrapAPI(api, runtime));
-            }
 
             //load the runtime (create entry thread)
             runtime.load();
@@ -262,7 +250,7 @@ public abstract class Computer implements PeripheralReceiver {
     public void stop(){
         if (IsOn){
             if (runtime.inTick){
-                deadManWalking = true;
+                killFlag = true;
             }else{
                 runtime=null;
                 IsOn =false;
@@ -302,7 +290,6 @@ public abstract class Computer implements PeripheralReceiver {
         return runtime;
     }
     public int getAddress(){return fs.pointer;}
-    private LinkedList<Peripheral> getPeripherals() {return peripheralBuffer;}
     public LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
     public computerSpecs getSpecifications(){
@@ -338,6 +325,32 @@ public abstract class Computer implements PeripheralReceiver {
         refreshBinaryGraphics();
     }
 
+    //sets internal non-mutable library
+    public void setLibrary(String name, API api){
+        hardLibrarys.put(name.toLowerCase(), api);
+    }
+
+    //creates a name alias in the library system
+    public void createLibraryAlias(String alias, String rootName) {
+        libraryAliases.put(alias.toLowerCase(), rootName.toLowerCase());
+    }
+
+    //tests to see if hard library exists
+    public boolean libraryExists(String label){
+        return libraryAliases.containsKey(label.toLowerCase()) || hardLibrarys.containsKey(label.toLowerCase());
+    }
+
+    //returns the library associated with label or its alias, or null if no such library exists
+    public API getLibrary(String label){
+        if (hardLibrarys.containsKey(label.toLowerCase())){
+            return hardLibrarys.get(label.toLowerCase());
+        }else if (libraryAliases.containsKey(label.toLowerCase())){
+            return hardLibrarys.get(libraryAliases.get(label.toLowerCase()));
+        }else{
+            return null;
+        }
+    }
+
     //ticks the computer
     public void tick(World world){
         short delta = (short) (System.currentTimeMillis() - tickTime);
@@ -346,13 +359,15 @@ public abstract class Computer implements PeripheralReceiver {
             if (NeetComputers.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, this);
                 if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
-                attachPeripheral(fs);
+                setLibrary("file system", fs);
+                createLibraryAlias("filesystem", "file system");
+                createLibraryAlias("fs", "file system");
             }
             if (fs!=null) maintainState();
             if (NeetComputers.worldPath!=null && !IsCrashed){
                 step(delta);
-                if (deadManWalking){
-                    deadManWalking = false;
+                if (killFlag){
+                    killFlag = false;
                     stop();
                 }
                 for (PlayerEntity p : world.getPlayers()) {
@@ -388,38 +403,9 @@ public abstract class Computer implements PeripheralReceiver {
         }
     }
 
-    //Attaches a simulated peripheral to the computer, it cant be detached afterward
-    public void attachPeripheral(API api){
-        unwrappedPeripherals.add(api);
-    }
-
     //gets a list of all peripheral providers on the system
     public List<PeripheralProvider> getPeripheralProviders(){
-        List<PeripheralProvider> list = scanForPeripherals();
-        for (Peripheral peripheral : peripheralBuffer){
-            list.add(new PeripheralProvider() {
-                @Override
-                public String[] getFunctionNames() {
-                    return Objects.requireNonNull(peripheral.table.toTable()).getKeysString();
-                }
-
-                @Override
-                public Value<?> callFunction(String name, Value<?>... args) {
-                    return Objects.requireNonNull(Objects.requireNonNull(peripheral.table.toTable()).get(name).toFunction()).call(FunctionInput.fromArray(args));
-                }
-
-                @Override
-                public String getTypeName() {
-                    return peripheral.peripheralType;
-                }
-
-                @Override
-                public UUID getUuid() {
-                    return peripheral.uuid;
-                }
-            });
-        }
-        return list;
+        return scanForPeripherals();
     }
 
     //que's an event to the computer if server-side or sends event to server to be que'd if not
@@ -460,14 +446,8 @@ public abstract class Computer implements PeripheralReceiver {
     private void maintainState(){
         if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
-            peripheralBuffer = new LinkedList<>();
             Computer com = this;
             runtime = new Runtime(this, NVRam) {
-                @Override
-                public LinkedList<Peripheral> getPeripherals() {
-                    return com.getPeripherals();
-                }
-
                 @Override
                 public LinkedList<EventGeneric> getEvents() {
                     return com.getEventQue();
@@ -481,9 +461,6 @@ public abstract class Computer implements PeripheralReceiver {
             };
 
             new APILoader(this);
-            for (API api : unwrappedPeripherals){
-                peripheralBuffer.add(APILoader.WrapAPI(api, runtime));
-            }
             runtime.load();
         }
     }

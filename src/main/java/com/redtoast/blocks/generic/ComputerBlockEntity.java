@@ -253,6 +253,10 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                 if (investigated.contains(investigating)) {
                     continue;
                 }
+                PeripheralProvider CCprovider = GetCC.getPeripheral(investigating, world, getComputer());
+                if (CCprovider!=null){
+                    peripherals.add(CCprovider);
+                }
                 BlockState block = world.getBlockState(investigating);
                 if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
                     BlockEntity blockEntity = world.getBlockEntity(investigating);
@@ -263,18 +267,18 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                 if (CableManager.getInstance().pipeExists(world.getDimension(), investigating, PipeType.PERIPHERAL)) {
                     todoList.add(investigating);
                 }
-//                else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)) {
-//                    BlockEntity blockEntity = world.getBlockEntity(investigating);
-//                    if (blockEntity instanceof PeripheralProvider provider) {
-//                        peripherals.add(provider);
-//                    }
-//                }
-//                    else{
-//                        PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
-//                        if (provider!=null){
-//                            peripherals.add(provider);
-//                        }
-//                    }
+                else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)) {
+                    BlockEntity blockEntity = world.getBlockEntity(investigating);
+                    if (blockEntity instanceof PeripheralProvider provider) {
+                        peripherals.add(provider);
+                    }
+                }
+                    else{
+                        PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
+                        if (provider!=null){
+                            peripherals.add(provider);
+                        }
+                    }
                 investigated.add(investigating);
             }
         }

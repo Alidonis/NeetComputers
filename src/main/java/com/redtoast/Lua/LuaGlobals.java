@@ -1,15 +1,18 @@
 package com.redtoast.Lua;
 
+import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
 import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.GlobalManager;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.GlobalGeneric;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -27,6 +30,7 @@ import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
     private final LuaFunction LuaRequire;
+    private static final ParameterRules requireRuleset = new ParameterRules(VarType.STRING);
     public LuaValue LuaDebug;
     protected LuaTranslater lua52;
     private final UUID uuid;
@@ -69,13 +73,17 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     private static class LuaRequire extends Function{
         private final LuaFunction require;
         private final FileSpace fs;
-        public LuaRequire(LuaFunction require, FileSpace fs){
-            super("require", new ParameterRules(VarType.STRING));
+        private final Computer computer;
+        public LuaRequire(LuaFunction require, FileSpace fs, Runtime runtime){
+            super(runtime, "require", new ParameterRules(VarType.STRING));
+            this.computer = runtime.parent;
             this.require = require;
             this.fs = fs;
         }
         @Override
         public Value call(FunctionInput parameters) {
+            ParameterCheckReturn checkReturn = ParameterRules.checkParameters(parameters.toArray(), requireRuleset, computer.getRuntime());
+            if (checkReturn.isError()) return Value.asError(checkReturn.getMessage());
             String path = parameters.get(0).toString();
             assert path != null;
             if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
@@ -91,8 +99,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
+            }else if (computer.libraryExists(path)){
+                return APILoader.TableizeAPI(computer.getLibrary(path), computer.getRuntime()).asValue();
             }else{
-                return Value.asError("Invalid file path");
+                return Value.asError("Invalid asset path");
             }
         }
     }
@@ -136,7 +146,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.finder = new NeoFinder(globalManager.getParent().fs);
 
         //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs).asValue());
+        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs, manager.getParent()).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
 

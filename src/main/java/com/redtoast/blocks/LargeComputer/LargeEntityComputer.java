@@ -12,8 +12,6 @@ public class LargeEntityComputer extends ComputerBlockEntity {
             .setBinaryGraphicsSize(12, 11)
             .setColorGraphicsSize(384,288)
             .setIPS(60000)
-            .setMaxCores(6)
-            .setCoreUtilizationBonus(15)
             .setMachineName("Large Computer")
         );
     }

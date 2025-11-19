@@ -3,7 +3,9 @@ package com.redtoast.simulation;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.FS.*;
+import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.NVTable;
+import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.UUID;
 
 public abstract class Runtime {
@@ -28,10 +31,35 @@ public abstract class Runtime {
     public int TTL = 0;
     public boolean inTick = false;
 
+    public interface FunctionCall {
+        Value<?> call(FunctionInput parameters);
+    }
+
+    private FunctionCall que = null;
+    private FunctionInput parameters = null;
+    private Value<?> product = null;
+
     public Runtime(Computer Parent, NVTable NVRam){
         globalManager = new GlobalManager(this, NVRam);
         fs = Parent.getFs();
         parent = Parent;
+    }
+
+    public void queCall(FunctionCall call, FunctionInput parameters){
+        if (que!=null || product!=null) return;
+        que = call;
+        this.parameters = parameters;
+        product = null;
+    }
+
+    public Optional<Value<?>> pullQue(){
+        if (product==null) {
+            return Optional.empty();
+        } else {
+            Optional<Value<?>> buffer = Optional.of(product);
+            product = null;
+            return buffer;
+        }
     }
 
     /**
@@ -79,12 +107,6 @@ public abstract class Runtime {
     }
 
     /**
-     * gets an unordered list of all peripheral object
-     * @return list of wrapped peripherals
-     */
-    public abstract LinkedList<Peripheral> getPeripherals();
-
-    /**
      * retrieves a que of to-be-run events from its parent class
      * @return list of events
      */
@@ -111,6 +133,11 @@ public abstract class Runtime {
                 parent.getEventQue().remove();
             }
             LinkedList<Integer> deathQue = new LinkedList<>();
+            if (que!=null){
+                product = que.call(parameters);
+                que = null;
+                parameters = null;
+            }
             for (int i = 0; i < threads.size(); i++) {
                 if (threads.get(i).isAlive()) {
                     thread = threads.get(i);

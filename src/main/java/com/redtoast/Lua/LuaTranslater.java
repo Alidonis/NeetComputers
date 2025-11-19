@@ -1,5 +1,6 @@
 package com.redtoast.Lua;
 
+import com.redtoast.Lua.SpecialValues.Yield;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.PassthroughError;
@@ -102,11 +103,21 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                                 .replaceAll("float", "number");
                             return LuaValue.error(message);
                         }else{
-                            Value output = ((Function) var.getValue()).call(check.getFunctionInput());
+                            Value output = ((Function) var.getValue()).invoke(check.getFunctionInput());
                             return fromValue(output);
                         }
                     }
                 };
+            case CONTROL:
+                if (var.getValue() instanceof ControlType controlType){
+                    if (controlType.isYield()){
+                        return new Yield();
+                    }else{
+                        return fromValue(controlType.getReturn());
+                    }
+                }else{
+                    return LuaValue.NIL;
+                }
             case EXCEPTION:
                 assert var.getValue() instanceof Exception;
                 return LuaValue.error(var.getValue().toString());
@@ -178,7 +189,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
             }
             return isList ? Value.of(vals) : Value.of(tabll);
         }else if (val instanceof LuaFunction function){
-            return Value.of(new Function(ParameterRules.ANY) {
+            return Value.of(new Function(null, ParameterRules.ANY) {
                 @Override
                 public Value call(FunctionInput parameters) {
                     try{

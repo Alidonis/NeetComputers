@@ -8,8 +8,6 @@ package com.redtoast;
  * </p>
  *
  * <ul>
- *     <li>{@link #setMaxCores(int)}</li>
- *     <li>{@link #setCoreUtilizationBonus(int)}</li>
  *     <li>{@link #setMachineName(String)}</li>
  *     <li>{@link #setIPS(int)}</li>
  *     <li>{@link #setBinaryGraphicsSize(int, int)}</li>
@@ -19,7 +17,7 @@ package com.redtoast;
  * @see Computer
  */
 public class computerSpecs {
-    @Deprecated public int MaxCores = 6;
+    @Deprecated public int MaxCores = 1;
     @Deprecated public double CoreUtilizationBonus = 0;
     @Deprecated public int BatchSize = 10;
     @Deprecated public int Batches = 58;
@@ -30,27 +28,6 @@ public class computerSpecs {
     @Deprecated public int ColorGraphicsSizeX = 0;
     @Deprecated public int ColorGraphicsSizeY = 0;
     @Deprecated public String MachineName = "";
-
-    /**
-     * sets the amount of cores the computer has access to
-     * @return this
-     */
-    public computerSpecs setMaxCores(int cores){
-        MaxCores = cores;
-        return this;
-    }
-
-    /**
-     * sets the bonus applied to threads to reward core utilization, the following is the equation used to calculate this bonus
-     * <p>
-     *     {@code coreUtilizationBonus * (amountOfThreads - 1)}
-     * </p>
-     * @return this
-     */
-    public computerSpecs setCoreUtilizationBonus(int percent){
-        CoreUtilizationBonus = percent / 100d;
-        return this;
-    }
 
     /**
      * sets the name of the <b>MODEL</b> of the machine, note that this is not intended to be personalized
