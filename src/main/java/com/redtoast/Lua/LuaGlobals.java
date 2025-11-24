@@ -22,6 +22,8 @@ import org.luaj.vm2.*;
 import org.luaj.vm2.compiler.LuaC;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +32,10 @@ import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
     private final LuaFunction LuaRequire;
+    private final Logger logger;
     private static final ParameterRules requireRuleset = new ParameterRules(VarType.STRING);
     public LuaValue LuaDebug;
-    protected LuaTranslater lua52;
+    protected static LuaTranslater lua52;
     private final UUID uuid;
     private final GlobalManager manager;
     private boolean noForwarding = false;
@@ -82,8 +85,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
         @Override
         public Value call(FunctionInput parameters) {
-            ParameterCheckReturn checkReturn = ParameterRules.checkParameters(parameters.toArray(), requireRuleset, computer.getRuntime());
-            if (checkReturn.isError()) return Value.asError(checkReturn.getMessage());
             String path = parameters.get(0).toString();
             assert path != null;
             if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
@@ -107,6 +108,36 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
     }
 
+    private static class LuaPrint extends Function{
+        private final LuaGlobals globals;
+        private final Logger logger;
+        public LuaPrint(Runtime runtime, LuaGlobals globals, Logger logger) {
+            super(runtime, ParameterRules.ANY);
+            this.globals = globals;
+            this.logger = logger;
+        }
+
+        @Override
+        public Value call(FunctionInput parameters) {
+            LuaValue toStringFunc = globals.get("tostring");
+            int iterator = 1;
+
+            StringBuilder buffer = new StringBuilder();
+
+            for(int var4 = parameters.getSize(); iterator <= var4; ++iterator) {
+                if (iterator > 1) {
+                    buffer.append('\t');
+                }
+
+                LuaString output = toStringFunc.call((LuaValue)lua52.fromValue(parameters.get(iterator-1))).strvalue();
+                buffer.append(output.tojstring());
+            }
+
+            logger.info(buffer.toString());
+            return null;
+        }
+    }
+
     public LuaGlobals(GlobalManager globalManager){
         //generate Globals based off how jsePlatform.debugGlobals() works without a few unnecessary library's
         super();
@@ -120,6 +151,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LoadState.install(this);
         LuaC.install(this);
         super.load(new DebugLib());
+        logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().parent.getUuid()+']');
 
         //fetch built in require object
         LuaRequire = super.get("require").checkfunction();
@@ -147,8 +179,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         //set up new require functionality with anti-abuse in mind
         Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs, manager.getParent()).asValue());
+        Varargs NewPrint = lua52.fromValue(new LuaPrint(manager.getParent(), this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
+        super.set("print", (LuaValue) NewPrint);
 
         //register LuaGlobals with GlobalsManager
         uuid = UUID.randomUUID();

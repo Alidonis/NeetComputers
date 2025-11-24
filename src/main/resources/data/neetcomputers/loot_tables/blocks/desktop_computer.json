@@ -11,21 +11,6 @@
             {
               "function": "minecraft:copy_name",
               "source": "block_entity"
-            },{
-              "function": "minecraft:copy_nbt",
-              "source": "block_entity",
-              "ops": [
-                {
-                  "source": "Address",
-                  "target": "Address",
-                  "op": "replace"
-                },
-                {
-                  "source": "ComputerID",
-                  "target": "ComputerID",
-                  "op": "replace"
-                }
-              ]
             }
           ]
         }

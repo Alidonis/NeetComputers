@@ -2,6 +2,7 @@ package com.redtoast.neet;
 
 import com.redtoast.Computer;
 import com.redtoast.Lua.LuaMaster;
+import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
@@ -31,10 +32,13 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.fabricmc.api.ModInitializer;
@@ -104,6 +108,12 @@ public class NeetComputers implements ModInitializer {
 				SoundEvents.BLOCK_COPPER_BULB_PLACE,
 				SoundEvents.BLOCK_COPPER_BULB_HIT,
 				SoundEvents.BLOCK_ANVIL_FALL
+		);
+
+		ComputerDataComponent.TYPE = Registry.register(
+				Registries.DATA_COMPONENT_TYPE,
+				RegistryKey.of(RegistryKeys.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "computerdata")),
+				ComponentType.<ComputerDataComponent>builder().codec(ComputerDataComponent.CODEC).build()
 		);
 
 		BulkRegistery.setNamespace("neetcomputers");

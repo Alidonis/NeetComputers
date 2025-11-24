@@ -400,18 +400,6 @@ public class APILoader {
                     throw passthroughError;
                 }catch (Throwable e){
                     printJavaError(e);
-//                    Throwable unwrappedThrow = e.getCause();
-//                    if (unwrappedThrow==null){
-//                        for (StackTraceElement track : e.getStackTrace()){
-//                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-//                        }
-//                        Function.logError(e.getMessage());
-//                    }else{
-//                        for (StackTraceElement track : unwrappedThrow.getStackTrace()){
-//                            System.out.println("NC ["+track.getLineNumber()+"]: "+track);
-//                        }
-//                        Function.logError(unwrappedThrow.getMessage());
-//                    }
                     return Value.asError("Unexpected internal error, check log for information");
                 }
             }
