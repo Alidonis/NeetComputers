@@ -1,7 +1,7 @@
 {
   "block.neetcomputers.large_computer": "Large computer",
   "block.neetcomputers.desktop_computer": "Desktop computer",
-  "block.neetcomputers.modem": "Modem",
+  "block.neetcomputers.office_computer": "Office computer",
   "block.neetcomputers.dynamic_light": "Dynamic Light",
   "item.neetcomputers.mobile_computer": "Mobile Computer",
   "item.neetcomputers.peripheral_cable": "Peripheral Cable",

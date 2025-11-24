@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "neetcomputers:block/desktop_computer_mini"},
+    "facing=east":  { "model": "neetcomputers:block/desktop_computer_mini", "y":  90},
+    "facing=south": { "model": "neetcomputers:block/desktop_computer_mini", "y": 180},
+    "facing=west":  { "model": "neetcomputers:block/desktop_computer_mini", "y": 270}
+  }
+}
