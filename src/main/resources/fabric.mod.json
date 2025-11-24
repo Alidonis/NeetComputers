@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "neetcomputers",
-	"version": "beta 0.1",
+	"version": "0.2",
 	"name": "Neet Computers",
 	"description": "N.E.E.T. computers is a Minecraft mod that adds well tested and cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
 	"authors": [
@@ -32,8 +32,8 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.20.1",
-		"java": ">=17",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
 		"fabric-api": "*"
 	},
 	"suggests": {

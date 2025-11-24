@@ -71,7 +71,6 @@ public class CableRenderer {
 
         MatrixStack.Entry entry = matrices.peek();
         Matrix4f positionMatrix = entry.getPositionMatrix();
-        Matrix3f normalMatrix = entry.getNormalMatrix();
 
         float upValue = 1.01f;
         float downValue = -0.01f;
@@ -85,54 +84,45 @@ public class CableRenderer {
 
 
         if (neighborMap.get(Direction.SOUTH)) {
-            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
+            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, -1);
+            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, -1);
+            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, -1);
+            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, -1);
         }
 
         if (neighborMap.get(Direction.NORTH)) {
-            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, 1).next();
-            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, 1).next();
-            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, 1).next();
-            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, 1).next();
+            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, 1);
+            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, 1);
+            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, 1);
+            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 0, 1);
         }
 
         if (neighborMap.get(Direction.EAST)) {
-            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, -1, 0, 0).next();
-            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, -1, 0, 0).next();
-            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, -1, 0, 0).next();
-            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, -1, 0, 0).next();
+            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, -1, 0, 0);
+            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, -1, 0, 0);
+            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, -1, 0, 0);
+            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, -1, 0, 0);
         }
 
         if (neighborMap.get(Direction.WEST)) {
-            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 1, 0, 0).next();
-            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 1, 0, 0).next();
-            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 1, 0, 0).next();
-            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 1, 0, 0).next();
+            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 1, 0, 0);
+            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 1, 0, 0);
+            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 1, 0, 0);
+            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 1, 0, 0);
         }
 
         if (neighborMap.get(Direction.UP)) {
-            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, -1, 0).next();
-            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, -1, 0).next();
-            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, -1, 0).next();
-            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, -1, 0).next();
+            vc.vertex(positionMatrix, upValue, upValue, downValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, -1, 0);
+            vc.vertex(positionMatrix, downValue, upValue, downValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, -1, 0);
+            vc.vertex(positionMatrix, downValue, upValue, upValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, -1, 0);
+            vc.vertex(positionMatrix, upValue, upValue, upValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, -1, 0);
         }
 
         if (neighborMap.get(Direction.DOWN)) {
-            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 1, 0).next();
-            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 1, 0).next();
-            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 1, 0).next();
-            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 1, 0).next();
+            vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, alpha).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 1, 0);
+            vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, alpha).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 1, 0);
+            vc.vertex(positionMatrix, downValue, downValue, downValue).color(255, 255, 255, alpha).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 1, 0);
+            vc.vertex(positionMatrix, upValue, downValue, downValue).color(255, 255, 255, alpha).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(entry, 0, 1, 0);
         }
-
-//        drawFace(vc, positionMatrix, normalMatrix, u0, u1, v0, v1, lightLevel, upValue, downValue, upValue, downValue);
-    }
-
-    public static void drawFace(VertexConsumer vc, Matrix4f positionMatrix, Matrix3f normalMatrix, float u0, float u1, float v0, float v1, int lightLevel, float x0, float x1, float y0, float y1){
-        vc.vertex(positionMatrix, x0, x1, y0).color(255, 255, 255, 255).texture(u1, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-        vc.vertex(positionMatrix, y0, y1, x0).color(255, 255, 255, 255).texture(u0, v1).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-//        vc.vertex(positionMatrix, downValue, downValue, upValue).color(255, 255, 255, 255).texture(u0, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
-//        vc.vertex(positionMatrix, upValue, downValue, upValue).color(255, 255, 255, 255).texture(u1, v0).overlay(OverlayTexture.DEFAULT_UV).light(lightLevel).normal(normalMatrix, 0, 0, -1).next();
     }
 }

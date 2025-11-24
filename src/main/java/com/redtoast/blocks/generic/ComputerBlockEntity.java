@@ -1,20 +1,20 @@
 package com.redtoast.blocks.generic;
 
+import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
 import com.redtoast.Connections.*;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
-import com.redtoast.blocks.modem.ModemBlock;
 import com.redtoast.computerSpecs;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.ComputerStorage;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.Networking.BinaryGraphicsPayload;
+import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.simulation.networkInterfaces.NetworkProvider;
 import com.redtoast.simulation.value.Value;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -26,8 +26,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtByte;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtInt;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory, PeripheralReceiver {
+public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
@@ -86,16 +86,13 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                 return be;
             }
         };
+        computer.setLibrary("projector", new ProjectorAPI(computer));
+        computer.createLibraryAlias("display", "projector");
         graphics = computer.getGraphics();
     }
 
     public void renderBinaryGraphics(BinaryGraphicsArray graphics){
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeBlockPos(getPos());
-        graphics.writeScreenToPacketBuf(buf);
-        assert NeetComputers.BINARY_SCREEN_PACKET != null;
-
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NeetComputers.BINARY_SCREEN_PACKET, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new BinaryGraphicsPayload(getPos(), graphics));
 
         if (getWorld() instanceof ServerWorld serverWorld) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
@@ -105,19 +102,19 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     public void AssignPointers(World world, ItemStack itemStack){
-        if (itemStack.hasNbt()) {
-            NbtCompound nbt = itemStack.getNbt();
-            computer.load(nbt);
-        }else{
+//        if (itemStack.hasNbt()) {
+//            NbtCompound nbt = itemStack.getNbt();
+//            computer.load(nbt);
+//        }else{
             MinecraftServer server = world.getServer();
             computer.load(server);
-        }
+//        }
     }
 
     @Override
-    public void writeNbt(NbtCompound nbt) {
+    public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         if (!corrupted) nbt = computer.writeNBT(nbt);
-        super.writeNbt(nbt);
+        super.writeNbt(nbt, registryLookup);
     }
 
     @Override
@@ -131,8 +128,8 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+        super.readNbt(nbt, registryLookup);
         corrupted = false;//evalCorruption(nbt);
         if (!corrupted){
             if (nbt.contains("uuid") && !collectedComputer){
@@ -168,12 +165,6 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
             computer.start();
         }
         return ActionResult.SUCCESS;
-    }
-
-    @Override
-    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf buf) {
-        graphics.writeScreenToPacketBuf(buf);
-        buf.writeUuid(computer.getUuid());
     }
 
     @Override
@@ -295,5 +286,10 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
         }
 
         return Value.asError("Peripheral not found");
+    }
+
+    @Override
+    public ComputerScreenInitPayload getScreenOpeningData(ServerPlayerEntity player) {
+        return new ComputerScreenInitPayload(graphics, computer.getUuid());
     }
 }

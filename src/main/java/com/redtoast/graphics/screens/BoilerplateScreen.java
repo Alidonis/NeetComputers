@@ -142,17 +142,18 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         return super.mouseReleased(mouseX, mouseY, key);
     }
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scroll){
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount){
         Vector2i pos = screenToGraphics(mouseX, mouseY);
         if (pos!=null){
             EventGeneric event = new EventGeneric("mouseScrolled",
                     Value.of(pos.x),
                     Value.of(pos.y),
-                    Value.of(scroll)
+                    Value.of(horizontalAmount),
+                    Value.of(verticalAmount)
             );
             event.send(handler);
         }
-        return super.mouseScrolled(mouseX, mouseY, scroll);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
     private int mapGlfwKeyToAsciiCode(int key, int mods) {
         boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;

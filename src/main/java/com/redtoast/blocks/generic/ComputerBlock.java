@@ -1,5 +1,6 @@
 package com.redtoast.blocks.generic;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -18,6 +19,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.explosion.Explosion;
 
 public abstract class ComputerBlock extends HorizontalFacingBlock implements BlockEntityProvider {
@@ -30,6 +32,11 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
     }
 
     public abstract BlockEntityType<? extends BlockEntity> getType();
+
+    @Override
+    protected MapCodec<? extends HorizontalFacingBlock> getCodec() {
+        return null;
+    }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
@@ -61,8 +68,8 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
     }
 
     @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        super.onBreak(world, pos, state, player);
+    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
+        super.onBroken(world, pos, state);
         if (!world.isClient()) {
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof ComputerBlockEntity computer) {
@@ -83,7 +90,7 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         ActionResult allowed;
         if (!world.isClient){
             BlockEntity blockEntity = world.getBlockEntity(pos);

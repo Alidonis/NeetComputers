@@ -18,7 +18,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3i;
 import org.joml.Matrix4f;
 
-public class mobileComputer extends ComputerItem {
+public class mobileComputer{} /** extends ComputerItem {
     double clock;
     static int opacity = 255;
     public mobileComputer(Settings settings) {
@@ -146,4 +146,4 @@ public class mobileComputer extends ComputerItem {
 //        b += (int)Math.round(effect);
 //        return !getComputer().isCrashed() ? new Vec3i(r,g,b) : new Vec3i(g, r, b);
 //    }
-}
+}**/

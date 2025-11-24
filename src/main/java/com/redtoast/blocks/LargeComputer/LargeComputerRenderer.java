@@ -58,7 +58,7 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
 
         RenderLayer layer = RenderLayer.getCutout();
         VertexConsumer vc = vertexConsumers.getBuffer(layer);
-        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/front_on_uv"));
+        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", "block/front_on_uv"));
 
         matrices.push();
 
@@ -72,13 +72,13 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         float x1 = 2f / 16f, x2 = 2f / 16f + x1;
         float y1 = 1f / 16f, y2 = 1f / 16f + y1;
 
-        vc.vertex(mat, x1, y1, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2, y1, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+        vc.vertex(mat, x1, y1, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2, y1, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
 
         if (entity.getComputer().getBinaryGraphics()!=null){
-            sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/white"));
+            sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", "block/white"));
             BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
             int sizex = graphics.getSize().x, sizey = graphics.getSize().y;
             for (int x = 0; x < sizex; x++){
@@ -100,37 +100,37 @@ public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityCom
         float offsetX = 2f / 16f, offsetY = 3f / 16f;
         Vec3i rgb = getPixel(x, y);
         BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
-        vc.vertex(mat, x1 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2 + offsetX, y2 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x1 + offsetX, y2 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+        vc.vertex(mat, x1 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2 + offsetX, y1 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2 + offsetX, y2 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x1 + offsetX, y2 + offsetY, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         x1 += offsetX;
         x2 += offsetX;
         y1 += offsetY;
         y2 += offsetY;
         if (!graphics.get(x, y+1)){
-            vc.vertex(mat, x1, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            vc.vertex(mat, x1, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x, y-1)){
-            vc.vertex(mat, x2, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            vc.vertex(mat, x2, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x+1, y)){
-            vc.vertex(mat, x2, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x2, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            vc.vertex(mat, x2, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x2, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x-1, y)){
-            vc.vertex(mat, x1, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            vc.vertex(mat, x1, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            vc.vertex(mat, x1, y1, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y2, z1).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y2, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            vc.vertex(mat, x1, y1, z2).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
     }
 

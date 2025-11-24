@@ -47,7 +47,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
 
         RenderLayer layer = RenderLayer.getCutout();
         VertexConsumer vc = vertexConsumers.getBuffer(layer);
-        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", !state.get(DesktopBlockComputer.CRASHED) ? "block/front_on_uv" : "block/front_crashed_uv"));
+        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", !state.get(DesktopBlockComputer.CRASHED) ? "block/front_on_uv" : "block/front_crashed_uv"));
 
         matrices.push();
 
@@ -57,17 +57,17 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
 
         Matrix4f mat = matrices.peek().getPositionMatrix();
 
-        float z =  13f / 16f;
+        float z =  13.5f / 16f;
         float x1 = 3f / 16f, x2 = 2f / 16f + x1;
         float y1 = 0.499f / 16f, y2 = 1f / 16f + y1;
 
-        vc.vertex(mat, x1, y1, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2, y1, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+        vc.vertex(mat, x1, y1, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2, y1, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x2, y2, z).color(255, 255, 255, opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        vc.vertex(mat, x1, y2, z).color(255, 255, 255, opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
 
         if (entity.getComputer().getBinaryGraphics()!=null){
-            sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(new Identifier("neetcomputers", "block/white"));
+            sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", "block/white"));
             BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
             int sizex = graphics.getSize().x, sizey = graphics.getSize().y;
             for (int x = 0; x < sizex; x++){
@@ -89,7 +89,7 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
 
     private void drawPixel(int x, int y, VertexConsumer vc, Matrix4f mat, int overlay, Sprite sprite, DesktopEntityComputer entity){
         Matrix3f rot = RotationTools.generateRotationX(22.5);
-        Vector3f off = new Vector3f(2.5f / 16f, 8.0206f / 16f, 12.8519f / 16f);
+        Vector3f off = new Vector3f(2.5f / 16f, 5.0206f / 16f, 1 - 3.1481f / 16f);
 
         float x1 = x / 16f, x2 = 1f / 16f + x1;
         float y1 = y / 16f, y2 = 1f / 16f + y1;
@@ -101,33 +101,33 @@ public class DesktopComputerRenderer implements BlockEntityRenderer<DesktopEntit
         Vec3i rgb = getPixel(x, y);
         BinaryGraphicsArray graphics = entity.getComputer().getBinaryGraphics();
 
-        applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-        applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+        applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+        applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         if (!graphics.get(x, y+1)){
-            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x, y-1)){
-            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x+1, y)){
-            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos2.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
         if (!graphics.get(x-1, y)){
-            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
-            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1).next();
+            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos1.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos2.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMinU(), sprite.getMinV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
+            applyPos(vc, mat, rot, off, pos1.x, pos1.y, pos2.z).color(rgb.getX(), rgb.getY(), rgb.getZ(), opacity).texture(sprite.getMaxU(), sprite.getMaxV()).light(0xF000F0).overlay(overlay).normal(0, 0, -1);
         }
     }
 

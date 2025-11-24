@@ -3,6 +3,7 @@ package com.redtoast.graphics.screens;
 import com.redtoast.Computer;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -17,10 +18,10 @@ public class RGBScreenHandler extends ScreenHandler {
     public Computer comp;
     public UUID uuid;
 
-    public RGBScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+    public RGBScreenHandler(int syncId, PlayerInventory playerInventory, ComputerScreenInitPayload payload) {
         super(NeetComputers.GRAPHICS_SCREEN_HANDLER, syncId);
-        graphics = RGBGraphicsArray.fromPacket(buf);
-        uuid = buf.readUuid();
+        graphics = payload.graphicsArray();
+        uuid = payload.uuid();
     }
 
     public RGBScreenHandler(int syncId, RGBGraphicsArray arr, Computer a) {

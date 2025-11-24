@@ -6,6 +6,8 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.neet.Networking.BinaryGraphicsPayload;
+import com.redtoast.neet.Networking.RGBComputerPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -48,26 +50,18 @@ public class NeetComputersClient implements ClientModInitializer {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-        assert NeetComputers.SCREEN_PACKET_ID != null;
-        ClientPlayNetworking.registerGlobalReceiver(NeetComputers.SCREEN_PACKET_ID, (client, handler, buf, responseSender) -> {
-            assert client.player != null;
-            if (client.player.currentScreenHandler instanceof RGBScreenHandler) {
-				((RGBScreenHandler) client.player.currentScreenHandler).updateGraphics(RGBGraphicsArray.fromPacket(buf));
-			}
-			client.execute(() -> {
-				// Everything in this lambda is run on the render thread
-			});
-		});
-        assert NeetComputers.BINARY_SCREEN_PACKET != null;
 
-        ClientPlayNetworking.registerGlobalReceiver(NeetComputers.BINARY_SCREEN_PACKET, (client, handler, buf, responseSender) -> {
-			assert client.player != null;
-			BlockPos pos = buf.readBlockPos();
-			BinaryGraphicsArray graphics = BinaryGraphicsArray.fromPacket(buf);
-			client.execute(() -> {
-				if (client.world == null) return;
-				if (client.world.getBlockEntity(pos) == null) return;
-				BlockEntity be = client.world.getBlockEntity(pos);
+		ClientPlayNetworking.registerGlobalReceiver(RGBComputerPayload.ID, (payload, context) -> {
+            if (context.client().player.currentScreenHandler instanceof RGBScreenHandler) ((RGBScreenHandler) context.client().player.currentScreenHandler).updateGraphics(payload.graphicsArray());
+		});
+
+        ClientPlayNetworking.registerGlobalReceiver(BinaryGraphicsPayload.ID, (payload, context) -> {
+			BlockPos pos = payload.blockPos();
+			BinaryGraphicsArray graphics = payload.graphicsArray();
+			context.client().execute(() -> {
+				if (context.client().world == null) return;
+				if (context.client().world.getBlockEntity(pos) == null) return;
+				BlockEntity be = context.client().world.getBlockEntity(pos);
 				if (be instanceof ComputerBlockEntity computer) {
 					computer.getComputer().setBinaryGraphics(graphics);
 					Objects.requireNonNull(computer.getWorld()).updateListeners(pos, computer.getCachedState(), computer.getCachedState(), 3);

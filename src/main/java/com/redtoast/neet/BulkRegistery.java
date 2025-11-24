@@ -108,14 +108,14 @@ public class BulkRegistery {
     }
 
     public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor, boolean AutoRegisterItem){
-        Registry.register(Registries.BLOCK, Identifier.of(Namespace, address), block);
+        Registry.register(Registries.BLOCK, Identifier.tryParse(Namespace, address), block);
         BlockItem blockItem = null;
         if (AutoRegisterItem){
             blockItem = new BlockItem(block, new Item.Settings());
-            Registry.register(Registries.ITEM, Identifier.of(Namespace, address), blockItem);
+            Registry.register(Registries.ITEM, Identifier.tryParse(Namespace, address), blockItem);
         }
         BlockEntityType<?> blockEntity = FabricBlockEntityTypeBuilder.create((FabricBlockEntityTypeBuilder.Factory<BlockEntity>) constructor::create,block).build();
-        Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(Namespace, address+"_entity"), blockEntity);
+        Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.tryParse(Namespace, address+"_entity"), blockEntity);
         if (AutoRegisterItem){
             add(address,new Registered(block, blockItem, blockEntity));
         }else{
@@ -123,14 +123,14 @@ public class BulkRegistery {
         }
     }
     public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor, RendererConstructor<BlockEntityClass> renderer, boolean AutoRegisterItem){
-        Registry.register(Registries.BLOCK, Identifier.of(Namespace, address), block);
+        Registry.register(Registries.BLOCK, Identifier.tryParse(Namespace, address), block);
         BlockItem blockItem = null;
         if (AutoRegisterItem){
             blockItem = new BlockItem(block, new Item.Settings());
-            Registry.register(Registries.ITEM, Identifier.of(Namespace, address), blockItem);
+            Registry.register(Registries.ITEM, Identifier.tryParse(Namespace, address), blockItem);
         }
         BlockEntityType<BlockEntityClass> blockEntity = FabricBlockEntityTypeBuilder.create(constructor::create,block).build();
-        Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(Namespace, address+"_entity"), blockEntity);
+        Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.tryParse(Namespace, address+"_entity"), blockEntity);
         if (AutoRegisterItem){
             add(address,new Registered(block, blockItem, blockEntity));
         }else{
@@ -145,10 +145,10 @@ public class BulkRegistery {
         register(address,block,constructor,false);
     }
     public static <BlockClass extends Block> void register(String address, BlockClass block, boolean AutoRegisterItem){
-        Registry.register(Registries.BLOCK, Identifier.of(Namespace, address), block);
+        Registry.register(Registries.BLOCK, Identifier.tryParse(Namespace, address), block);
         if (AutoRegisterItem){
             BlockItem blockItem = new BlockItem(block, new Item.Settings());
-            Registry.register(Registries.ITEM, Identifier.of(Namespace, address), blockItem);
+            Registry.register(Registries.ITEM, Identifier.tryParse(Namespace, address), blockItem);
             add(address, new Registered(block, blockItem));
         }else{
             add(address, new Registered(block));
@@ -159,17 +159,17 @@ public class BulkRegistery {
     }
 
     public static <BaseHandler, CustomHandler extends BaseHandler> CustomHandler register(String address, @NotNull Registry<BaseHandler> base, CustomHandler custom ){
-        return Registry.register(base, Identifier.of(Namespace, address), custom);
+        return Registry.register(base, Identifier.tryParse(Namespace, address), custom);
     }
 
     public static <ItemClass extends Item> void register(String address, ItemClass item){
-        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Namespace, address));
+        RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.tryParse(Namespace, address));
         Registry.register(Registries.ITEM, itemKey, item);
         add(address, new Registered(item));
     }
 
     public static RegistryKey<ItemGroup> registerGroup(String address, Item item){
-        Identifier id = new Identifier(Namespace, address);
+        Identifier id = Identifier.of(Namespace, address);
         RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id);
 
         ItemGroup group = FabricItemGroup.builder()

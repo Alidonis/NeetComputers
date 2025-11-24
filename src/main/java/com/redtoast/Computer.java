@@ -5,12 +5,14 @@ import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.neet.Networking.EventTransferPayload;
+import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.simulation.*;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
-import com.redtoast.simulation.Runtime;
 import com.redtoast.neet.NeetComputers;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.NVTable;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,6 +21,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
@@ -371,11 +374,7 @@ public abstract class Computer implements PeripheralReceiver {
                     stop();
                 }
                 for (PlayerEntity p : world.getPlayers()) {
-                    if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) {
-                        PacketByteBuf temp = PacketByteBufs.create();
-                        Graphics.writeScreenToPacketBuf(temp);
-                        ServerPlayNetworking.send((ServerPlayerEntity) p, NeetComputers.SCREEN_PACKET_ID, temp);
-                    }
+                    if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) ServerPlayNetworking.send((ServerPlayerEntity) p, new RGBComputerPayload(Graphics));
                 }
             }else if (IsCrashed){
                 stop();
@@ -411,10 +410,7 @@ public abstract class Computer implements PeripheralReceiver {
     //que's an event to the computer if server-side or sends event to server to be que'd if not
     public void queueEvent(EventGeneric event) {
         if (isClient()){
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeUuid(uuid);
-            event.writeToPacket(buf);
-            ClientPlayNetworking.send(NeetComputers.EVENT_PACKET, buf);
+            ClientPlayNetworking.send(new EventTransferPayload(uuid, event));
         }else{
             eventQue.add(event);
         }

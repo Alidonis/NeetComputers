@@ -1,6 +1,7 @@
 package com.redtoast.simulation;
 
 import com.redtoast.graphics.screens.RGBScreenHandler;
+import com.redtoast.neet.Networking.EventUploadPayload;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
@@ -89,10 +90,7 @@ public class EventGeneric {
     }
 
     public void send(RGBScreenHandler handler){
-        PacketByteBuf buf = PacketByteBufs.create();
-        writeToPacket(buf);
-        buf.writeInt(handler.syncId);
-        ClientPlayNetworking.send(new Identifier("neetcomputers","blind_event"), buf);
+        ClientPlayNetworking.send(new EventUploadPayload(this, handler.syncId));
     }
 
     @Override

@@ -3,7 +3,7 @@ package com.redtoast.Connections;
 import net.minecraft.util.Identifier;
 
 public enum PipeType {
-    PERIPHERAL(new Identifier("neetcomputers", "block/peripheral_pipe"));
+    PERIPHERAL(Identifier.of("neetcomputers", "block/peripheral_pipe"));
 
     private final Identifier identifier;
 

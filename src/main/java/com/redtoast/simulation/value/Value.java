@@ -2,7 +2,6 @@ package com.redtoast.simulation.value;
 
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.ValueTypes.Exception;
-import com.redtoast.simulation.value.ValueTypes.Function;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;

@@ -4,6 +4,7 @@ import com.redtoast.graphics.screens.RGBScreenHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,7 +26,7 @@ public class InGameHudMixin {
     }
 
     @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
-    private void onHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void renderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         logic(ci);
     }
 
@@ -36,11 +37,6 @@ public class InGameHudMixin {
 
     @Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
     private void renderStatusBars(DrawContext context, CallbackInfo ci){
-        logic(ci);
-    }
-
-    @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
-    private void renderStatusEffectOverlay(DrawContext context, CallbackInfo ci){
         logic(ci);
     }
 }

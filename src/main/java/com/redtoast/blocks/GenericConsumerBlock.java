@@ -9,6 +9,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.LinkedList;
@@ -40,7 +41,7 @@ public abstract class GenericConsumerBlock extends BlockEntity {
     public abstract void connectToNetwork(NetworkProvider networkProvider);
 
     @Override
-    public void readNbt(NbtCompound nbt){
+    public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup){
         loaded = true;
         if (nbt.contains("connections")){
             long[] coordinates = nbt.getLongArray("connections");
@@ -65,7 +66,7 @@ public abstract class GenericConsumerBlock extends BlockEntity {
     }
 
     @Override
-    public void writeNbt(NbtCompound nbt){
+    public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup){
         LinkedList<Long> packedData = new LinkedList<>();
         for (providerBundle data : providers){
             int tick = 0;

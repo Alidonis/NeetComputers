@@ -1,6 +1,8 @@
 package com.redtoast.graphics.screens;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.redtoast.graphics.RGBGraphicsArray;
+import dan200.computercraft.client.gui.ComputerScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
@@ -10,6 +12,11 @@ import net.minecraft.text.Text;
 import org.joml.Matrix4f;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static com.mojang.blaze3d.systems.RenderSystem.*;
 
 public class RGBGraphicsScreen extends BoilerplateScreen {
 
@@ -140,9 +147,8 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         adjustBounding();
-        renderBackground(context);
+        renderBackground(context, mouseX, mouseY, delta);
 
-        /*create the canvas we will draw the screen on*/
         Canvas canvas = Canvas.getCanvas(context);
         RGBGraphicsArray graphics = handler.getGraphics();
         Vector2i size = graphics.getSize();
@@ -152,7 +158,7 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         for (int y = 0; y < height; y++) {
             Integer lastColor = null;
             Vector2d startPos = null;
-            Vector2d endPos = null;
+            Vector2d endPos;
 
             for (int x = 0; x < width; x++) {
                 int currentColor = graphics.get(x, y);
@@ -180,43 +186,31 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
     }
 
     public record Canvas(DrawContext context, Matrix4f matrix, Tessellator tessellator, BufferBuilder buffer){
-        public Canvas {
-            buffer.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
-        }
-
         public static Canvas getCanvas(DrawContext context){
             Matrix4f transformationMatrix = context.getMatrices().peek().getPositionMatrix();
             Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder buffer = tessellator.getBuffer();
+            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
             return new Canvas(context, transformationMatrix, tessellator, buffer);
         }
 
         public void placeRec(double x1, double y1, double x2, double y2, int color){
-            /*blend the pixel with a black background, so that way transparency*/
-            color = RGBGraphicsArray.blendPixel(0xFF000000, color);
+            color = RGBGraphicsArray.blendPixel(0xFF000000, color | 0xFF000000);
 
-            /*splits the color channels as to be more friendly with rendering pipelines and less lick-ly to be misinterpreted*/
-            float a = 1f;//((color >> 24) & 0xFF) / 255f;
-            float r = ((color >> 16) & 0xFF) / 255f;
-            float g = ((color >> 8) & 0xFF) / 255f;
-            float b = (color & 0xFF) / 255f;
+            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(color);
+            buffer.vertex(matrix, (float) x2, (float) y1, 0).color(color);
+            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(color);
 
-            /*draws two triangles to increase the odds of our format being supported by modern renderers*/
-            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(r, g, b, a).next();
-            buffer.vertex(matrix, (float) x2, (float) y1, 0).color(r, g, b, a).next();
-            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(r, g, b, a).next();
-
-            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(r, g, b, a).next();
-            buffer.vertex(matrix, (float) x1, (float) y2, 0).color(r, g, b, a).next();
-            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(r, g, b, a).next();
+            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(color);
+            buffer.vertex(matrix, (float) x1, (float) y2, 0).color(color);
+            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(color);
         }
 
         public void draw(){
-            tessellator.draw();
+            BufferRenderer.drawWithGlobalProgram(buffer.end());
             context.draw();
         }
     }
 
     @Override
-    public void renderBackground(DrawContext context){}/*blank function to appease other mods*/
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta){}
 }

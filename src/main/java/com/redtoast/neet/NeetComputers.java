@@ -9,25 +9,23 @@ import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
-import com.redtoast.blocks.modem.ModemBlock;
+import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
+import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
+import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
-import com.redtoast.items.generics.ComputerItem;
-import com.redtoast.items.mobileComputer;
 import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
-import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Connections.CableManager;
-import com.redtoast.simulation.EventGeneric;
+import com.redtoast.neet.Networking.*;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
-import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -43,6 +41,7 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import org.jetbrains.annotations.NotNull;
@@ -57,13 +56,9 @@ import java.util.UUID;
 public class NeetComputers implements ModInitializer {
 
 	//create packet id's and screen handler
-	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, new ExtendedScreenHandlerType<>(RGBScreenHandler::new));
-	public static final Identifier SCREEN_PACKET_ID = Identifier.of("neetcomputers", "graphics_update");
-	public static final Identifier SCREEN_INIT_PACKET = Identifier.of("neetcomputers", "graphics_init");
-	public static final Identifier EVENT_PACKET = Identifier.of("neetcomputers","event");
-	public static final Identifier BINARY_SCREEN_PACKET = Identifier.of("neetcomputers", "bianary_update");
+	private static final ExtendedScreenHandlerType<RGBScreenHandler, ComputerScreenInitPayload> HANDLER = new ExtendedScreenHandlerType<>(RGBScreenHandler::new, ComputerScreenInitPayload.CODEC);
+	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, HANDLER);
 	public static CableManager cableManager = null;
-
 
 	//internal config
 	public static final String version = "NeetComputers 0.1 beta";
@@ -88,7 +83,7 @@ public class NeetComputers implements ModInitializer {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
 			@Override
 			public Identifier getFabricId() {
-				return new Identifier("neetcomputers", "");
+				return Identifier.of("neetcomputers", "");
 			}
 
 			@Override
@@ -100,46 +95,57 @@ public class NeetComputers implements ModInitializer {
 		LOGGER.info("Hello From Neet Computers!");
 
 		//register stuff
+
+		BlockSoundGroup computerSound = new BlockSoundGroup(
+				1.0F,
+				1.0F,
+				SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
+				SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
+				SoundEvents.BLOCK_COPPER_BULB_PLACE,
+				SoundEvents.BLOCK_COPPER_BULB_HIT,
+				SoundEvents.BLOCK_ANVIL_FALL
+		);
+
 		BulkRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(BlockSoundGroup.BONE).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
 		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,LargeComputerRenderer::new,true);
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
 
-		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 4 : 0));
+		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 4 : 0));
 		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new, DesktopComputerRenderer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
+
+		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 5 : 0));
+		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new, OfficeComputerRenderer::new,true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("office_computer"), group);
 
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
 		BulkRegistery.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("dynamic_light"), group);
 
-		Block modem = new ModemBlock(Block.Settings.create().strength(1.0f).hardness(1.0f).sounds(BlockSoundGroup.BONE).nonOpaque());
-		BulkRegistery.register("modem",modem, true);
-		BulkRegistery.register(BulkRegistery.fetchItemObject("modem"), group);
-
-		/**
-		 * unstable item removed from game, will re-add when stable
-		 * Item modelComputer = new mobileComputer(new FabricItemSettings().maxCount(1));
-		 * BulkRegistery.register("mobile_computer", modelComputer);
-		 * BulkRegistery.register(modelComputer, group);
-		 */
-
-		Item peripheralCableItem = new peripheralCable(new FabricItemSettings().maxCount(1));
+		Item peripheralCableItem = new peripheralCable(new Item.Settings().maxCount(1));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);
 		BulkRegistery.register(peripheralCableItem, group);
 
-		Item networkingCableItem = new networkingCable(new FabricItemSettings().maxCount(1));
+		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
 		BulkRegistery.register("networking_cable", networkingCableItem);
 		BulkRegistery.register(networkingCableItem, group);
 
-		ServerPlayNetworking.registerGlobalReceiver(EVENT_PACKET, (server, player, handler, buf, responseSender) -> {
-			UUID uuid = buf.readUuid();
-			EventGeneric event = EventGeneric.fromPacket(buf);
-			computerMap.get(uuid).queueEvent(event);
+		PayloadTypeRegistry.playC2S().register(EventTransferPayload.ID, EventTransferPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(RGBComputerPayload.ID, RGBComputerPayload.CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(EventTransferPayload.ID, (payload, context) -> computerMap.get(payload.uuid()).queueEvent(payload.event()));
+		ServerPlayNetworking.registerGlobalReceiver(EventUploadPayload.ID, (payload, context) -> {
+			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
+				Computer computer = handler.comp;
+				computer.queueEvent(payload.event());
+			}
 		});
 
-		registerLanguage(new LuaMaster());
+        registerLanguage(new LuaMaster());
 
 		APILoader.register(new APIRegistry() {
 			@Override
@@ -159,45 +165,6 @@ public class NeetComputers implements ModInitializer {
 				return new ScreenAPI(computer.getGraphics(), computer);
 			}
 		});
-//		APILoader.register(new APIRegistry() {
-//			@Override
-//			public @NotNull API Create(Computer computer) {
-//				ExternalAPI externalAPI = new ExternalAPI(computer);
-//				computer.setPeripheralHarness(new PeripheralHarness() {
-//					@Override
-//					public void attached(RuntimePeripheralContainer peripheral) {
-//						externalAPI.attached(peripheral);
-//					}
-//
-//					@Override
-//					public void detached(RuntimePeripheralContainer peripheral) {
-//						externalAPI.detached(peripheral);
-//					}
-//
-//					@Override
-//					public void tick(short DeltaTime) {
-//						externalAPI.tick(DeltaTime);
-//					}
-//				});
-//				return externalAPI;
-//			}
-//		});
-//		APILoader.register(new APIRegistry() {
-//			@Override
-//			public @NotNull API Create(Computer computer) {
-//				return computer.getFs();
-//			}
-//		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				return new ProjectorAPI(computer);
-			}
-			@Override
-			public boolean predicate(Computer computer){
-				return computer.getSpecifications().doesBinaryGraphics;
-			}
-		});
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {
@@ -210,46 +177,7 @@ public class NeetComputers implements ModInitializer {
 				return new Flash(computer);
 			}
 		});
-
-        assert SCREEN_INIT_PACKET != null;
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier("neetcomputers","blind_event"), (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
-			EventGeneric event = EventGeneric.fromPacket(packetByteBuf);
-			int syncid = packetByteBuf.readInt();
-			if ((serverPlayerEntity.currentScreenHandler!=null && serverPlayerEntity.currentScreenHandler.syncId == syncid && serverPlayerEntity.currentScreenHandler instanceof RGBScreenHandler handler)){
-				Computer computer = handler.comp;
-				computer.queueEvent(event);
-			}
-		});
-        ServerPlayNetworking.registerGlobalReceiver(SCREEN_INIT_PACKET, (minecraftServer, serverPlayerEntity, serverPlayNetworkHandler, packetByteBuf, packetSender) -> {
-			//RGBGraphicsArray graphics = RGBGraphicsArray.fromPacket(packetByteBuf);
-			if (serverPlayerEntity.getMainHandStack().isEmpty()){
-				LOGGER.warn("received screen opening packet from player not holding computer");
-				return;
-			}
-			Item item = serverPlayerEntity.getMainHandStack().getItem();
-			if (item instanceof ComputerItem computerItem){
-//				serverPlayerEntity.openHandledScreen(new ExtendedScreenHandlerFactory() {
-//					@Override
-//					public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
-//						computerItem.getComputer().getGraphics().writeScreenToPacketBuf(buf);
-//					}
-//
-//					@Override
-//					public Text getDisplayName() {
-//						return computerItem.getName();
-//					}
-//
-//					@Nullable
-//					@Override
-//					public ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-//						return new GraphicsScreenHandler(syncId, computerItem.getComputer().getGraphics(), computerItem.getComputer());
-//					}
-//				});
-			}else{
-				LOGGER.warn("received screen opening packet from player not holding computer");
-			}
-        });
-	}
+    }
 
 	public void registerLanguage(LanguageGeneric language){
 		for (LanguageGeneric lang : languageGenerics){
