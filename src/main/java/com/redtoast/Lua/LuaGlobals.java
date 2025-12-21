@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
@@ -96,7 +97,9 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
                 assert translater != null;
                 try{
-                    return translater.toValue(require.call(LuaValue.valueOf(path)));
+                    Varargs args = require.call(LuaValue.valueOf(path));
+                    System.out.println("2"+args.getClass().getName());
+                    return translater.toValue(args);
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
@@ -196,7 +199,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     @Override
     public void rawset( LuaValue key, LuaValue value ) {
         super.rawset(key, value);
-        if (lua52!=null && !noForwarding) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
+        if (Objects.equals(key.toString(), "_G")) return;
+        if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
     }
 
     @Override

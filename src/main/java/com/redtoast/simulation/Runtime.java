@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public abstract class Runtime {
-    private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-luaVM");
+    private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
     public final GlobalManager globalManager;
     public LangThread thread;
     private boolean kill = false;
@@ -78,8 +78,7 @@ public abstract class Runtime {
             try{
                 MakeThread(bootPath.entryPoint().readAll(), bootPath.language().getVersion());
             }catch (Throwable e){
-                debug.warn("Computer encountered error at entrypoint: {}", e.toString());
-                e.printStackTrace();
+                APILoader.printJavaError(e);
                 kill=true;
             }
         }catch (IOException ioException){
