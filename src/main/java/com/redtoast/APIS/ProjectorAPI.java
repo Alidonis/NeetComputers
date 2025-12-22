@@ -21,7 +21,7 @@ public class ProjectorAPI implements API {
     @Exposed
     public void drawPixel(int x, int y){
         if (x<1 || y<1 || x>sizex || y>sizey) {
-            throw new ExposedError("values not in allowed range2");
+            throw new ExposedError("values not in allowed range");
         }
         graphics.set(x-1,y-1,true);
     }
@@ -34,7 +34,7 @@ public class ProjectorAPI implements API {
     @Exposed
     public void drawLine(int x1, int y1, int x2, int y2){
         if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) {
-            throw new ExposedError("values not in allowed range2");
+            throw new ExposedError("values not in allowed range");
         }
         for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
             for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
@@ -46,7 +46,7 @@ public class ProjectorAPI implements API {
     @Exposed
     public void drawRec(int x1, int y1, int x2, int y2){
         if (x1<1 || x2<1 || y1<1 || y2<1 || x1>sizex || x2>sizex || y1>sizey || y2>sizey) {
-            throw new ExposedError("values not in allowed range2");
+            throw new ExposedError("values not in allowed range");
         }
         for (int x = Math.min(x1,x2); x <= Math.max(x1,x2); x++){
             for (int y = Math.min(y1,y2); y <= Math.max(y1,y2); y++){
