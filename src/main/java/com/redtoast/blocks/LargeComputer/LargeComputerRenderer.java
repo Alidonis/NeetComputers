@@ -2,6 +2,8 @@ package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.graphics.BinaryGraphicsArray;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
@@ -21,7 +23,7 @@ import org.joml.Matrix4f;
 public class LargeComputerRenderer implements BlockEntityRenderer<LargeEntityComputer> {
     float clock;
     static int opacity = 255;
-    public LargeComputerRenderer(BlockEntityRendererFactory.Context context) {
+    public LargeComputerRenderer() {
         clock = 0;
     }
     public BlockState state;

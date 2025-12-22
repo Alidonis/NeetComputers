@@ -118,16 +118,16 @@ public class NeetComputers implements ModInitializer {
 
 		BulkRegistery.setNamespace("neetcomputers");
 		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(LargeBlockComputer.ON) ? 8 : 0));
-		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,LargeComputerRenderer::new,true);
+		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,true);
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
 
 		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 4 : 0));
-		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new, DesktopComputerRenderer::new,true);
+		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
 
 		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(DesktopBlockComputer.ON) ? 5 : 0));
-		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new, OfficeComputerRenderer::new,true);
+		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("office_computer"), group);
 
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));

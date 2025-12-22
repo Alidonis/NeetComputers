@@ -17,6 +17,6 @@ public abstract class WorldMixin {
 
     @Inject(method = "onBlockChanged", at = @At("HEAD"))
     private void onBlockChanged(BlockPos pos, BlockState oldBlock, BlockState newBlock, CallbackInfo ci) {
-        if (newBlock.isAir()) CableManager.getInstance().removeBlockEntry(getDimension(), pos);
+        if (newBlock.isAir() && CableManager.getInstance()!=null) CableManager.getInstance().removeBlockEntry(getDimension(), pos);
     }
 }
