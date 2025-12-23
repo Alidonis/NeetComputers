@@ -3,7 +3,6 @@
   "package": "com.redtoast.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientPlayerInteractionManagerMixin",
     "InGameHudMixin"
   ],
   "injectors": {

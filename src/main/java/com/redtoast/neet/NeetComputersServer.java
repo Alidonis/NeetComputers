@@ -31,10 +31,14 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -53,10 +57,13 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Position;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -79,7 +86,7 @@ public class NeetComputersServer implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
 	public static ResourceManager datahandling;
-	public static Path worldPath;
+	public static Path worldPath = null;
 	public static Long timeBenchMark = null;
 
 	//internal language processing
@@ -91,11 +98,23 @@ public class NeetComputersServer implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputersServer::updateServer);
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> cableManager = CableManager.getServerState(server));
+		ServerLifecycleEvents.SERVER_STARTED.register(server1 -> updateClientPipes());
 		ServerTickEvents.START_SERVER_TICK.register(Identifier.of("neetcomputers:tick"), server -> {
 			if (timeBenchMark!=null && timeBenchMark + 1000 < System.currentTimeMillis()) {
 				updateClientPipes();
 				timeBenchMark = System.currentTimeMillis();
+			}
+		});
+		ServerLifecycleEvents.AFTER_SAVE.register((server,a,b) -> {
+			File file = worldPath.resolve("neet_data.bin").toFile();
+			if (cableManager!=null){
+                try {
+					file.delete();
+					file.createNewFile();
+                    NbtIo.write(cableManager.writeNbt(new NbtCompound()), file.toPath());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 			}
 		});
 
@@ -210,23 +229,25 @@ public class NeetComputersServer implements ModInitializer {
 		PlayerManager playerManager = server.getPlayerManager();
 		for (String name : server.getPlayerNames()){
 			ServerPlayerEntity player = playerManager.getPlayer(name);
-			AtomicBoolean isHoldingConnector = new AtomicBoolean(false);
-			AtomicReference<PipeType> type = new AtomicReference<>();
+			boolean isHoldingConnector = false;
+			PipeType type = null;
             assert player != null;
-            player.getHandItems().forEach((itemStack) -> {
-				if (itemStack.getItem() instanceof ConnectorItem connectorItem){
-					isHoldingConnector.set(true);
-					type.set(connectorItem.getType());
-				}
-			});
-			if (isHoldingConnector.get()){
-				sendPipeBufferToPlayer(player, type.get());
+            if (player.getOffHandStack().getItem() instanceof ConnectorItem connectorItem){
+				isHoldingConnector = true;
+				type = connectorItem.getType();
+			}else if (player.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
+				isHoldingConnector = true;
+				type = connectorItem.getType();
+			}
+			if (isHoldingConnector){
+				sendPipeBufferToPlayer(player, type);
 			}
 		}
 	}
 
 	public static void sendPipeBufferToPlayer(ServerPlayerEntity player, PipeType type){
 		CableManager cableManager = CableManager.getInstance();
+		if (cableManager==null) return;
 		double x = player.getX();
 		double y = player.getY();
 		double z = player.getZ();
@@ -267,6 +288,19 @@ public class NeetComputersServer implements ModInitializer {
 		if (!worldPath.resolve("neetcomputers").toFile().exists()){
 			LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
+		}
+
+		File file = worldPath.resolve("neet_data.bin").toFile();
+		if (file.exists() && !file.isDirectory()){
+			try{
+				cableManager = CableManager.createFromNbt(NbtIo.read(file.toPath()));
+			} catch (IOException e) {
+                cableManager = new CableManager();
+            } catch (Throwable error) {
+				throw new RuntimeException(error);
+			}
+        }else{
+			cableManager = new CableManager();
 		}
 
 		//process lang translaters

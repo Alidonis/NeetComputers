@@ -3,7 +3,6 @@
   "package": "com.redtoast.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemEntityMixin",
     "PlayerInventory",
     "WorldMixin"
   ],

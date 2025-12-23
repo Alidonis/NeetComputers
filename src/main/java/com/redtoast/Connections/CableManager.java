@@ -4,6 +4,7 @@ import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
+import net.minecraft.nbt.NbtShort;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -67,16 +68,14 @@ public class CableManager {
     }
 
     public NbtCompound writeNbt(NbtCompound nbt) {
-        NbtCompound root = new NbtCompound();
         data.forEach(((dimensionType, longShortHashtable) -> {
-            NbtList dimension = new NbtList();
-            longShortHashtable.forEach((pos, key) -> dimension.add(NbtLong.of(pos>>Short.SIZE | key)));
-            root.put(dimensionType, dimension);
-            System.out.println("S:"+dimensionType);
+            NbtCompound subCom = new NbtCompound();
+            longShortHashtable.forEach((pos, key) -> {
+                subCom.put(pos.toString(), NbtShort.of(key));
+            });
+            nbt.put(dimensionType, subCom);
         }));
-        NbtCompound Sroot = new NbtCompound();
-        Sroot.put("cables", root);
-        return Sroot;
+        return nbt;
     }
 
     private void markDirty(){
@@ -84,25 +83,13 @@ public class CableManager {
     }
 
     public static CableManager createFromNbt(NbtCompound tag) {
-        CableManager state = new CableManager();
-        for (String dimensionType : tag.getCompound("cables").getKeys()) {
-            System.out.println(dimensionType);
-            long[] dimension = tag.getLongArray(dimensionType);
-            System.out.println(Arrays.toString(dimension));
+        CableManager cableManager = new CableManager();
+        tag.getKeys().forEach((key) -> {
+            NbtCompound nbt = (NbtCompound) tag.get(key);
             Hashtable<Long, Short> table = new Hashtable<>();
-            for (Long data : dimension){
-                short key = (short) (data & Short.MAX_VALUE);
-                long pos = data<<Short.SIZE;
-                table.put(pos, key);
-            }
-            state.data.put(dimensionType, table);
-        }
-        return state;
-    }
-
-    public static CableManager getServerState(MinecraftServer server) {
-        ServerWorld serverWorld = server.getWorld(World.OVERWORLD);
-        assert serverWorld != null;
-        return new CableManager();
+            nbt.getKeys().forEach((posS) -> table.put(Long.valueOf(posS), ((NbtShort) nbt.get(posS)).shortValue()));
+            cableManager.data.put(key, table);
+        });
+        return cableManager;
     }
 }

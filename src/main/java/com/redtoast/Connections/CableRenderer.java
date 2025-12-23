@@ -25,7 +25,7 @@ public class CableRenderer {
 
     public static void eventCallback(WorldRenderContext context){
         PlayerEntity mainPlayer = MinecraftClient.getInstance().player;
-        if (mainPlayer!=null && mainPlayer.preferredHand!=null && mainPlayer.getStackInHand(mainPlayer.preferredHand).getItem() instanceof ConnectorItem connectorItem){
+        if (mainPlayer!=null && mainPlayer.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
             MatrixStack matrices = context.matrixStack();
             VertexConsumerProvider vertexConsumers = context.consumers();
             Camera camera = context.camera();
@@ -34,7 +34,7 @@ public class CableRenderer {
             if (NeetComputersClient.lastTypeSent != connectorItem.getType()) return;
             BlockPos[] positions = NeetComputersClient.positionsForPipeRendering;
             for (BlockPos pos : positions) {
-                CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera, pos, world, connectorItem.getType(), connectorItem.getType().getTexture());
+                if (!world.getBlockState(pos).isAir()) CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera, pos, world, connectorItem.getType(), connectorItem.getType().getTexture());
             }
         }
     }
