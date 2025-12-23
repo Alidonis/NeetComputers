@@ -20,14 +20,14 @@ public class SystemBuild {
         switch (preset){
             case NEETOS -> {
                 entrypoint = "bios:bios.lua";
-                partitions.add(new Partition("bios",false,false,"-2"));
+                partitions.add(new Partition("bios",false,false,"-1"));
                 partitions.add(new Partition("system",false,false,null));
                 partitions.add(new Partition("user",false,false,null));
             }
             case CRAFTOS -> {
                 entrypoint = "bios:bios.lua";
-                partitions.add(new Partition("bios",false,true,"-6"));
-                partitions.add(new Partition("rom",false,false,"-7"));
+                partitions.add(new Partition("bios",false,true,null));
+                partitions.add(new Partition("rom",false,false,null));
                 partitions.add(new Partition("user",false,false,null));
             }
         }
