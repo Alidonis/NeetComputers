@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "neetcomputers",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"name": "Neet Computers",
 	"description": "N.E.E.T. computers is a Minecraft mod that adds well tested and cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
 	"authors": [
