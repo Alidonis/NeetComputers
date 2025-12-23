@@ -1,21 +1,18 @@
 package com.redtoast.simulation;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.*;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.NVTable;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
-import com.redtoast.simulation.value.ValueTypes.Table;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.UUID;
@@ -95,10 +92,10 @@ public abstract class Runtime {
      * @return The UUID of the created thread
      */
     public UUID MakeThread(String script, String lang){
-        if (!NeetComputers.hasLanguage(lang)){
+        if (!NeetComputersServer.hasLanguage(lang)){
             return null;
         }
-        LanguageGeneric langObject = NeetComputers.getLanguage(lang);
+        LanguageGeneric langObject = NeetComputersServer.getLanguage(lang);
         assert langObject != null;
         LangThread thread = langObject.createThread(script, this, parent, parent.getSpecifications());
         threads.add(thread);

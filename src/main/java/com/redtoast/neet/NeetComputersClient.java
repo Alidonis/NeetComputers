@@ -1,38 +1,26 @@
 package com.redtoast.neet;
 
 import com.redtoast.Connections.CableRenderer;
-import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
+import com.redtoast.Connections.PipeType;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
-import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
-import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
-import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
-import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.blocks.generic.ComputerBlockEntity;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
 import com.redtoast.graphics.screens.RGBScreenHandler;
-import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.items.networkingCable;
-import com.redtoast.items.peripheralCable;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
+import com.redtoast.neet.Networking.PipeBufferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,22 +31,25 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class NeetComputersClient implements ClientModInitializer {
+	public static BlockPos[] positionsForPipeRendering = new BlockPos[0];
+	public static PipeType lastTypeSent = PipeType.PERIPHERAL;
+
 	@Override
 	public void onInitializeClient() {
 		// Setup pipe renderer
 		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
 
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
-		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
+		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 
 		BlockEntityType<LargeEntityComputer> largeType = (BlockEntityType<LargeEntityComputer>) BulkRegistery.fetchBlockEntityType("large_computer");
 		BulkRegistery.register(largeType, LargeComputerRenderer::new);
 
 		BlockEntityType<DesktopEntityComputer> desktopType = (BlockEntityType<DesktopEntityComputer>) BulkRegistery.fetchBlockEntityType("desktop_computer");
-		BulkRegistery.register(largeType, LargeComputerRenderer::new);
+		BulkRegistery.register(desktopType, DesktopComputerRenderer::new);
 
 		BlockEntityType<OfficeEntityComputer> officeType = (BlockEntityType<OfficeEntityComputer>) BulkRegistery.fetchBlockEntityType("office_computer");
-		BulkRegistery.register(largeType, LargeComputerRenderer::new);
+		BulkRegistery.register(officeType, OfficeComputerRenderer::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
@@ -79,6 +70,11 @@ public class NeetComputersClient implements ClientModInitializer {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		ClientPlayNetworking.registerGlobalReceiver(PipeBufferPayload.ID, ((payload, context) -> {
+			positionsForPipeRendering = payload.buffer();
+			lastTypeSent = payload.type();
+		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(RGBComputerPayload.ID, (payload, context) -> {
             if (context.client().player.currentScreenHandler instanceof RGBScreenHandler) ((RGBScreenHandler) context.client().player.currentScreenHandler).updateGraphics(payload.graphicsArray());

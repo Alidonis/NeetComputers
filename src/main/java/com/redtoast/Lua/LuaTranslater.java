@@ -189,7 +189,6 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                 Value<?> temp = toValueWithoutMetadata(value);
                 tabll.put(toValueWithoutMetadata(key), temp);
             }
-            System.out.println(7);
             return isList ? Value.of(vals) : Value.of(tabll);
         }else if (val instanceof LuaFunction function){
             return Value.of(new Function(null, ParameterRules.ANY) {

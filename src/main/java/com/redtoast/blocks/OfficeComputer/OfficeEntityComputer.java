@@ -11,7 +11,7 @@ public class OfficeEntityComputer extends ComputerBlockEntity{
         super(BulkRegistery.fetchBlockEntityType("office_computer"), pos, state, new computerSpecs()
             .setBinaryGraphicsSize(11, 6)
             .setColorGraphicsSize(384,288)
-            .setIPS(60000)
+            .setIPS(500000)
             .setMachineName("Office Computer")
         );
     }

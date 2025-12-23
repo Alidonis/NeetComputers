@@ -1,6 +1,7 @@
 package com.redtoast.Connections;
 
-import com.redtoast.items.ConnectorItem;
+import com.redtoast.items.generics.ConnectorItem;
+import com.redtoast.neet.NeetComputersClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -15,7 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.Hashtable;
@@ -31,11 +31,17 @@ public class CableRenderer {
             Camera camera = context.camera();
             World world = context.world();
 
-            BlockPos[] positions = CableManager.getInstance().getPipesForRendering(world.getDimension(), connectorItem.getType(), (a)->true);
+            if (NeetComputersClient.lastTypeSent != connectorItem.getType()) return;
+            BlockPos[] positions = NeetComputersClient.positionsForPipeRendering;
             for (BlockPos pos : positions) {
                 CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera, pos, world, connectorItem.getType(), connectorItem.getType().getTexture());
             }
         }
+    }
+
+    public static boolean doesBlockExist(BlockPos pos){
+        for (BlockPos pos2 : NeetComputersClient.positionsForPipeRendering) if (pos.equals(pos2)) return true;
+        return false;
     }
 
     public static void drawPipeBlock(
@@ -55,7 +61,7 @@ public class CableRenderer {
 
         Hashtable<Direction, Boolean> neighborMap = new Hashtable<>();
         for (Direction direction : Direction.values()) {
-            neighborMap.put(direction, !CableManager.getInstance().pipeExists(world.getDimension(), targetPos.offset(direction), pipeType));
+            neighborMap.put(direction, !doesBlockExist(targetPos.offset(direction)));
         }
 
         matrices.translate(x, y, z);

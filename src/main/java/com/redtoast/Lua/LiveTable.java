@@ -1,6 +1,6 @@
 package com.redtoast.Lua;
 
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Table;
@@ -14,7 +14,7 @@ public class LiveTable extends LuaTable {
     public LiveTable(Table table){
         super();
         this.table = table;
-        LanguageTranslater genericTranslater = NeetComputers.getTranslater("Lua 5.2");
+        LanguageTranslater genericTranslater = NeetComputersServer.getTranslater("Lua 5.2");
         assert genericTranslater instanceof LuaTranslater;
         translater = (LuaTranslater) genericTranslater;
     }

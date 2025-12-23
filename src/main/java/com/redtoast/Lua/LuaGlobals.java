@@ -1,7 +1,7 @@
 package com.redtoast.Lua;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
@@ -12,7 +12,6 @@ import com.redtoast.simulation.base.GlobalGeneric;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -94,7 +93,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 if (!filepath.exists()) throw new ExposedError("No such file");
                 if (!filepath.isFile()) throw new ExposedError("Not a file");
                 if (!filepath.canRead()) throw new ExposedError("Access denied");
-                LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
+                LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
                 assert translater != null;
                 try{
                     Varargs args = require.call(LuaValue.valueOf(path));
@@ -161,7 +160,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LuaDebug = super.get("debug");
 
         //get lang
-        LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
+        LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
         if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
         manager = globalManager;
 
@@ -172,8 +171,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("package", LuaValue.NIL);
         //super.set("debug", (LuaValue) debugArgs);
         super.set("file",LuaValue.NIL);
-        super.set("dofile",LuaValue.NIL);
-        super.set("loadfile",LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
         super.set("_VERSION", LuaValue.NIL);
 

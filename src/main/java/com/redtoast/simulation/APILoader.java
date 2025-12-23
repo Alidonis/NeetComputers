@@ -1,7 +1,7 @@
 package com.redtoast.simulation;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.annotations.*;
 import com.redtoast.simulation.base.*;
 import com.redtoast.simulation.cache.LoaderCache;
@@ -386,7 +386,7 @@ public class APILoader {
                         exposable.onCall(runtime.thread, method);
                     }
                     long timeStarted = System.currentTimeMillis();
-                    Context context = runtime!=null ? new Context(runtime, NeetComputers.getLanguage(runtime.getRunningThread().getLang())) : null;
+                    Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getRunningThread().getLang())) : null;
                     Object retun = method.invoke(obj, processArgs(method, parameters, context));
                     if (context!=null) profilerFunction(timeStarted, funcname + ruleset.toString(context.runtime), context);
                     if (retun==null){

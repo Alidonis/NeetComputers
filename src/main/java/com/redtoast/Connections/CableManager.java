@@ -1,25 +1,19 @@
 package com.redtoast.Connections;
 
-import com.redtoast.neet.NeetComputers;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtLong;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class CableManager {
     private final Hashtable<String, Hashtable<Long, Short>> data = new Hashtable<>();
@@ -69,7 +63,7 @@ public class CableManager {
     }
 
     public static CableManager getInstance(){
-        return NeetComputers.cableManager;
+        return NeetComputersServer.cableManager;
     }
 
     public NbtCompound writeNbt(NbtCompound nbt) {
@@ -86,7 +80,7 @@ public class CableManager {
     }
 
     private void markDirty(){
-
+        NeetComputersServer.updateClientPipes();
     }
 
     public static CableManager createFromNbt(NbtCompound tag) {

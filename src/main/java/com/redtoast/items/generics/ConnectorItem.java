@@ -1,4 +1,4 @@
-package com.redtoast.items;
+package com.redtoast.items.generics;
 
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Connections.CableManager;
@@ -14,7 +14,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
 import java.util.LinkedList;

@@ -1,6 +1,6 @@
 package com.redtoast.mixin.client;
 
-import com.redtoast.items.ConnectorItem;
+import com.redtoast.items.generics.ConnectorItem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.util.math.BlockPos;

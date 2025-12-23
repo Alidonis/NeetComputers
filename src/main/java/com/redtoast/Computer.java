@@ -6,13 +6,13 @@ import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.EventTransferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.simulation.*;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
-import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.NVTable;
@@ -139,7 +139,7 @@ public abstract class Computer implements PeripheralReceiver {
     private void load(){
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();
-        NeetComputers.computerMap.put(uuid, this);
+        NeetComputersServer.computerMap.put(uuid, this);
         if (doesBinaryGraphics) refreshBinaryGraphics();
     }
     //loads computer from NBT data
@@ -372,14 +372,14 @@ public abstract class Computer implements PeripheralReceiver {
         short delta = (short) (System.currentTimeMillis() - tickTime);
         tickTime = System.currentTimeMillis();
         if (loaded){
-            if (NeetComputers.worldPath!=null && fs==null && build!=null){
+            if (NeetComputersServer.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, this);
                 setLibrary("file system", fs);
                 createLibraryAlias("filesystem", "file system");
                 createLibraryAlias("fs", "file system");
             }
             if (fs!=null) maintainState();
-            if (NeetComputers.worldPath!=null && !IsCrashed){
+            if (NeetComputersServer.worldPath!=null && !IsCrashed){
                 step(delta);
                 if (killFlag){
                     killFlag = false;

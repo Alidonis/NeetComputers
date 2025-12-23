@@ -1,15 +1,10 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
-
-import java.util.LinkedList;
-import java.util.UUID;
 
 public class ChipAPI implements API {
     Computer computer;
@@ -48,7 +43,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public String version(){
-        return NeetComputers.version;
+        return NeetComputersServer.version;
     }
 
     @Override
