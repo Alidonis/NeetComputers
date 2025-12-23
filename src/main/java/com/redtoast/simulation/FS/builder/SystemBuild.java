@@ -22,6 +22,7 @@ public class SystemBuild {
                 entrypoint = "bios:bios.lua";
                 partitions.add(new Partition("bios",false,false,"-2"));
                 partitions.add(new Partition("system",false,false,null));
+                partitions.add(new Partition("user",false,false,null));
             }
             case CRAFTOS -> {
                 entrypoint = "bios:bios.lua";

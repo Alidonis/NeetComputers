@@ -2,31 +2,28 @@ package com.redtoast;
 
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PeripheralReceiver;
+import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.EventTransferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.simulation.*;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
-import com.redtoast.neet.NeetComputers;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.NVTable;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.luaj.vm2.ast.Str;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -142,7 +139,7 @@ public abstract class Computer implements PeripheralReceiver {
     private void load(){
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();
-        NeetComputers.computerMap.put(uuid, this);
+        NeetComputersServer.computerMap.put(uuid, this);
         if (doesBinaryGraphics) refreshBinaryGraphics();
     }
     //loads computer from NBT data
@@ -184,6 +181,21 @@ public abstract class Computer implements PeripheralReceiver {
                     stop();
                 }
             }
+        }
+    }
+    //loads computer from data component
+    public void load(ComputerDataComponent dataComponent){
+        if (!loaded){
+            pointer = dataComponent.address();
+            IsOn = dataComponent.isOn();
+            uuid = dataComponent.id();
+            build = dataComponent.build();
+            if (dataComponent.getNVRam().isPresent()){
+                NVRam = NVTable.deserialize(dataComponent.NVRam(), this);
+            }else{
+                NVRam = new NVTable(this);
+            }
+            load();
         }
     }
     //generates a new computer from scratch
@@ -286,6 +298,7 @@ public abstract class Computer implements PeripheralReceiver {
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
     public NVTable getNVRam(){return NVRam;}
+    public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
@@ -359,15 +372,14 @@ public abstract class Computer implements PeripheralReceiver {
         short delta = (short) (System.currentTimeMillis() - tickTime);
         tickTime = System.currentTimeMillis();
         if (loaded){
-            if (NeetComputers.worldPath!=null && fs==null && build!=null){
+            if (NeetComputersServer.worldPath!=null && fs==null && build!=null){
                 fs = new FileSystem(build, pointer, this);
-                if (specs.MachineName.equals("Portable Computer")) System.out.println(fs);
                 setLibrary("file system", fs);
                 createLibraryAlias("filesystem", "file system");
                 createLibraryAlias("fs", "file system");
             }
             if (fs!=null) maintainState();
-            if (NeetComputers.worldPath!=null && !IsCrashed){
+            if (NeetComputersServer.worldPath!=null && !IsCrashed){
                 step(delta);
                 if (killFlag){
                     killFlag = false;
@@ -420,7 +432,7 @@ public abstract class Computer implements PeripheralReceiver {
     }
 
     //writes current state to NBT tag
-    public NbtCompound writeNBT(NbtCompound nbt){
+    public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putBoolean("IsOn", IsOn);
         if ((IsOn || IsCrashed) && doesBinaryGraphics){
@@ -434,8 +446,27 @@ public abstract class Computer implements PeripheralReceiver {
             if (NVRam!=null && !IsCrashed) nbt.put("NVRam", NVRam.serialize());
         }catch (Throwable ignored){
             debug.info("Failed to save NVRam: {}", ignored.toString());
+            NVRam.clear();
         }
         return nbt;
+    }
+
+    //writes current state to item
+    public ComputerDataComponent saveToItem(){
+        NbtCompound NVRamObj = null;
+        try{
+            if (NVRam!=null && !IsCrashed) NVRamObj = NVRam.serialize();
+        }catch (Throwable ignored){
+            debug.info("Failed to save NVRam: {}", ignored.toString());
+            NVRam.clear();
+        }
+        return new ComputerDataComponent(
+                pointer,
+                IsOn && !isCrashed(),
+                uuid,
+                build,
+                NVRamObj
+        );
     }
 
     //maintenance function that detects a difference in the computers state and its actual state and corrects it

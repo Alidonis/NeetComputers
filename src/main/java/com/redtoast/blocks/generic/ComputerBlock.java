@@ -1,6 +1,8 @@
 package com.redtoast.blocks.generic;
 
 import com.mojang.serialization.MapCodec;
+import com.redtoast.blocks.ComputerDataComponent;
+import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -21,6 +23,9 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.explosion.Explosion;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public abstract class ComputerBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final BooleanProperty ON = BooleanProperty.of("on");
@@ -63,19 +68,26 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof ComputerBlockEntity computer) {
                 computer.AssignPointers(world, itemStack);
+                if (computer.getComputer().getBuild().entrypoint.isEmpty() || computer.getComputer().getBuild().partitions.isEmpty()){
+
+                }
             }
         }
     }
 
     @Override
-    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
-        super.onBroken(world, pos, state);
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         if (!world.isClient()) {
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof ComputerBlockEntity computer) {
+                ItemStack item = asItem().getDefaultStack();
+                item.setCount(1);
+                item.set(ComputerDataComponent.TYPE, computer.getComputer().saveToItem());
+                Block.dropStack(world, pos, item);
                 computer.unload();
             }
         }
+        return super.onBreak(world, pos, state, player);
     }
 
     @Override

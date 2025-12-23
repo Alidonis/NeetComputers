@@ -1,17 +1,25 @@
 package com.redtoast.neet;
 
 import com.redtoast.Connections.CableRenderer;
+import com.redtoast.Connections.PipeType;
+import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
+import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
+import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
+import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
+import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
+import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.blocks.generic.ComputerBlockEntity;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
 import com.redtoast.graphics.screens.RGBScreenHandler;
-import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
+import com.redtoast.neet.Networking.PipeBufferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
@@ -23,13 +31,25 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class NeetComputersClient implements ClientModInitializer {
+	public static BlockPos[] positionsForPipeRendering = new BlockPos[0];
+	public static PipeType lastTypeSent = PipeType.PERIPHERAL;
+
 	@Override
 	public void onInitializeClient() {
 		// Setup pipe renderer
 		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
 
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
-		HandledScreens.register(NeetComputers.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
+		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
+
+		BlockEntityType<LargeEntityComputer> largeType = (BlockEntityType<LargeEntityComputer>) BulkRegistery.fetchBlockEntityType("large_computer");
+		BulkRegistery.register(largeType, LargeComputerRenderer::new);
+
+		BlockEntityType<DesktopEntityComputer> desktopType = (BlockEntityType<DesktopEntityComputer>) BulkRegistery.fetchBlockEntityType("desktop_computer");
+		BulkRegistery.register(desktopType, DesktopComputerRenderer::new);
+
+		BlockEntityType<OfficeEntityComputer> officeType = (BlockEntityType<OfficeEntityComputer>) BulkRegistery.fetchBlockEntityType("office_computer");
+		BulkRegistery.register(officeType, OfficeComputerRenderer::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
@@ -50,6 +70,11 @@ public class NeetComputersClient implements ClientModInitializer {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+
+		ClientPlayNetworking.registerGlobalReceiver(PipeBufferPayload.ID, ((payload, context) -> {
+			positionsForPipeRendering = payload.buffer();
+			lastTypeSent = payload.type();
+		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(RGBComputerPayload.ID, (payload, context) -> {
             if (context.client().player.currentScreenHandler instanceof RGBScreenHandler) ((RGBScreenHandler) context.client().player.currentScreenHandler).updateGraphics(payload.graphicsArray());

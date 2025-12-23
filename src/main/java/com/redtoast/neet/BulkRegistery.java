@@ -1,5 +1,7 @@
 package com.redtoast.neet;
 
+import com.mojang.serialization.Codec;
+import com.redtoast.blocks.ComputerDataComponent;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -7,14 +9,17 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.component.ComponentType;
 import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -136,7 +141,10 @@ public class BulkRegistery {
         }else{
             add(address,new Registered(block, blockEntity));
         }
-        BlockEntityRendererFactories.register(blockEntity, renderer::create);
+        BlockEntityRendererFactories.register(blockEntity, ctx -> renderer.create());
+    }
+    public static <BlockEntityClass extends BlockEntity> void register(BlockEntityType<BlockEntityClass> type, RendererConstructor<BlockEntityClass> renderer){
+        BlockEntityRendererFactories.register(type, ctx -> renderer.create());
     }
     public static <BlockClass extends Block, BlockEntityClass extends BlockEntity> void register(String address, BlockClass block, BlockEntityConstructor<BlockEntityClass> constructor, RendererConstructor<BlockEntityClass> renderer){
         register(address,block,constructor,renderer,false);
@@ -195,6 +203,6 @@ public class BulkRegistery {
     }
     @FunctionalInterface
     public interface RendererConstructor<BlockEntityClass extends BlockEntity>{
-        BlockEntityRenderer<BlockEntityClass> create(BlockEntityRendererFactory.Context ctx);
+        BlockEntityRenderer<BlockEntityClass> create();
     }
 }

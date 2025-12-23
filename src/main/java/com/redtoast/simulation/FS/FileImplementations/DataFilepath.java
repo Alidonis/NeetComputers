@@ -1,6 +1,6 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSystem;
@@ -60,7 +60,7 @@ public class DataFilepath implements Filepath {
     public boolean exists() {
         if (isInvalid()) return false;
         if (fs.build.blacklist.contains(getPath())) return false;
-        return NeetComputers.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).isPresent();
+        return NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).isPresent();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DataFilepath implements Filepath {
             Spath += "/";
         }
         try {
-            NeetComputers.datahandling.getResource(Identifier.of("neetcomputers",Spath)).get().getReader();
+            NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers",Spath)).get().getReader();
             return false;
         } catch (IOException e) {
             if (!(e instanceof java.nio.file.AccessDeniedException)){
@@ -107,7 +107,7 @@ public class DataFilepath implements Filepath {
         if (invalid) throw new IOException("Invalid file path");
         if (!isFile()) return null;
         if (exists()){
-            BufferedReader reader = NeetComputers.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getReader();
+            BufferedReader reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getReader();
             StringBuilder buffer = new StringBuilder();
             while (reader.ready()){
                 buffer.append('\n');
@@ -136,7 +136,7 @@ public class DataFilepath implements Filepath {
         if (invalid) throw new IOException("Invalid file path");
         if (!isFile()) return null;
         if (exists()){
-            InputStream reader = NeetComputers.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getInputStream();
+            InputStream reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getInputStream();
             return reader.readAllBytes();
         }else{
             return null;
@@ -179,7 +179,7 @@ public class DataFilepath implements Filepath {
         }
         LinkedList<String> filepaths = new LinkedList<>();
         String finalJpath = jpath;
-        NeetComputers.datahandling.findResources("hard_addresses/"+-pointer+relPath, arg -> {
+        NeetComputersServer.datahandling.findResources("hard_addresses/"+-pointer+relPath, arg -> {
             String gpath = arg.toString().split(spath)[1];
             String name = gpath.split("/")[0];
             if (!filepaths.contains(finalJpath +name) && !fs.build.blacklist.contains(finalJpath +name)){

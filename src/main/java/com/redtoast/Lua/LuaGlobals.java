@@ -1,7 +1,7 @@
 package com.redtoast.Lua;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
@@ -12,7 +12,6 @@ import com.redtoast.simulation.base.GlobalGeneric;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -22,17 +21,21 @@ import org.luaj.vm2.*;
 import org.luaj.vm2.compiler.LuaC;
 import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
     private final LuaFunction LuaRequire;
+    private final Logger logger;
     private static final ParameterRules requireRuleset = new ParameterRules(VarType.STRING);
     public LuaValue LuaDebug;
-    protected LuaTranslater lua52;
+    protected static LuaTranslater lua52;
     private final UUID uuid;
     private final GlobalManager manager;
     private boolean noForwarding = false;
@@ -82,8 +85,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
         @Override
         public Value call(FunctionInput parameters) {
-            ParameterCheckReturn checkReturn = ParameterRules.checkParameters(parameters.toArray(), requireRuleset, computer.getRuntime());
-            if (checkReturn.isError()) return Value.asError(checkReturn.getMessage());
             String path = parameters.get(0).toString();
             assert path != null;
             if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
@@ -92,10 +93,12 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 if (!filepath.exists()) throw new ExposedError("No such file");
                 if (!filepath.isFile()) throw new ExposedError("Not a file");
                 if (!filepath.canRead()) throw new ExposedError("Access denied");
-                LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
+                LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
                 assert translater != null;
                 try{
-                    return translater.toValue(require.call(LuaValue.valueOf(path)));
+                    Varargs args = require.call(LuaValue.valueOf(path));
+                    System.out.println("2"+args.getClass().getName());
+                    return translater.toValue(args);
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
@@ -104,6 +107,36 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
             }else{
                 return Value.asError("Invalid asset path");
             }
+        }
+    }
+
+    private static class LuaPrint extends Function{
+        private final LuaGlobals globals;
+        private final Logger logger;
+        public LuaPrint(Runtime runtime, LuaGlobals globals, Logger logger) {
+            super(runtime, ParameterRules.ANY);
+            this.globals = globals;
+            this.logger = logger;
+        }
+
+        @Override
+        public Value call(FunctionInput parameters) {
+            LuaValue toStringFunc = globals.get("tostring");
+            int iterator = 1;
+
+            StringBuilder buffer = new StringBuilder();
+
+            for(int var4 = parameters.getSize(); iterator <= var4; ++iterator) {
+                if (iterator > 1) {
+                    buffer.append('\t');
+                }
+
+                LuaString output = toStringFunc.call((LuaValue)lua52.fromValue(parameters.get(iterator-1))).strvalue();
+                buffer.append(output.tojstring());
+            }
+
+            logger.info(buffer.toString());
+            return null;
         }
     }
 
@@ -120,13 +153,14 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LoadState.install(this);
         LuaC.install(this);
         super.load(new DebugLib());
+        logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().parent.getUuid()+']');
 
         //fetch built in require object
         LuaRequire = super.get("require").checkfunction();
         LuaDebug = super.get("debug");
 
         //get lang
-        LanguageTranslater translater = NeetComputers.getTranslater("Lua 5.2");
+        LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
         if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
         manager = globalManager;
 
@@ -137,8 +171,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("package", LuaValue.NIL);
         //super.set("debug", (LuaValue) debugArgs);
         super.set("file",LuaValue.NIL);
-        super.set("dofile",LuaValue.NIL);
-        super.set("loadfile",LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
         super.set("_VERSION", LuaValue.NIL);
 
@@ -147,8 +179,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         //set up new require functionality with anti-abuse in mind
         Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs, manager.getParent()).asValue());
+        Varargs NewPrint = lua52.fromValue(new LuaPrint(manager.getParent(), this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
+        super.set("print", (LuaValue) NewPrint);
 
         //register LuaGlobals with GlobalsManager
         uuid = UUID.randomUUID();
@@ -162,7 +196,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     @Override
     public void rawset( LuaValue key, LuaValue value ) {
         super.rawset(key, value);
-        if (lua52!=null && !noForwarding) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
+        if (Objects.equals(key.toString(), "_G")) return;
+        if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
     }
 
     @Override

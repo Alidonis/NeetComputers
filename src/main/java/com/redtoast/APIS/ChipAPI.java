@@ -1,15 +1,10 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.API;
-import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
-
-import java.util.LinkedList;
-import java.util.UUID;
 
 public class ChipAPI implements API {
     Computer computer;
@@ -39,41 +34,6 @@ public class ChipAPI implements API {
     }
 
     @Exposed
-    public int getCoreCount(){
-        return vm.getThreads().size();
-    }
-
-    @Exposed
-    public int getMaxCoreCount(){
-        return computer.getSpecifications().MaxCores;
-    }
-
-    @Exposed
-    public String createCore(String script){
-        if (vm.getThreads().size()>=computer.getSpecifications().MaxCores) throw new ExposedError("Thread cap for this machine reached, cant make more threads");
-        UUID uuid = vm.MakeThread(script, "Lua 5.2");
-        return uuid.toString();
-    }
-
-    @Exposed
-    public String getCurrentCore(){
-        UUID uuid = vm.getRunningThread().getUuid();
-        return uuid.toString();
-    }
-
-    @Exposed
-    public boolean killCore(String uuid){
-        LinkedList<LangThread> threads = vm.getThreads();
-        for (LangThread thread : threads){
-            if (thread.getUuid().toString().equals(uuid)){
-                thread.kill();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Exposed
     public void shutdown(){
         computer.stop();
     }
@@ -83,7 +43,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public String version(){
-        return NeetComputers.version;
+        return NeetComputersServer.version;
     }
 
     @Override

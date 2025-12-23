@@ -17,7 +17,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "com.redtoast.neet.NeetComputers"
+          "com.redtoast.neet.NeetComputersServer"
 		],
 		"client": [
           "com.redtoast.neet.NeetComputersClient"

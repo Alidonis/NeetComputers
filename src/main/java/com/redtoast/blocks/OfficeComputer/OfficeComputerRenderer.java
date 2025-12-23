@@ -24,7 +24,7 @@ import org.joml.Vector3f;
 public class OfficeComputerRenderer implements BlockEntityRenderer<OfficeEntityComputer> {
     float clock;
     static int opacity = 255;
-    public OfficeComputerRenderer(BlockEntityRendererFactory.Context context) {
+    public OfficeComputerRenderer() {
         clock = 0;
     }
     public BlockState state;

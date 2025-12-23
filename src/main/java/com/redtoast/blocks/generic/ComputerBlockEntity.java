@@ -4,6 +4,7 @@ import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
 import com.redtoast.Connections.*;
+import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
 import com.redtoast.computerSpecs;
@@ -50,6 +51,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
     private boolean corrupted = false;
+    private boolean errorLock = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
@@ -102,18 +104,18 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     public void AssignPointers(World world, ItemStack itemStack){
-//        if (itemStack.hasNbt()) {
-//            NbtCompound nbt = itemStack.getNbt();
-//            computer.load(nbt);
-//        }else{
+        if (itemStack.contains(ComputerDataComponent.TYPE)) {
+            ComputerDataComponent data = itemStack.get(ComputerDataComponent.TYPE);
+            computer.load(data);
+        }else{
             MinecraftServer server = world.getServer();
             computer.load(server);
-//        }
+        }
     }
 
     @Override
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        if (!corrupted) nbt = computer.writeNBT(nbt);
+        if (!corrupted) nbt = computer.saveNBT(nbt);
         super.writeNbt(nbt, registryLookup);
     }
 

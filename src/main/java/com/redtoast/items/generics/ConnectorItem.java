@@ -1,4 +1,4 @@
-package com.redtoast.items;
+package com.redtoast.items.generics;
 
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Connections.CableManager;
@@ -14,7 +14,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -128,19 +127,11 @@ public class ConnectorItem extends Item {
         if (!world.isClient()){
             BlockHitResult blockHitResult = raycast(world, player, RaycastContext.FluidHandling.NONE);
             if (blockHitResult.getType() == HitResult.Type.BLOCK) {
-                if (heldDownPlace(player) && lastPlaced.containsKey(player)) pathfind(world, blockHitResult.getBlockPos(), lastPlaced.get(player), player, this::placePipe);
-                placePipe(world, blockHitResult.getBlockPos(), player);
+                PipeInteraction interaction = CableManager.getInstance().pipeExists(world.getDimension(), blockHitResult.getBlockPos(), getType()) ? this::removePipe : this::placePipe;
+                if (heldDownPlace(player) && lastPlaced.containsKey(player)) pathfind(world, blockHitResult.getBlockPos(), lastPlaced.get(player), player, interaction);
+                interaction.apply(world, blockHitResult.getBlockPos(), player);
             }
         }
         return TypedActionResult.success(player.getStackInHand(hand));
-    }
-
-    @Override
-    public boolean canMine(BlockState state, World world, BlockPos pos, PlayerEntity miner) {
-        if (!world.isClient()) {
-            if (heldDownMine(miner) && lastPlaced.containsKey(miner)) pathfind(world, pos, lastPlaced.get(miner), miner, this::removePipe);
-            removePipe(world, pos, miner);
-        }
-        return false;
     }
 }

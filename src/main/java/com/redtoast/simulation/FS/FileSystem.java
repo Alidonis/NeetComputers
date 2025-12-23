@@ -3,7 +3,7 @@ package com.redtoast.simulation.FS;
 import com.redtoast.Computer;
 import com.redtoast.external.PeripheralConsumer;
 import com.redtoast.external.PeripheralProvider;
-import com.redtoast.neet.NeetComputers;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.builder.FileContext;
 import com.redtoast.simulation.FS.builder.SystemBuild;
@@ -35,7 +35,7 @@ public class FileSystem implements BootablePartitionedFileSpace, PeripheralProvi
         Path path;
         this.build = build;
         this.pointer = pointer;
-        path = NeetComputers.worldPath.resolve("neetcomputers").resolve(String.valueOf(pointer));
+        path = NeetComputersServer.worldPath.resolve("neetcomputers").resolve(String.valueOf(pointer));
         path = path.normalize();
         basePath = path;
         basePath.toFile().mkdir();
@@ -233,7 +233,7 @@ public class FileSystem implements BootablePartitionedFileSpace, PeripheralProvi
 
     @Override
     public @NotNull BootPath fetchBootPath() {
-        return new BootPath(getFile(FileHelper.normalize(build.entrypoint)), NeetComputers.getLanguage("Lua 5.2"));
+        return new BootPath(getFile(FileHelper.normalize(build.entrypoint)), NeetComputersServer.getLanguage("Lua 5.2"));
     }
 
     @Override

@@ -144,6 +144,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     }
 
     public Value<?> toValueWithoutMetadata(Varargs var) {
+        //System.out.println("1"+var.getClass().getName());
         if (!(var instanceof LuaValue)){
             Value[] values = new Value<?>[var.narg()];
             for (int i = 0; i < var.narg(); i++){
@@ -168,7 +169,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
             return Value.of(exactBytes);
         }else if (val instanceof LuaTable table){
             Table tabll = new Table();
-            Value[] vals = new Value[table.length()];
+            Value[] vals = new Value[table.rawlen()];
             boolean isList = true;
             LuaValue key = LuaValue.NIL;
             while (true){
@@ -185,7 +186,8 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                 }else{
                     isList = false;
                 }
-                tabll.put(toValueWithoutMetadata(key), toValueWithoutMetadata(value));
+                Value<?> temp = toValueWithoutMetadata(value);
+                tabll.put(toValueWithoutMetadata(key), temp);
             }
             return isList ? Value.of(vals) : Value.of(tabll);
         }else if (val instanceof LuaFunction function){
