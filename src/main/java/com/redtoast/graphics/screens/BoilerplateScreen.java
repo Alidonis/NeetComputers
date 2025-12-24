@@ -155,7 +155,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
-    private int mapGlfwKeyToAsciiCode(int key, int mods) {
+    public static int mapGlfwKeyToAsciiCode(int key, int mods) {
         boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
 
         if (key >= GLFW.GLFW_KEY_A && key <= GLFW.GLFW_KEY_Z) {
@@ -183,6 +183,10 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             }
         }
 
+        if (key >= GLFW.GLFW_KEY_F1 && key <= GLFW_KEY_F25) {
+            return 134 + (key - GLFW.GLFW_KEY_F1);
+        }
+
         return switch (key) {
             case GLFW_KEY_SPACE -> ' ';
             case GLFW_KEY_APOSTROPHE -> shift ? '"' : '\'';
@@ -199,6 +203,12 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             case GLFW_KEY_ENTER -> 13;
             case GLFW_KEY_BACKSPACE, GLFW_KEY_DELETE -> 8;
             case GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT -> 14;
+            case GLFW_KEY_LEFT -> 128;
+            case GLFW_KEY_RIGHT -> 129;
+            case GLFW_KEY_UP -> 130;
+            case GLFW_KEY_DOWN -> 131;
+            case GLFW_KEY_LEFT_CONTROL, GLFW_KEY_RIGHT_CONTROL -> 132;
+            case GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT -> 133;
             default -> 0;
         };
     }
