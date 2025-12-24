@@ -36,6 +36,7 @@ local defaults = {
 		local lines = {}
 		local current = 1
 		for _,v in pairs(fs.getChildren(dir1)) do
+			print(v)
 			if not lines[current] then
 				lines[current] = ""
 			end

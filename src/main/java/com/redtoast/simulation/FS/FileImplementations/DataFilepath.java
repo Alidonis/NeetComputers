@@ -17,7 +17,7 @@ public class DataFilepath implements Filepath {
     private final String path;
     private String relPath;
     private final FileSystem fs;
-    private boolean invalid = false;
+    private final boolean invalid;
 
     public DataFilepath(int Pointer, String Path, FileSystem system){
         pointer = Pointer;
@@ -74,9 +74,6 @@ public class DataFilepath implements Filepath {
             NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers",Spath)).get().getReader();
             return false;
         } catch (IOException e) {
-            if (!(e instanceof java.nio.file.AccessDeniedException)){
-                throw new RuntimeException(e);
-            }
             return true;
         }
     }
