@@ -313,6 +313,9 @@ public class NeetComputersServer implements ModInitializer {
 				translators[i] = languageGenerics.get(i).generateTranslationClass();
 			}
 		}
+
+		ProcessManager.clear();
+		ProcessManager.openNewThread();
 	}
 
 	public static LanguageTranslater getTranslater(String lang){

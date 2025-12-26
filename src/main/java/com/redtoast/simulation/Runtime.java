@@ -15,18 +15,16 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.UUID;
 
 public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
-    public final GlobalManager globalManager;
-    public LangThread thread;
+    private final GlobalManager globalManager;
+    private LangThread runningThread;
     private boolean kill = false;
-    public FileSpace fs;
-    public Computer parent;
-    public LinkedList<LangThread> threads = new LinkedList<>();
-    public int TTL = 0;
-    public boolean inTick = false;
+    private final FileSpace fs;
+    private final Computer parent;
+    private LangThread thread = null;
+    private boolean inTick = false;
 
     public interface FunctionCall {
         Value<?> call(FunctionInput parameters);
@@ -47,6 +45,22 @@ public abstract class Runtime {
         que = call;
         this.parameters = parameters;
         product = null;
+    }
+
+    public boolean isInTick() {
+        return inTick;
+    }
+
+    public GlobalManager getGlobals(){
+        return globalManager;
+    }
+
+    public FileSpace getFileSpace(){
+        return fs;
+    }
+
+    public Computer getParent() {
+        return parent;
     }
 
     public Optional<Value<?>> pullQue(){
@@ -85,40 +99,28 @@ public abstract class Runtime {
         System.out.println("booting complete");
     }
 
-    /**
-     * opens a new thread
-     * @param script The code you are running
-     * @param lang the name of the language your opening the scrip in (I.E Lua 5.2)
-     * @return The UUID of the created thread
-     */
-    public UUID MakeThread(String script, String lang){
+    private void MakeThread(String script, String lang){
         if (!NeetComputersServer.hasLanguage(lang)){
-            return null;
+            return;
         }
         LanguageGeneric langObject = NeetComputersServer.getLanguage(lang);
         assert langObject != null;
-        LangThread thread = langObject.createThread(script, this, parent, parent.getSpecifications());
-        threads.add(thread);
-        return thread.getUuid();
+        thread = langObject.createThread(script, this, parent, parent.getSpecifications());
     }
-
-    /**
-     * retrieves a que of to-be-run events from its parent class
-     * @return list of events
-     */
-    public abstract LinkedList<EventGeneric> getEvents();
 
     /**
      * retrieves the event callbacks from the parent computer
      */
     public abstract LinkedList<EventGeneric.eventCallback> getCallbacks();
 
+    public abstract boolean shouldDie();
+
     /**
      * ticks all contained threads forward once and perform maintenance tasks
      */
     public void tick(){
         if (!kill) {
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 kill = true;
                 return;
             }
@@ -128,34 +130,27 @@ public abstract class Runtime {
                 }
                 parent.getEventQue().remove();
             }
-            LinkedList<Integer> deathQue = new LinkedList<>();
             if (que!=null){
                 product = que.call(parameters);
                 que = null;
                 parameters = null;
             }
-            for (int i = 0; i < threads.size(); i++) {
-                if (threads.get(i).isAlive()) {
-                    thread = threads.get(i);
-                    inTick=true;
-                    if (parent.isCrashed()) return;
-                    threads.get(i).tick();
-                    inTick=false;
-                    if (!threads.get(i).isAlive()) {
-                        deathQue.add(i);
-                    }
-                } else {
-                    deathQue.add(i);
+            if (thread.isAlive()) {
+                runningThread = thread;
+                inTick=true;
+                if (parent.isCrashed()) return;
+                thread.tick();
+                inTick=false;
+                if (!thread.isAlive()) {
+                    thread = null;
                 }
             }
-            int tracker = 0;
-            for (int i = 0; i < deathQue.size(); i++) {
-                threads.remove(i-tracker);
-                tracker++;
-            }
-            if (threads.isEmpty()) {
+            if (thread == null) {
                 kill = true;
             }
+        }
+        if (shouldDie()){
+            parent.stop();
         }
     }
 
@@ -164,7 +159,7 @@ public abstract class Runtime {
      */
     public String getCurrentSource(){
         if (!inTick) return null;
-        return thread.getSource();
+        return runningThread.getSource();
     }
 
     /**
@@ -176,19 +171,11 @@ public abstract class Runtime {
     }
 
     /**
-     * returns an unordered list of all threads, including rarely dead threads
-     * @return list of threads
-     */
-    public LinkedList<LangThread> getThreads() {
-        return threads;
-    }
-
-    /**
      * gets the tread that's currently being ticked or returns null
      * @return LangThread instance or null
      */
     public @Nullable LangThread getRunningThread() {
         if (!inTick) {return null;}
-        return thread;
+        return runningThread;
     }
 }

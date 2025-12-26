@@ -79,7 +79,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         private final Computer computer;
         public LuaRequire(LuaFunction require, FileSpace fs, Runtime runtime){
             super(runtime, "require", new ParameterRules(VarType.STRING));
-            this.computer = runtime.parent;
+            this.computer = runtime.getParent();
             this.require = require;
             this.fs = fs;
         }
@@ -153,7 +153,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LoadState.install(this);
         LuaC.install(this);
         super.load(new DebugLib());
-        logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().parent.getUuid()+']');
+        logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().getParent().getUuid()+']');
 
         //fetch built in require object
         LuaRequire = super.get("require").checkfunction();
@@ -175,10 +175,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("_VERSION", LuaValue.NIL);
 
         //load new luaj resource finder
-        super.finder = new NeoFinder(globalManager.getParent().fs);
+        super.finder = new NeoFinder(globalManager.getParent().getFileSpace());
 
         //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().fs, manager.getParent()).asValue());
+        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().getFileSpace(), manager.getParent()).asValue());
         Varargs NewPrint = lua52.fromValue(new LuaPrint(manager.getParent(), this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);

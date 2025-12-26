@@ -36,7 +36,7 @@ public class LuaThread extends LangThread {
         specs = specification;
         runtime = parentRuntime;
         try{
-            globals = new LuaGlobals(runtime.globalManager);
+            globals = new LuaGlobals(runtime.getGlobals());
             chunk = globals.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(globals, chunk);
             globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specs.BatchSize)});
@@ -79,20 +79,14 @@ public class LuaThread extends LangThread {
     public void tick(){
         clearJavaLag();
         if (!isAlive()) return;
-        double util = specs.Batches;
-        util *= specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1;
-        ticket += (short) Math.round(util);
-        int threadCount = runtime.threads.size();
+        ticket += specs.Batches;
         while (ticket>0) {
-            if (runtime.parent.isCrashed()) kill("Parent computer crashed");
+            if (runtime.getParent().isCrashed()) kill("Parent computer crashed");
             if (!isAlive()) return;
             step();
             if (isAlive()){
                 short tax = (short) getJavaTaxBulk((short) (10*specs.BatchSize));
                 ticket -= (short) (tax * 25);
-            }
-            if (threadCount!=runtime.threads.size() && isAlive()){
-                ticket += (short) (Math.round(util) - (specs.CoreUtilizationBonus * (runtime.threads.size() - 1) + 1));
             }
         }
     }
@@ -104,6 +98,6 @@ public class LuaThread extends LangThread {
 
     @Override
     public void crash(String message) {
-        runtime.parent.crash(message);
+        runtime.getParent().crash(message);
     }
 }

@@ -22,9 +22,6 @@ public class ChipAPI implements API {
     }
 
     @Exposed
-    public int getTimeAlive(){return vm.TTL;}
-
-    @Exposed
     public String getUUID(){
         return computer.getUuid().toString();
     }

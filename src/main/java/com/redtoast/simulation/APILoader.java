@@ -109,7 +109,7 @@ public class APILoader {
                 throw new LoaderError("Issue encountered loading api '"+label+"': nameless function (try .setName on runtime implemented functions)");
             }
         }
-        ParentRuntime.globalManager.put(label, apiTable.asValue());
+        ParentRuntime.getGlobals().put(label, apiTable.asValue());
     }
 
     public static Table TableizeAPI(Exposable exposable, @Nullable Runtime runtime){
@@ -383,7 +383,7 @@ public class APILoader {
                 try {
                     if (runtime!=null && obj instanceof Exposable exposable){
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
-                        exposable.onCall(runtime.thread, method);
+                        exposable.onCall(runtime.getRunningThread(), method);
                     }
                     long timeStarted = System.currentTimeMillis();
                     Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getRunningThread().getLang())) : null;

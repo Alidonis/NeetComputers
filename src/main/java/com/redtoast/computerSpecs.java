@@ -17,8 +17,6 @@ package com.redtoast;
  * @see Computer
  */
 public class computerSpecs {
-    @Deprecated public int MaxCores = 1;
-    @Deprecated public double CoreUtilizationBonus = 0;
     @Deprecated public int BatchSize = 10;
     @Deprecated public int Batches = 58;
     @Deprecated public boolean doesBinaryGraphics = false;

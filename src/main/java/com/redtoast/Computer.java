@@ -9,6 +9,7 @@ import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.EventTransferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
+import com.redtoast.neet.ProcessManager;
 import com.redtoast.simulation.*;
 import com.redtoast.simulation.FS.FileSystem;
 import com.redtoast.simulation.FS.builder.SystemBuild;
@@ -229,16 +230,18 @@ public abstract class Computer implements PeripheralReceiver {
             Graphics.clear();
 
             //overwrites runtime with a new instance
-            Computer com = this;
             runtime = new Runtime(this, NVRam) {
-                @Override
-                public LinkedList<EventGeneric> getEvents() {
-                    return com.getEventQue();
-                }
 
                 @Override
                 public LinkedList<EventGeneric.eventCallback> getCallbacks() {
                     return eventCallbacks;
+                }
+
+                @Override
+                public boolean shouldDie() {
+                    boolean temp = killFlag;
+                    if (temp) killFlag = false;
+                    return temp;
                 }
             };
 
@@ -264,7 +267,7 @@ public abstract class Computer implements PeripheralReceiver {
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (IsOn){
-            if (runtime.inTick){
+            if (runtime.isInTick()){
                 killFlag = true;
             }else{
                 runtime=null;
@@ -328,7 +331,7 @@ public abstract class Computer implements PeripheralReceiver {
     }
     public @Nullable GlobalManager getGlobals(){
         if (IsOn){
-            return runtime.globalManager;
+            return runtime.getGlobals();
         }else{
             return null;
         }
@@ -381,10 +384,6 @@ public abstract class Computer implements PeripheralReceiver {
             if (fs!=null) maintainState();
             if (NeetComputersServer.worldPath!=null && !IsCrashed){
                 step(delta);
-                if (killFlag){
-                    killFlag = false;
-                    stop();
-                }
                 for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) ServerPlayNetworking.send((ServerPlayerEntity) p, new RGBComputerPayload(Graphics));
                 }
@@ -399,15 +398,14 @@ public abstract class Computer implements PeripheralReceiver {
     }
 
     //steps the runtime forward (tick with less protection)
-    private void step(short delta){
+    public void step(short delta){
         if (loaded){
             if (IsOn && runtime !=null && !IsCrashed){
                 if (runtime.isDead()){
                     stop();
                 }else{
                     if (IsOn) {
-                        runtime.TTL += delta;
-                        runtime.tick();
+                        ProcessManager.queComputerTick(this);
                     }
                 }
             }
@@ -473,16 +471,18 @@ public abstract class Computer implements PeripheralReceiver {
     private void maintainState(){
         if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
-            Computer com = this;
             runtime = new Runtime(this, NVRam) {
-                @Override
-                public LinkedList<EventGeneric> getEvents() {
-                    return com.getEventQue();
-                }
 
                 @Override
                 public LinkedList<EventGeneric.eventCallback> getCallbacks() {
                     return eventCallbacks;
+                }
+
+                @Override
+                public boolean shouldDie() {
+                    boolean temp = killFlag;
+                    if (temp) killFlag = false;
+                    return temp;
                 }
 
             };
