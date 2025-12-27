@@ -34,7 +34,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         if (code!=0){
             EventGeneric event = new EventGeneric("keyPressed",
                     Value.of(code),
-                    Value.of(code>14 ? (char) code : Value.NULL),
+                    Value.of(code>14 && code<128 ? (char) code : Value.NULL),
                     Value.of(modifiers)
             );
             event.send(handler);
@@ -48,7 +48,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         if (code!=0){
             EventGeneric event = new EventGeneric("keyReleased",
                     Value.of(code),
-                    Value.of(code>14 ? (char) code : Value.NULL),
+                    Value.of(code>14 && code<128 ? (char) code : Value.NULL),
                     Value.of(modifiers)
             );
             event.send(handler);
