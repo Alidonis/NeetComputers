@@ -270,6 +270,8 @@ public abstract class Computer implements PeripheralReceiver {
             if (runtime.isInTick()){
                 killFlag = true;
             }else{
+                eventCallbacks.clear();
+                eventQue.clear();
                 runtime=null;
                 IsOn =false;
                 saveNBT();
