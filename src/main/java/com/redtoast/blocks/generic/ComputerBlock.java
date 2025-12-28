@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -30,10 +31,11 @@ import java.util.UUID;
 public abstract class ComputerBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final BooleanProperty ON = BooleanProperty.of("on");
     public static final BooleanProperty CRASHED = BooleanProperty.of("crashed");
+    public static final IntProperty STATE = IntProperty.of("state",0,3);
 
     public ComputerBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(ON, false).with(CRASHED, false).with(Properties.HORIZONTAL_FACING, Direction.NORTH));
+        setDefaultState(getDefaultState().with(ON, false).with(CRASHED, false).with(STATE,0).with(Properties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
     public abstract BlockEntityType<? extends BlockEntity> getType();
@@ -45,7 +47,7 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(ON, CRASHED, Properties.HORIZONTAL_FACING);
+        builder.add(ON, CRASHED, STATE, Properties.HORIZONTAL_FACING);
     }
 
     @Override

@@ -51,7 +51,6 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
     private boolean corrupted = false;
-    private boolean errorLock = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
@@ -206,6 +205,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
                 if (current.get(DesktopBlockComputer.CRASHED) != computerBlock.computer.isCrashed()) {
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
                 }
+                world.setBlockState(blockPos, current.with(DesktopBlockComputer.STATE, computerBlock.computer.getStatus().ordinal()), Block.NOTIFY_ALL);
             }
         }
     }
