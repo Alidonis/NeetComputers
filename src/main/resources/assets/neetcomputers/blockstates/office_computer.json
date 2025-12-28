@@ -1,8 +1,20 @@
 {
   "variants": {
-    "facing=north": { "model": "neetcomputers:block/desktop_computer_mini"},
-    "facing=east":  { "model": "neetcomputers:block/desktop_computer_mini", "y":  90},
-    "facing=south": { "model": "neetcomputers:block/desktop_computer_mini", "y": 180},
-    "facing=west":  { "model": "neetcomputers:block/desktop_computer_mini", "y": 270}
+    "state=0,facing=north": { "model": "neetcomputers:block/office_computer/office_computer_off"},
+    "state=0,facing=east":  { "model": "neetcomputers:block/office_computer/office_computer_off", "y":  90},
+    "state=0,facing=south": { "model": "neetcomputers:block/office_computer/office_computer_off", "y": 180},
+    "state=0,facing=west":  { "model": "neetcomputers:block/office_computer/office_computer_off", "y": 270},
+    "state=1,facing=north": { "model": "neetcomputers:block/office_computer/office_computer_on"},
+    "state=1,facing=east":  { "model": "neetcomputers:block/office_computer/office_computer_on", "y":  90},
+    "state=1,facing=south": { "model": "neetcomputers:block/office_computer/office_computer_on", "y": 180},
+    "state=1,facing=west":  { "model": "neetcomputers:block/office_computer/office_computer_on", "y": 270},
+    "state=2,facing=north": { "model": "neetcomputers:block/office_computer/office_computer_crashed"},
+    "state=2,facing=east":  { "model": "neetcomputers:block/office_computer/office_computer_crashed", "y":  90},
+    "state=2,facing=south": { "model": "neetcomputers:block/office_computer/office_computer_crashed", "y": 180},
+    "state=2,facing=west":  { "model": "neetcomputers:block/office_computer/office_computer_crashed", "y": 270},
+    "state=3,facing=north": { "model": "neetcomputers:block/office_computer/office_computer_paused"},
+    "state=3,facing=east":  { "model": "neetcomputers:block/office_computer/office_computer_paused", "y":  90},
+    "state=3,facing=south": { "model": "neetcomputers:block/office_computer/office_computer_paused", "y": 180},
+    "state=3,facing=west":  { "model": "neetcomputers:block/office_computer/office_computer_paused", "y": 270}
   }
 }
