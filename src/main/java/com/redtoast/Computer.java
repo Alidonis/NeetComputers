@@ -291,7 +291,7 @@ public abstract class Computer implements PeripheralReceiver {
 
     //yields the computer
     public void yield(){
-        if (isOn()) Objects.requireNonNull(runtime.getRunningThread()).yield();
+        if (isOn()) Objects.requireNonNull(runtime.getThread()).yield();
     }
 
     //one line fetch methods

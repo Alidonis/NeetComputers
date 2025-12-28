@@ -361,15 +361,15 @@ public class APILoader {
         short timeSpent = (short) (System.currentTimeMillis() - startTime);
         if (timeSpent>100){
             profiler.warn(function +" exited 100 milliseconds ("+timeSpent+")");
-            if (context!=null && context.runtime.getRunningThread()!=null){
-                context.runtime.getRunningThread().taxJavaLag((short) 1000);
+            if (context!=null && context.runtime.getThread()!=null){
+                context.runtime.getThread().taxJavaLag((short) 1000);
             }
         }
-        if (context!=null && context.runtime.getRunningThread()!=null){
-            context.runtime.getRunningThread().taxJavaLag(timeSpent);
+        if (context!=null && context.runtime.getThread()!=null){
+            context.runtime.getThread().taxJavaLag(timeSpent);
         }
-        if (timeSpent>10 && context!=null && context.runtime.getRunningThread()!=null){
-            context.runtime.getRunningThread().yield();
+        if (timeSpent>10 && context!=null && context.runtime.getThread()!=null){
+            context.runtime.getThread().yield();
         }
     }
 
@@ -383,10 +383,10 @@ public class APILoader {
                 try {
                     if (runtime!=null && obj instanceof Exposable exposable){
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
-                        exposable.onCall(runtime.getRunningThread(), method);
+                        exposable.onCall(runtime.getThread(), method);
                     }
                     long timeStarted = System.currentTimeMillis();
-                    Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getRunningThread().getLang())) : null;
+                    Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getThread().getLang())) : null;
                     Object retun = method.invoke(obj, processArgs(method, parameters, context));
                     if (context!=null) profilerFunction(timeStarted, funcname + ruleset.toString(context.runtime), context);
                     if (retun==null){

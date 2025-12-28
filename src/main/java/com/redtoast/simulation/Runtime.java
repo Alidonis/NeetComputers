@@ -174,8 +174,7 @@ public abstract class Runtime {
      * gets the tread that's currently being ticked or returns null
      * @return LangThread instance or null
      */
-    public @Nullable LangThread getRunningThread() {
-        if (!inTick) {return null;}
-        return runningThread;
+    public @Nullable LangThread getThread() {
+        return thread;
     }
 }

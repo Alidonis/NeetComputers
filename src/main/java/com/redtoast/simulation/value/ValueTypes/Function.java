@@ -3,7 +3,6 @@ package com.redtoast.simulation.value.ValueTypes;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
-import com.redtoast.simulation.value.ControlCallback;
 import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +54,7 @@ public abstract class Function{
     public Value invoke(FunctionInput parameters){
         if (mainThread && runtime!=null) {
             runtime.queCall(this::call, parameters);
-            if (runtime.pullQue().isEmpty()) Objects.requireNonNull(runtime.getRunningThread()).yield();
+            if (runtime.pullQue().isEmpty()) Objects.requireNonNull(runtime.getThread()).yield();
             return runtime.pullQue().get();
         }
         return call(parameters);
