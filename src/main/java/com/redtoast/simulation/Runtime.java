@@ -19,7 +19,6 @@ import java.util.Optional;
 public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
     private final GlobalManager globalManager;
-    private LangThread runningThread;
     private boolean kill = false;
     private final FileSpace fs;
     private final Computer parent;
@@ -136,7 +135,6 @@ public abstract class Runtime {
                 parameters = null;
             }
             if (thread.isAlive()) {
-                runningThread = thread;
                 inTick=true;
                 if (parent.isCrashed()) return;
                 thread.tick();
@@ -159,7 +157,7 @@ public abstract class Runtime {
      */
     public String getCurrentSource(){
         if (!inTick) return null;
-        return runningThread.getSource();
+        return thread.getSource();
     }
 
     /**
