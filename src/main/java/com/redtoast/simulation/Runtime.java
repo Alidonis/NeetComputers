@@ -16,22 +16,25 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Optional;
 
+/**
+ * represents the code execution of a computer, and ticks on the computer ticking thread
+ */
 public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
+
+    //resources
     private final GlobalManager globalManager;
-    private boolean kill = false;
     private final FileSpace fs;
     private final Computer parent;
     private LangThread thread = null;
+
+    //state info
     private boolean inTick = false;
+    private boolean kill = false;
 
     public interface FunctionCall {
         Value<?> call(FunctionInput parameters);
     }
-
-    private FunctionCall que = null;
-    private FunctionInput parameters = null;
-    private Value<?> product = null;
 
     public Runtime(Computer Parent, NVTable NVRam){
         globalManager = new GlobalManager(this, NVRam);
@@ -39,29 +42,16 @@ public abstract class Runtime {
         parent = Parent;
     }
 
+    //weird temporary bullshit start
+    private FunctionCall que = null;
+    private FunctionInput parameters = null;
+    private Value<?> product = null;
     public void queCall(FunctionCall call, FunctionInput parameters){
         if (que!=null || product!=null) return;
         que = call;
         this.parameters = parameters;
         product = null;
     }
-
-    public boolean isInTick() {
-        return inTick;
-    }
-
-    public GlobalManager getGlobals(){
-        return globalManager;
-    }
-
-    public FileSpace getFileSpace(){
-        return fs;
-    }
-
-    public Computer getParent() {
-        return parent;
-    }
-
     public Optional<Value<?>> pullQue(){
         if (product==null) {
             return Optional.empty();
@@ -70,6 +60,35 @@ public abstract class Runtime {
             product = null;
             return buffer;
         }
+    }
+    //weird temporary bullshit end
+
+    /**
+        Tests if the thread is being processed
+     */
+    public boolean isInTick() {
+        return inTick;
+    }
+
+    /**
+        Fetch this runtime's global space
+     */
+    public GlobalManager getGlobals(){
+        return globalManager;
+    }
+
+    /**
+        Fetch this runtime's file access
+     */
+    public FileSpace getFileSpace(){
+        return fs;
+    }
+
+    /**
+        Fetch the parent computer running this process
+     */
+    public Computer getParent() {
+        return parent;
     }
 
     /**
@@ -86,7 +105,12 @@ public abstract class Runtime {
             }
             BootableFilespace.BootPath bootPath = bootableFilespace.fetchBootPath();
             try{
-                MakeThread(bootPath.entryPoint().readAll(), bootPath.language().getVersion());
+                if (!NeetComputersServer.hasLanguage(bootPath.language().getVersion())){
+                    return;
+                }
+                LanguageGeneric langObject = NeetComputersServer.getLanguage(bootPath.language().getVersion());
+                assert langObject != null;
+                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getSpecifications());
             }catch (Throwable e){
                 APILoader.printJavaError(e);
                 kill=true;
@@ -98,24 +122,19 @@ public abstract class Runtime {
         System.out.println("booting complete");
     }
 
-    private void MakeThread(String script, String lang){
-        if (!NeetComputersServer.hasLanguage(lang)){
-            return;
-        }
-        LanguageGeneric langObject = NeetComputersServer.getLanguage(lang);
-        assert langObject != null;
-        thread = langObject.createThread(script, this, parent, parent.getSpecifications());
-    }
-
     /**
      * retrieves the event callbacks from the parent computer
      */
     public abstract LinkedList<EventGeneric.eventCallback> getCallbacks();
 
+    /**
+     * called when runtime completes a tick, if true kills the process
+     * @return if the process should die
+     */
     public abstract boolean shouldDie();
 
     /**
-     * ticks all contained threads forward once and perform maintenance tasks
+     * ticks the process forward once and performs state maintenance
      */
     public void tick(){
         if (!kill) {
@@ -169,10 +188,10 @@ public abstract class Runtime {
     }
 
     /**
-     * gets the tread that's currently being ticked or returns null
+     * gets runtimes current thread, or null of thread if dead
      * @return LangThread instance or null
      */
     public @Nullable LangThread getThread() {
-        return thread;
+        return kill ? null : thread;
     }
 }
