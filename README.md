@@ -2,22 +2,19 @@
 this mod is still in development and the following text may describe features not yet implemented, please interpret this as development plan if anything
 
 # N.E.E.T. Computers
-Is a Minecraft mod that adds well tested and cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them
+Is a Minecraft mod that adds well cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them.
+The mod includes a emphasis on making computers feel well integrated into the world visualy and mechanically
 
-# What this mod does for dummies
-First I'm sorry for calling you a dummy, but this section is written for the less technically inclined.
-N.E.E.T. adds functional and easy to use computers that can run a wide array of programs made by other users that you can install (the programs not the users) yourself!
+The ingame computers simulate events, lua scripts, peripheral devices, full files systems (with OS's plural that can be edited live), complete Computer Craft compatibility (as of now peripherals kinda work, craft os emulation soon), pixel graphics, HTTPS (soon), and [full documentation](https://www.red-toast.net/NeetDocumentation/home.html)
 
-We provide all kinds of gadgets and gear to allow you to use the computers of the future, with ease. (ease not included)
+# Why does this exist
+This section answers why this mod was made and why i think its a improvment over prexisting computer mods
 
-# Stats for nerds
-This is the section for those who want to make things for the mod and have the skills (or the desire to learn them) to do it! you can read the offical doc's [here!](https://github.com/redtoast/NeetDocumentation)
+If you're coming from pre-existing lua scripting mods like Computer Craft or Open Computers I will explain why this mod exists with those mods as a reference point. For a long time, I (the lead developer) have been a huge fan of Computer Craft (or CC for short), but frustrated with how it implements its features, until I decided making my own mod was worth a shot! I think that Open Computers (OC) is too complex for its own good, and incredibly unintuitive to non-dev players, this complexity also keeps it locked in late versions of Forge which I find unfortunate. As for CC it's simple to the point of hurting itself at points, with odd arbitrary restrictions and (in my opinion), suffering from large amounts of technical debt making expanding the mod harder for its lead developer. Of course I still love CC and OC (altho i never really used OC), CC provided years of happy memories and this mod is my take on improving that CC and OC laid the tracks for.
 
-If you're coming from pre-existing computer mods like Computer Craft or Open Computers I will provide this paragraph to explain why this mod exists and what it does differently. As for why, For a long time, I (the lead developer) have been a huge fan of Computer Craft (or CC for short), but frustrated with how it implements its features, until I decided making my own mod was worth a shot! I think that Open Computers (OC) is too complex for its own good, and incredibly unintuitive to non-dev players, this complexity also keeps it locked in late versions of Forge which I find unfortunate. As for CC it's simple to the point of hurting itself at points, with odd arbitrary restrictions and (in my opinion), suffering from large amounts of technical debt making expanding the mod harder for its lead developer. Of course I still love CC and OC (altho i never really used OC), CC provided years of happy memories and this mod is my take on improving that CC and OC laid the tracks for.
+If your coming from factory mods NEET computers will (in the future) be a capible way to make smarter factories, distribute items with less jank, time out processes, sort items, and autocraft (more info coming whenever i get that far)
 
-And for what NEET does differently, we aim to have it be a more intuitive, and non-technical player friendly experience, with the flexibility and possibility of OC with the simplicity of CC, or to put it simply “As simple as possible, but no simpler” - Einstein, NEET comes with good looking graphics, flexible design, ease of use, and mobility.
+If your coming from aesthetic computer mods or non-technical modding, NEET computers provides a few fun tech demos and the possibility of goofing off or added computers as interactive furniture, but not much more without learning basic scripting)
 
-# Closing thoughts
-We aim to create a new, inspired computer mod based on the incredible legacy of CC and OC before us. We intend to drama or hate towards those other mods at all and simply want to expand the genre.
-
-<i>Not written with AI</i>
+# What can it do
+TODO (look at the docs to get a reference until i have some showcase demos)
