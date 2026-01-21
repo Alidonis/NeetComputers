@@ -19,12 +19,12 @@ public class DataFilepath implements Filepath {
     private final FileSystem fs;
     private final boolean invalid;
 
-    public DataFilepath(int Pointer, String Path, FileSystem system){
+    public DataFilepath(int Pointer, String Path, FileSystem system) {
         pointer = Pointer;
         path = FileHelper.normalize(Path);
-        relPath = FileHelper.deAbsulutize(path).replace('\\','/');
-        if (relPath.endsWith("/")){
-            relPath = relPath.substring(0,relPath.length()-1);
+        relPath = FileHelper.deAbsulutize(path).replace('\\', '/');
+        if (relPath.endsWith("/")) {
+            relPath = relPath.substring(0, relPath.length() - 1);
         }
         invalid = !FileHelper.validatePathStatic(path);
         fs = system;
@@ -38,7 +38,7 @@ public class DataFilepath implements Filepath {
     @Override
     public String getName() {
         String[] parts = path.split("\\\\");
-        return parts[parts.length-1];
+        return parts[parts.length - 1];
     }
 
     @Override
@@ -58,20 +58,24 @@ public class DataFilepath implements Filepath {
 
     @Override
     public boolean exists() {
-        if (isInvalid()) return false;
-        if (fs.build.blacklist.contains(getPath())) return false;
-        return NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).isPresent();
+        if (isInvalid())
+            return false;
+        if (fs.build.blacklist.contains(getPath()))
+            return false;
+        return NeetComputersServer.datahandling
+                .getResource(Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).isPresent();
     }
 
     @Override
     public boolean isDirectory() {
-        if (!exists()) return false;
-        String Spath = "hard_addresses/"+-pointer+relPath;
-        if (!Spath.endsWith("/")){
+        if (!exists())
+            return false;
+        String Spath = "hard_addresses/" + -pointer + relPath;
+        if (!Spath.endsWith("/")) {
             Spath += "/";
         }
         try {
-            NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers",Spath)).get().getReader();
+            NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers", Spath)).get().getReader();
             return false;
         } catch (IOException e) {
             return true;
@@ -80,112 +84,137 @@ public class DataFilepath implements Filepath {
 
     @Override
     public boolean isFile() {
-        if (!exists()) return false;
+        if (!exists())
+            return false;
         return !isDirectory();
     }
 
     @Override
     public boolean isHidden() {
-        if (invalid) return false;
+        if (invalid)
+            return false;
         String[] components = path.split(":");
         Partition partition = fs.getPartition(components[0]);
-        if (partition==null) return false;
+        if (partition == null)
+            return false;
         return partition.hidden();
     }
 
     @Override
     public boolean createNewFile() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public String readAll() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
-        if (!isFile()) return null;
-        if (exists()){
-            BufferedReader reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getReader();
+        if (invalid)
+            throw new IOException("Invalid file path");
+        if (!isFile())
+            return null;
+        if (exists()) {
+            BufferedReader reader = NeetComputersServer.datahandling.getResource(
+                    Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).get().getReader();
+
             StringBuilder buffer = new StringBuilder();
-            while (reader.ready()){
-                buffer.append('\n');
-                buffer.append(reader.readLine());
+            String line;
+            boolean first = true;
+            while ((line = reader.readLine()) != null) {
+                if (!first) {
+                    buffer.append('\n');
+                }
+                buffer.append(line);
+                first = false;
             }
-            return buffer.substring(1);
-        }else{
+            reader.close();
+            return buffer.toString();
+        } else {
             return null;
         }
     }
 
     @Override
     public boolean write(byte[] bytes) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public boolean append(byte[] bytes) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public byte[] readAllBinary() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
-        if (!isFile()) return null;
-        if (exists()){
-            InputStream reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers","hard_addresses/"+-pointer+relPath)).get().getInputStream();
+        if (invalid)
+            throw new IOException("Invalid file path");
+        if (!isFile())
+            return null;
+        if (exists()) {
+            InputStream reader = NeetComputersServer.datahandling
+                    .getResource(Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).get()
+                    .getInputStream();
             return reader.readAllBytes();
-        }else{
+        } else {
             return null;
         }
     }
 
     @Override
     public boolean writeBinary(byte[] bytes) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public boolean appendBinary(byte[] bytes) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public boolean delete() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public Filepath[] listFiles() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
-        if (!isDirectory()) return null;
+        if (invalid)
+            throw new IOException("Invalid file path");
+        if (!isDirectory())
+            return null;
         String spath;
-        if (("hard_addresses/"+-pointer+relPath).endsWith("/")){
-            spath = "hard_addresses/"+-pointer+relPath;
-        }else{
-            spath = "hard_addresses/"+-pointer+relPath+"/";
+        if (("hard_addresses/" + -pointer + relPath).endsWith("/")) {
+            spath = "hard_addresses/" + -pointer + relPath;
+        } else {
+            spath = "hard_addresses/" + -pointer + relPath + "/";
         }
         String jpath = getPath();
         String[] parts = jpath.split("\\\\");
         jpath = "";
-        for (String part : parts){
+        for (String part : parts) {
             jpath += part + '\\';
         }
         LinkedList<String> filepaths = new LinkedList<>();
         String finalJpath = jpath;
-        NeetComputersServer.datahandling.findResources("hard_addresses/"+-pointer+relPath, arg -> {
+        NeetComputersServer.datahandling.findResources("hard_addresses/" + -pointer + relPath, arg -> {
             String gpath = arg.toString().split(spath)[1];
             String name = gpath.split("/")[0];
-            if (!filepaths.contains(finalJpath +name) && !fs.build.blacklist.contains(finalJpath +name)){
-                filepaths.add(finalJpath +name);
+            if (!filepaths.contains(finalJpath + name) && !fs.build.blacklist.contains(finalJpath + name)) {
+                filepaths.add(finalJpath + name);
             }
             return true;
         });
         Filepath[] files = new Filepath[filepaths.size()];
-        for (int i = 0; i < files.length; i++){
+        for (int i = 0; i < files.length; i++) {
             files[i] = fs.getFile(filepaths.get(i));
         }
         return files;
@@ -193,13 +222,15 @@ public class DataFilepath implements Filepath {
 
     @Override
     public boolean mkdirs() throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
     @Override
     public boolean renameTo(Filepath dest) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
+        if (invalid)
+            throw new IOException("Invalid file path");
         return false;
     }
 
@@ -209,8 +240,8 @@ public class DataFilepath implements Filepath {
     }
 
     @Override
-    public boolean equals(Object obj){
-        if (obj instanceof Filepath path){
+    public boolean equals(Object obj) {
+        if (obj instanceof Filepath path) {
             return getPath().equals(path.getPath());
         }
         return super.equals(obj);
