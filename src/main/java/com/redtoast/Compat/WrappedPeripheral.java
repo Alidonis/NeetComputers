@@ -26,11 +26,10 @@ public class WrappedPeripheral implements PeripheralProvider {
     private final String[] functionNames;
     private final Hashtable<Method, Function> functionLookup = new Hashtable<>();
     private final BlockPos pos;
-    private final Runtime runtime;
 
     public WrappedPeripheral(IPeripheral peripheral, BlockPos pos, Computer computer){
         this.peripheral = peripheral;
-        runtime = computer.getRuntime();
+        Runtime runtime = computer.getRuntime();
         Class<?> clazz = peripheral.getClass();
         Method[] functions = clazz.getMethods();
         LinkedList<String> names = new LinkedList<>();
