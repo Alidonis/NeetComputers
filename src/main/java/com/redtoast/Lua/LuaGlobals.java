@@ -102,8 +102,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
-            }else if (computer.libraryExists(path)){
-                return APILoader.TableizeAPI(computer.getLibrary(path), computer.getRuntime()).asValue();
+            }else if (computer.libraryExists(path.toLowerCase())){
+                return APILoader.TableizeAPI(computer.getLibrary(path.toLowerCase()), computer.getRuntime()).asValue();
             }else{
                 return Value.asError("Invalid asset path");
             }
