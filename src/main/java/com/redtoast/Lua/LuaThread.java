@@ -82,6 +82,10 @@ public class LuaThread extends LangThread {
         ticket += specs.Batches;
         while (ticket>0) {
             if (runtime.getParent().isCrashed()) kill("Parent computer crashed");
+            if (runtime.shouldDie()) {
+                kill("host stopped");
+                runtime.getParent().stop();
+            }
             if (!isAlive()) return;
             step();
             if (isAlive()){
