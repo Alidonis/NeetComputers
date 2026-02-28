@@ -34,6 +34,7 @@ public class ChipAPI implements API {
     @Exposed
     public void shutdown(){
         computer.stop();
+        computer.yield();
     }
 
     @Exposed
@@ -58,4 +59,5 @@ public class ChipAPI implements API {
     public String getLabel() {
         return "chip";
     }
+
 }
