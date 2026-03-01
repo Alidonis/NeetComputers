@@ -177,13 +177,11 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistery.register("networking_cable", networkingCableItem);
 		BulkRegistery.register(networkingCableItem, group);
 
-		PayloadTypeRegistry.playC2S().register(EventTransferPayload.ID, EventTransferPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RGBComputerPayload.ID, RGBComputerPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PipeBufferPayload.ID, PipeBufferPayload.CODEC);
 
-		ServerPlayNetworking.registerGlobalReceiver(EventTransferPayload.ID, (payload, context) -> computerMap.get(payload.uuid()).queueEvent(payload.event()));
 		ServerPlayNetworking.registerGlobalReceiver(EventUploadPayload.ID, (payload, context) -> {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
