@@ -1,6 +1,6 @@
 package com.redtoast.graphics.screens;
 
-import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.value.Value;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;

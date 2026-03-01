@@ -1,12 +1,10 @@
 package com.redtoast.neet.Networking;
 
-import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.events.EventGeneric;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
-
-import java.util.UUID;
 
 /**Networking payload to transfer events registered on client side computers to their server side equivalent **/
 public record EventUploadPayload(EventGeneric event, int syncId) implements CustomPayload {
