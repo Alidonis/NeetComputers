@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
-import java.util.Set;
 
 /**
  * The standard N.E.E.T. computer representation of a generic value
@@ -103,6 +102,7 @@ public class Value<Type> {
     public static Value<?> of(Object value){
         if (value == null) return NULL;
         if (value instanceof Value<?> val) return val;
+        if (value instanceof ValueConvertible<?> convertible) return convertible.asValue();
         if (value instanceof Long val) return new Value<>((int) (long) val);
         if (value instanceof Short val) return new Value<>((int) (short) val);
         if (value instanceof Character val) return new Value<>(String.valueOf(val));
@@ -118,11 +118,11 @@ public class Value<Type> {
      * @return Value containing List
      */
     public static Value<List> of(Object... values){
-        LinkedList<Value> vals = new LinkedList<>();
+        List list = new List();
         for (Object obj : values){
-            vals.add(of(obj));
+            list.add(Value.of(obj));
         }
-        return of(vals);
+        return list.asValue();
     }
     public static Value<Integer> of(short value){
         return new Value<>((int) value);
@@ -148,6 +148,7 @@ public class Value<Type> {
     public static Value<String> of(char value){
         return new Value<>(String.valueOf(value));
     }
+    public static<type> Value<type> of(ValueConvertible<type> convertible) {return convertible.asValue();}
     public static Value<Table> of(Table value){
         return new Value<>(value);
     }
@@ -174,8 +175,11 @@ public class Value<Type> {
         return new Value<>(new List(values));
     }
     public static Value<List> of(java.util.List<?> values){
-        LinkedList list = new LinkedList<>(values);
-        return new Value<>(new List(list));
+        List list = new List();
+        for (Object obj : values){
+            list.add(Value.of(obj));
+        }
+        return list.asValue();
     }
     public static Value<Null> of(){
         return NULL;
