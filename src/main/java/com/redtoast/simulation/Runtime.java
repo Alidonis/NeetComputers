@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Optional;
 
 /**
@@ -123,11 +122,6 @@ public abstract class Runtime {
     }
 
     /**
-     * retrieves the event callbacks from the parent computer
-     */
-    public abstract LinkedList<EventGeneric.eventCallback> getCallbacks();
-
-    /**
      * called when runtime completes a tick, if true kills the process
      * @return if the process should die
      */
@@ -141,12 +135,6 @@ public abstract class Runtime {
             if (thread == null) {
                 kill = true;
                 return;
-            }
-            while (!parent.getEventQue().isEmpty()) {
-                for (EventGeneric.eventCallback callback : getCallbacks()){
-                    callback.onEvent(parent.getEventQue().getFirst());
-                }
-                parent.getEventQue().remove();
             }
             if (que!=null){
                 product = que.call(parameters);

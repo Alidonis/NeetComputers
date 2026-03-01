@@ -1,7 +1,8 @@
 package com.redtoast.Compat;
 
 import com.redtoast.Computer;
-import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.events.EventGeneric;
+import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.value.Value;
 import dan200.computercraft.api.filesystem.Mount;
 import dan200.computercraft.api.filesystem.WritableMount;
@@ -43,7 +44,7 @@ public class ComputerWrapper implements IComputerAccess {
 
     @Override
     public void queueEvent(String event, @Nullable Object... arguments) {
-        computer.queueEvent(new EventGeneric(event, arguments==null ? new Value[0] : Value.of(arguments).getValue().toArray()));
+        computer.queueEvent(new EventGeneric(event, arguments==null ? new Value[0] : Value.of(arguments).getValue().toArray()), EventLabel.COMPATIBILITY);
     }
 
     @Override

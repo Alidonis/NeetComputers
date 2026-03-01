@@ -7,7 +7,6 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputersServer;
-import com.redtoast.neet.Networking.EventTransferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.ProcessManager;
 import com.redtoast.simulation.*;
@@ -16,8 +15,10 @@ import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.events.EventGeneric;
+import com.redtoast.simulation.events.EventLabel;
+import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.value.NVTable;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -71,25 +72,23 @@ public abstract class Computer implements PeripheralReceiver {
     private UUID uuid = null;
     //object representing the computers file interpreter
     private FileSystem fs = null;
+    //object that handles the computers events
+    private final EventManager eventManager = new EventManager();
     //object representing the systems build
     private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
-    private boolean doesBinaryGraphics;
+    private final boolean doesBinaryGraphics;
     //increments every tick, loops back at 100
     private short clock = 0;
     //object representing colored graphics (gui)
-    private RGBGraphicsArray Graphics;
+    private final RGBGraphicsArray Graphics;
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
     //state for defining if the computer is paused
     private boolean paused = false;
     //crash message for crash events
     private String message = null;
-    //represents que for events
-    private final LinkedList<EventGeneric> eventQue = new LinkedList<>();
-    //list of all event callbacks
-    private final LinkedList<EventGeneric.eventCallback> eventCallbacks = new LinkedList<>();
     //specify computer specifications
     private computerSpecs specs;
     //table storing NVRam
@@ -228,15 +227,10 @@ public abstract class Computer implements PeripheralReceiver {
             }
 
             Graphics.clear();
+            eventManager.reset();
 
             //overwrites runtime with a new instance
             runtime = new Runtime(this, NVRam) {
-
-                @Override
-                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
-                    return eventCallbacks;
-                }
-
                 @Override
                 public boolean shouldDie() {
                     boolean temp = killFlag;
@@ -270,8 +264,7 @@ public abstract class Computer implements PeripheralReceiver {
             if (runtime.isInTick()){
                 killFlag = true;
             }else{
-                eventCallbacks.clear();
-                eventQue.clear();
+                eventManager.reset();
                 runtime=null;
                 IsOn =false;
                 saveNBT();
@@ -302,6 +295,7 @@ public abstract class Computer implements PeripheralReceiver {
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
+    public EventManager getEventManager() {return eventManager;}
     public NVTable getNVRam(){return NVRam;}
     public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
@@ -311,7 +305,6 @@ public abstract class Computer implements PeripheralReceiver {
         return runtime;
     }
     public int getAddress(){return fs.pointer;}
-    public LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
     public computerSpecs getSpecifications(){
         return specs;
@@ -419,16 +412,9 @@ public abstract class Computer implements PeripheralReceiver {
         return scanForPeripherals();
     }
 
-    //que's an event to the computer if server-side or sends event to server to be que'd if not
-    public void queueEvent(EventGeneric event) {
-        if (isClient()){
-            ClientPlayNetworking.send(new EventTransferPayload(uuid, event));
-        }else{
-            eventQue.add(event);
-        }
-    }
-    public void addEventCallback(EventGeneric.eventCallback callback){
-        eventCallbacks.add(callback);
+    //queues an event to the event manager
+    public void queueEvent(EventGeneric event, EventLabel queue){
+        eventManager.queueEvent(event, queue);
     }
 
     //writes current state to NBT tag
@@ -474,12 +460,6 @@ public abstract class Computer implements PeripheralReceiver {
         if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
             runtime = new Runtime(this, NVRam) {
-
-                @Override
-                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
-                    return eventCallbacks;
-                }
-
                 @Override
                 public boolean shouldDie() {
                     boolean temp = killFlag;

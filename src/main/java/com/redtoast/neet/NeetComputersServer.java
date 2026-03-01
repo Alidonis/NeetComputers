@@ -25,6 +25,7 @@ import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
+import com.redtoast.simulation.events.EventLabel;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -185,7 +186,7 @@ public class NeetComputersServer implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(EventUploadPayload.ID, (payload, context) -> {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
-				computer.queueEvent(payload.event());
+				computer.queueEvent(payload.event(), EventLabel.USER);
 			}
 		});
 
@@ -211,9 +212,7 @@ public class NeetComputersServer implements ModInitializer {
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Computer computer) {
-				return new EventAPI(computer);
-			}
+			public @NotNull API Create(Computer computer) {return new EventAPI(computer);}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
