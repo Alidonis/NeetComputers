@@ -15,6 +15,7 @@ import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
@@ -38,7 +39,7 @@ import java.util.*;
  * </p>
  *
  * <p>
- *     First initialize the computer instance, provide a {@link computerSpecs} instance and implement abstract methods
+ *     First initialize the computer instance, provide a {@link ComputerConfig} instance and implement abstract methods
  *     you can think of this as creating the <i>model</i> that the computer with use
  * </p>
  *
@@ -52,7 +53,7 @@ import java.util.*;
  *     {@code computer.tick()}
  * </p>
  *
- * @see computerSpecs
+ * @see ComputerConfig
  * @see Runtime
  * @see GlobalManager
  * @see FileSystem
@@ -90,7 +91,7 @@ public abstract class Computer implements PeripheralReceiver {
     //crash message for crash events
     private String message = null;
     //specify computer specifications
-    private computerSpecs specs;
+    private ComputerConfig computerConfig;
     //table storing NVRam
     private NVTable NVRam;
     //value holding last time computer ticked
@@ -127,11 +128,11 @@ public abstract class Computer implements PeripheralReceiver {
     public abstract @Nullable Object getParentEntity();
 
     //constructor
-    public Computer(computerSpecs specifications){
-        Graphics = new RGBGraphicsArray(specifications.ColorGraphicsSizeX,specifications.ColorGraphicsSizeY);
-        specs = specifications;
-        doesBinaryGraphics = specifications.doesBinaryGraphics;
-        BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
+    public Computer(ComputerConfig computerConfig){
+        Graphics = new RGBGraphicsArray(computerConfig.ColorGraphicsSize().x(), computerConfig.ColorGraphicsSize().y());
+        this.computerConfig = computerConfig;
+        doesBinaryGraphics = computerConfig.doesBinaryGraphics();
+        BinGraphics = computerConfig.doesBinaryGraphics() ? new BinaryGraphicsArray(computerConfig.ColorGraphicsSize().x(), computerConfig.ColorGraphicsSize().y()) : null;
         tickTime = System.currentTimeMillis();
     }
 
@@ -306,8 +307,8 @@ public abstract class Computer implements PeripheralReceiver {
     }
     public int getAddress(){return fs.pointer;}
     public UUID getUuid() {return uuid;}
-    public computerSpecs getSpecifications(){
-        return specs;
+    public ComputerConfig getConfiguration(){
+        return computerConfig;
     }
 
     //muli-line fetch methods

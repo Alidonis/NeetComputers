@@ -28,7 +28,7 @@ public class ChipAPI implements API {
 
     @Exposed
     public String getMachine(){
-        return computer.getSpecifications().MachineName;
+        return computer.getConfiguration().modelName();
     }
 
     @Exposed

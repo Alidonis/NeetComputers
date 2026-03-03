@@ -7,13 +7,13 @@ import com.redtoast.Connections.*;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.GenericConsumerBlock;
-import com.redtoast.computerSpecs;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.ComputerScreenInitPayload;
+import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.networkInterfaces.NetworkProvider;
 import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -53,7 +53,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     private boolean corrupted = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
-    public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, computerSpecs specifications) {
+    public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, ComputerConfig specifications) {
         super(type, pos, state);
         ComputerBlockEntity be = this;
         computer = new Computer(specifications) {
@@ -79,7 +79,7 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
 
             @Override
             public void refreshBinaryGraphics() {
-                if (specifications.doesBinaryGraphics) renderBinaryGraphics(Objects.requireNonNull(getBinaryGraphics()));
+                if (specifications.doesBinaryGraphics()) renderBinaryGraphics(Objects.requireNonNull(getBinaryGraphics()));
             }
 
             @Override
@@ -170,12 +170,12 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
 
     @Override
     public Text getDisplayName() {
-        return Text.literal(computer.getSpecifications().MachineName);
+        return Text.literal(computer.getConfiguration().modelName());
     }
 
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
-        if (!computer.getSpecifications().doesBinaryGraphics) return null;
+        if (!computer.getConfiguration().doesColorGraphics()) return null;
         return new RGBScreenHandler(syncId,graphics,computer);
     }
 

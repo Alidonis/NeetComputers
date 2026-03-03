@@ -2,7 +2,6 @@ package com.redtoast.items.generics;
 
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.computerSpecs;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.neet.ComputerStorage;
 import com.redtoast.simulation.value.Value;

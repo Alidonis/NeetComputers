@@ -109,7 +109,7 @@ public abstract class Runtime {
                 }
                 LanguageGeneric langObject = NeetComputersServer.getLanguage(bootPath.language().getVersion());
                 assert langObject != null;
-                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getSpecifications());
+                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getConfiguration());
             }catch (Throwable e){
                 APILoader.printJavaError(e);
                 kill=true;

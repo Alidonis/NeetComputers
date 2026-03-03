@@ -1,6 +1,5 @@
 package com.redtoast.items;
 
-import com.redtoast.computerSpecs;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.items.generics.ComputerItem;
 import net.minecraft.client.MinecraftClient;
