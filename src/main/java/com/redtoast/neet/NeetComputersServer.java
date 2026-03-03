@@ -20,6 +20,7 @@ import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
+import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
@@ -153,16 +154,16 @@ public class NeetComputersServer implements ModInitializer {
 		);
 
 		BulkRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.STATE)!=0 ? 8 : 0));
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 8 : 0));
 		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,true);
 		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
 		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
 
-		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 ? 5 : 0));
+		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
 		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
 
-		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 ? 5 : 0));
+		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
 		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("office_computer"), group);
 
@@ -221,6 +222,10 @@ public class NeetComputersServer implements ModInitializer {
 			}
 		});
     }
+
+	public static boolean emitLight(){
+		return (boolean) ConfigLoader.getServerConfig("computers-emit-light");
+	}
 
 	public static void updateClientPipes(){
 		if (server==null) return;
@@ -283,6 +288,7 @@ public class NeetComputersServer implements ModInitializer {
 		NeetComputersServer.server = server;
 		timeBenchMark = System.currentTimeMillis();
 		worldPath = server.getSavePath(WorldSavePath.ROOT);
+		ConfigLoader.loadServerConfig(server);
 		if (!worldPath.resolve("neetcomputers").toFile().exists()){
 			LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
@@ -313,7 +319,7 @@ public class NeetComputersServer implements ModInitializer {
 		}
 
 		ProcessManager.clear();
-		ProcessManager.openNewThread();
+		for (int i = 0; i < (int) ConfigLoader.getServerConfig("processing-threads"); i++) ProcessManager.openNewThread();
 	}
 
 	public static LanguageTranslater getTranslater(String lang){
