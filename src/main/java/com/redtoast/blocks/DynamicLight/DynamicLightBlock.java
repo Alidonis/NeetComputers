@@ -1,7 +1,6 @@
 package com.redtoast.blocks.DynamicLight;
 
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.blocks.generic.ComputerBlockEntity;
 import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
@@ -11,7 +10,6 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;

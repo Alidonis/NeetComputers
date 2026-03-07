@@ -1,6 +1,6 @@
 package com.redtoast.blocks.LargeComputer;
 
-import com.redtoast.blocks.generic.ComputerRenderer;
+import com.redtoast.blocks.Generics.ComputerRenderer;
 import com.redtoast.graphics.RotationTools;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;

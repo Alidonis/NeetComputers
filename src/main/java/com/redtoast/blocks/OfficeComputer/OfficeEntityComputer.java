@@ -1,6 +1,6 @@
 package com.redtoast.blocks.OfficeComputer;
 
-import com.redtoast.blocks.generic.ComputerBlockEntity;
+import com.redtoast.blocks.Generics.ComputerBlockEntity;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.simulation.config.DefaultComputerConfig;
 import net.minecraft.block.BlockState;

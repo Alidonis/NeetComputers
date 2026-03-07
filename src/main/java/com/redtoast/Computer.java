@@ -136,7 +136,7 @@ public abstract class Computer implements PeripheralReceiver {
         tickTime = System.currentTimeMillis();
     }
 
-    //generic load function all other load functions call after implementing data
+    //Generics load function all other load functions call after implementing data
     private void load(){
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();

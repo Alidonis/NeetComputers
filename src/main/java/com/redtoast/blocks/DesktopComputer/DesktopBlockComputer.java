@@ -1,6 +1,6 @@
 package com.redtoast.blocks.DesktopComputer;
 
-import com.redtoast.blocks.generic.ComputerBlock;
+import com.redtoast.blocks.Generics.ComputerBlock;
 import com.redtoast.neet.BulkRegistery;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;

@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 
 /**
- * The standard N.E.E.T. computer representation of a generic value
+ * The standard N.E.E.T. computer representation of a Generics value
  * <p>
  *     a Value instance encapsulates an instance from its parameterized type, excepts all primitives and the following complex classes
  * </p>
