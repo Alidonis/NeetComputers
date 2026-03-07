@@ -9,7 +9,8 @@ import java.util.Scanner;
 public class ConfigLoader {
     private static final ConfigurationTable serverConfigurationTable = new ConfigurationTable(new ConfigOption[]{
             new IntegerConfigOption(1, "processing-threads"),
-            new BooleanConfigOption(true, "computers-emit-light")
+            new BooleanConfigOption(true, "computers-emit-light"),
+            new BooleanConfigOption(false, "experimental-compatibility")
     });
     private static final ConfigurationTable clientConfigurationTable = new ConfigurationTable(new ConfigOption[]{
     });
@@ -44,6 +45,8 @@ public class ConfigLoader {
                         computers-emit-light = true
                         #determines how many threads the server will create to manage computing, more threads is optimal on CPU's with extra cores to spare
                         processing-threads = 1
+                        #allows experimental compatibility features
+                        experimental-compatibility = false
                         """);
                 writer.close();
             }catch (Exception ignored){}

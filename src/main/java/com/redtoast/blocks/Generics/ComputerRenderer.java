@@ -1,8 +1,7 @@
-package com.redtoast.blocks.generic;
+package com.redtoast.blocks.Generics;
 
 import com.redtoast.ComputerStatus;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.RotationTools;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
@@ -21,7 +20,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public abstract class  ComputerRenderer<ComputerType extends ComputerBlockEntity> implements BlockEntityRenderer<ComputerType> {
+public abstract class  ComputerRenderer<ComputerType extends ComputerBlockEntity> extends PipeSourceBlockRenderer<ComputerType> {
     float clock = 0;
     static int opacity = 255;
     public BlockState state;
@@ -31,6 +30,8 @@ public abstract class  ComputerRenderer<ComputerType extends ComputerBlockEntity
         clock %= 6.2f;
         BlockState state = entity.getCachedState();
         this.state = state;
+
+        super.render(entity, tickDelta, matrices, vertexConsumers, light, overlay);
 
         if (state.get(ComputerBlock.STATE)==0) {
             return;
@@ -148,6 +149,6 @@ public abstract class  ComputerRenderer<ComputerType extends ComputerBlockEntity
 
     @Override
     public boolean rendersOutsideBoundingBox(ComputerType blockEntity) {
-        return BlockEntityRenderer.super.rendersOutsideBoundingBox(blockEntity);
+        return super.rendersOutsideBoundingBox(blockEntity);
     }
 }

@@ -3,15 +3,20 @@ package com.redtoast.Connections;
 import net.minecraft.util.Identifier;
 
 public enum PipeType {
-    PERIPHERAL(Identifier.of("neetcomputers", "block/peripheral_pipe"));
+    PERIPHERAL(Identifier.of("neetcomputers", "block/connections/peripheral_pipe"), Identifier.of("neetcomputers", "block/connections/peripheral_source"));
 
-    private final Identifier identifier;
+    private final Identifier texture;
+    private final Identifier sourceTexture;
 
-    PipeType(Identifier texture) {
-        this.identifier = texture;
+    PipeType(Identifier texture, Identifier sourceTexture) {
+        this.texture = texture;
+        this.sourceTexture = sourceTexture;
     }
 
     public Identifier getTexture(){
-        return identifier;
+        return texture;
+    }
+    public Identifier getSourceTexture(){
+        return sourceTexture;
     }
 }

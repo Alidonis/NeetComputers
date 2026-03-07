@@ -34,7 +34,7 @@ public class CableRenderer {
             if (NeetComputersClient.lastTypeSent != connectorItem.getType()) return;
             BlockPos[] positions = NeetComputersClient.positionsForPipeRendering;
             for (BlockPos pos : positions) {
-                if (!world.getBlockState(pos).isAir()) CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera, pos, world, connectorItem.getType(), connectorItem.getType().getTexture());
+                if (!world.getBlockState(pos).isAir()) CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera.getPos(), pos, world, connectorItem.getType().getTexture());
             }
         }
     }
@@ -47,13 +47,11 @@ public class CableRenderer {
     public static void drawPipeBlock(
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
-            Camera camera,
+            Vec3d cameraPos,
             BlockPos targetPos,
             World world,
-            PipeType pipeType,
             Identifier texture
     ) {
-        Vec3d cameraPos = camera.getPos();
         double x = targetPos.getX() - cameraPos.x;
         double y = targetPos.getY() - cameraPos.y;
         double z = targetPos.getZ() - cameraPos.z;
@@ -61,7 +59,9 @@ public class CableRenderer {
 
         Hashtable<Direction, Boolean> neighborMap = new Hashtable<>();
         for (Direction direction : Direction.values()) {
-            neighborMap.put(direction, !doesBlockExist(targetPos.offset(direction)));
+            BlockPos check = targetPos.offset(direction);
+            boolean isSource = world.getBlockEntity(check)!=null && world.getBlockEntity(check) instanceof PipeRenderSource;
+            neighborMap.put(direction, !doesBlockExist(check) && !isSource);
         }
 
         matrices.translate(x, y, z);

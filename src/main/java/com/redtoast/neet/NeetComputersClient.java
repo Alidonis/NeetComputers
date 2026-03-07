@@ -1,14 +1,17 @@
 package com.redtoast.neet;
 
 import com.redtoast.Connections.CableRenderer;
+import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
+import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
+import com.redtoast.blocks.Generics.PipeSourceBlockRenderer;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
-import com.redtoast.blocks.generic.ComputerBlockEntity;
+import com.redtoast.blocks.Generics.ComputerBlockEntity;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
 import com.redtoast.graphics.screens.RGBScreenHandler;
@@ -50,6 +53,9 @@ public class NeetComputersClient implements ClientModInitializer {
 
 		BlockEntityType<OfficeEntityComputer> officeType = (BlockEntityType<OfficeEntityComputer>) BulkRegistery.fetchBlockEntityType("office_computer");
 		BulkRegistery.register(officeType, OfficeComputerRenderer::new);
+
+		BlockEntityType<DynamicLightBlockEntity> dynamicLightType = (BlockEntityType<DynamicLightBlockEntity>) BulkRegistery.fetchBlockEntityType("dynamic_light");
+		BulkRegistery.register(dynamicLightType, PipeSourceBlockRenderer::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");

@@ -22,6 +22,7 @@ public class ConnectorItem extends Item {
     private final PipeType pipeType;
     private final Hashtable<PlayerEntity, Long> timers = new Hashtable<>();
     private final Hashtable<PlayerEntity, BlockPos> lastPlaced = new Hashtable<>();
+    private PipeInteraction lastInteraction = null;
     public ConnectorItem(Settings settings, PipeType pipeType) {
         super(settings);
         this.pipeType = pipeType;
@@ -39,17 +40,6 @@ public class ConnectorItem extends Item {
             int delay = (int) (System.currentTimeMillis() - timers.get(player));
             timers.put(player, System.currentTimeMillis());
             return Math.abs(delay-200)<15;
-        }
-    }
-
-    private boolean heldDownMine(PlayerEntity player) {
-        if (!timers.containsKey(player)) {
-            timers.put(player, System.currentTimeMillis());
-            return false;
-        }else{
-            int delay = (int) (System.currentTimeMillis() - timers.get(player));
-            timers.put(player, System.currentTimeMillis());
-            return Math.abs(delay-250)<15 || Math.abs(delay-300)<15;
         }
     }
 
@@ -127,8 +117,14 @@ public class ConnectorItem extends Item {
         if (!world.isClient()){
             BlockHitResult blockHitResult = raycast(world, player, RaycastContext.FluidHandling.NONE);
             if (blockHitResult.getType() == HitResult.Type.BLOCK) {
-                PipeInteraction interaction = CableManager.getInstance().pipeExists(world.getDimension(), blockHitResult.getBlockPos(), getType()) ? this::removePipe : this::placePipe;
-                if (heldDownPlace(player) && lastPlaced.containsKey(player)) pathfind(world, blockHitResult.getBlockPos(), lastPlaced.get(player), player, interaction);
+                PipeInteraction interaction;
+                if (heldDownPlace(player) && lastPlaced.containsKey(player)) {
+                    interaction = lastInteraction==null ? this::placePipe : lastInteraction;
+                    pathfind(world, blockHitResult.getBlockPos(), lastPlaced.get(player), player, interaction);
+                }else{
+                    interaction = CableManager.getInstance().pipeExists(world.getDimension(), blockHitResult.getBlockPos(), getType()) ? this::removePipe : this::placePipe;
+                    lastInteraction = interaction;
+                }
                 interaction.apply(world, blockHitResult.getBlockPos(), player);
             }
         }

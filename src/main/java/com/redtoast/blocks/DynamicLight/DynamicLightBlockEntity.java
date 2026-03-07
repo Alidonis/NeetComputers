@@ -1,6 +1,8 @@
 package com.redtoast.blocks.DynamicLight;
 
 import com.redtoast.Connections.PeripheralProvider;
+import com.redtoast.Connections.PipeRenderSource;
+import com.redtoast.Connections.PipeType;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
@@ -18,7 +20,7 @@ import net.minecraft.world.World;
 import java.util.Objects;
 import java.util.UUID;
 
-public class DynamicLightBlockEntity extends BlockEntity implements PeripheralProvider {
+public class DynamicLightBlockEntity extends BlockEntity implements PeripheralProvider, PipeRenderSource {
     private static final ParameterRules ruleset = new ParameterRules(VarType.INT);
     private static final ParameterRules ruleset2 = new ParameterRules();
     private UUID uuid = null;
@@ -102,5 +104,13 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     public UUID getUuid() {
         if (uuid==null) uuid = UUID.randomUUID();
         return uuid;
+    }
+
+    @Override
+    public boolean shouldRenderPipeType(PipeType type) {
+        return switch (type){
+            case PERIPHERAL -> true;
+            default -> false;
+        };
     }
 }
