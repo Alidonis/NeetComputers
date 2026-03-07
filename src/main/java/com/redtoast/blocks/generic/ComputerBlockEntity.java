@@ -6,7 +6,6 @@ import com.redtoast.Computer;
 import com.redtoast.Connections.*;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
-import com.redtoast.blocks.GenericConsumerBlock;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -14,7 +13,6 @@ import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.simulation.config.ComputerConfig;
-import com.redtoast.simulation.networkInterfaces.NetworkProvider;
 import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
@@ -24,9 +22,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtByte;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtInt;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -46,7 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ComputerBlockEntity extends GenericConsumerBlock implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver {
+public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
@@ -116,16 +112,6 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         if (!corrupted) nbt = computer.saveNBT(nbt);
         super.writeNbt(nbt, registryLookup);
-    }
-
-    @Override
-    public void attachPeripheral(com.redtoast.simulation.peripheralInterfaces.PeripheralProvider api) {
-
-    }
-
-    @Override
-    public void connectToNetwork(NetworkProvider networkProvider) {
-
     }
 
     @Override
@@ -215,14 +201,6 @@ public class ComputerBlockEntity extends GenericConsumerBlock implements Extende
     }
 
     public Computer getComputer() {return computer;}
-
-    private boolean evalCorruption(NbtCompound nbt){
-        if (
-                (nbt.contains("Address") && (nbt.get("Address") instanceof NbtInt && nbt.getInt("Address") != 0)) &&
-                (nbt.contains("IsOn") && nbt.get("IsOn") instanceof NbtByte)
-        ) return false;
-        return true;
-    }
 
     @Override
     public List<com.redtoast.Connections.PeripheralProvider> scanForPeripherals(){
