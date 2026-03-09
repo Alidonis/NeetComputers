@@ -1,17 +1,20 @@
 package com.redtoast.simulation.events;
 
+import com.redtoast.neet.Debugger;
+
 import java.util.Hashtable;
 import java.util.LinkedList;
 
 public class EventManager {
     private static final int maxQueueSize = 75;
 
-    private final Hashtable<EventLabel, LinkedList<eventPackage>> eventQueues = new Hashtable<>();
+    private final LinkedList<eventPackage>[] eventQueues = new LinkedList[EventLabel.values().length];
     private final LinkedList<eventPackage> allQueue = new LinkedList<>();
+    private final LinkedList<eventPackage> entryQueue = new LinkedList<>();
     private int rollingID = 0;
 
     public EventManager(){
-        for (EventLabel label : EventLabel.values()) eventQueues.put(label, new LinkedList<>());
+        for (EventLabel label : EventLabel.values()) eventQueues[label.ordinal()]=new LinkedList<>();
     }
 
     private int getID(){
@@ -24,15 +27,22 @@ public class EventManager {
     public void queueEvent(EventGeneric event, EventLabel queue) {
         if (queue==null) queue = EventLabel.UNLABELED;
         eventPackage ePackage = new eventPackage(event, queue, getID());
-        eventQueues.get(queue).add(ePackage);
-        if (eventQueues.get(queue).size()>maxQueueSize) eventQueues.get(queue).removeFirst();
-        allQueue.add(ePackage);
-        if (allQueue.size()>maxQueueSize) allQueue.removeFirst();
+        entryQueue.add(ePackage);
+    }
+
+    public void update(){
+        for (eventPackage ePackage : entryQueue){
+            eventQueues[ePackage.label.ordinal()].add(ePackage);
+            if (eventQueues[ePackage.label.ordinal()].size()>maxQueueSize) eventQueues[ePackage.label.ordinal()].removeFirst();
+            allQueue.add(ePackage);
+            if (allQueue.size()>maxQueueSize) allQueue.removeFirst();
+        }
+        entryQueue.clear();
     }
 
     public LinkedList<EventGeneric> readQueue(EventLabel queue) {
         LinkedList<EventGeneric> buffer = new LinkedList<>();
-        for (eventPackage ePackage : eventQueues.get(queue)){
+        for (eventPackage ePackage : eventQueues[queue.ordinal()]){
             buffer.add(ePackage.event);
         }
         return buffer;
@@ -40,7 +50,7 @@ public class EventManager {
 
     public LinkedList<EventGeneric> getQueue(EventLabel queue) {
         LinkedList<EventGeneric> buffer = readQueue(queue);
-        eventQueues.get(queue).clear();
+        eventQueues[queue.ordinal()].clear();
         for (int i = allQueue.size()-1; i > 0; i--){
             if (allQueue.get(i).label==queue) allQueue.remove(i);
         }
@@ -49,7 +59,7 @@ public class EventManager {
 
     public LinkedList<EventGeneric> readQueue(EventLabel queue, String filter) {
         LinkedList<EventGeneric> buffer = new LinkedList<>();
-        for (eventPackage ePackage : eventQueues.get(queue)){
+        for (eventPackage ePackage : eventQueues[queue.ordinal()]){
             if (ePackage.event.getName().equals(filter)) buffer.add(ePackage.event);
         }
         return buffer;
@@ -59,15 +69,15 @@ public class EventManager {
         LinkedList<EventGeneric> buffer = new LinkedList<>();
         LinkedList<Integer> idSweep = new LinkedList<>();
         LinkedList<Integer> hitlist = new LinkedList<>();
-        for (int i = 0; i < eventQueues.get(queue).size(); i++){
-            eventPackage ePackage = eventQueues.get(queue).get(i);
+        for (int i = 0; i < eventQueues[queue.ordinal()].size(); i++){
+            eventPackage ePackage = eventQueues[queue.ordinal()].get(i);
             if (ePackage.event.getName().equals(filter)) {
                 buffer.add(ePackage.event);
                 idSweep.add(ePackage.id());
                 hitlist.add(i);
             }
         }
-        for (int i = hitlist.size()-1; i > 0; i--) eventQueues.get(queue).remove((int) hitlist.get(i));
+        for (int i = hitlist.size()-1; i > 0; i--) eventQueues[queue.ordinal()].remove((int) hitlist.get(i));
         int progress = 0;
         for (int i = allQueue.size()-1; i > 0; i--){
             if (allQueue.get(i).hasID(idSweep)) {
@@ -94,8 +104,8 @@ public class EventManager {
     }
 
     public EventGeneric getFirst(EventLabel queue) {
-        if (!eventQueues.get(queue).isEmpty()) {
-            eventPackage ePackage = eventQueues.get(queue).removeFirst();
+        if (!eventQueues[queue.ordinal()].isEmpty()) {
+            eventPackage ePackage = eventQueues[queue.ordinal()].removeFirst();
             for (int i = 0; i < allQueue.size(); i++) {
                 if (allQueue.get(i).equals(ePackage)) {
                     allQueue.remove(i);
@@ -118,7 +128,7 @@ public class EventManager {
     }
 
     public EventGeneric getFirst(EventLabel queue, String filter) {
-        eventPackage ePackage = getFirstFromList(filter, eventQueues.get(queue));
+        eventPackage ePackage = getFirstFromList(filter, eventQueues[queue.ordinal()]);
         if (ePackage==null) return null;
         for (int i = 0; i < allQueue.size(); i++) {
             if (allQueue.get(i).equals(ePackage)) {
@@ -153,9 +163,9 @@ public class EventManager {
         for (int i = hitlist.size()-1; i > 0; i--) allQueue.remove((int) hitlist.get(i));
         idSweep.forEach((label, idMiniSweep) -> {
             int progress = 0;
-            for (int i = eventQueues.get(label).size()-1; i > 0; i--){
-                if (eventQueues.get(label).get(i).hasID(idMiniSweep)) {
-                    eventQueues.get(label).remove(i);
+            for (int i = eventQueues[label.ordinal()].size()-1; i > 0; i--){
+                if (eventQueues[label.ordinal()].get(i).hasID(idMiniSweep)) {
+                    eventQueues[label.ordinal()].remove(i);
                     progress++;
                 }
                 if (progress==idSweep.size()) i=0;
@@ -167,9 +177,9 @@ public class EventManager {
     public EventGeneric getAllFirst() {
         if (!allQueue.isEmpty()) {
             eventPackage ePackage = allQueue.removeFirst();
-            for (int i = 0; i < eventQueues.get(ePackage.label).size(); i++) {
-                if (eventQueues.get(ePackage.label).get(i).equals(ePackage)) {
-                    eventQueues.get(ePackage.label).remove(i);
+            for (int i = 0; i < eventQueues[ePackage.label.ordinal()].size(); i++) {
+                if (eventQueues[ePackage.label.ordinal()].get(i).equals(ePackage)) {
+                    eventQueues[ePackage.label.ordinal()].remove(i);
                     return ePackage.event;
                 }
             }
@@ -181,9 +191,9 @@ public class EventManager {
     public EventGeneric getAllFirst(String filter) {
         eventPackage ePackage = getFirstFromList(filter, allQueue);
         if (ePackage==null) return null;
-        for (int i = 0; i < eventQueues.get(ePackage.label).size(); i++) {
-            if (eventQueues.get(ePackage.label).get(i).equals(ePackage)) {
-                eventQueues.get(ePackage.label).remove(i);
+        for (int i = 0; i < eventQueues[ePackage.label.ordinal()].size(); i++) {
+            if (eventQueues[ePackage.label.ordinal()].get(i).equals(ePackage)) {
+                eventQueues[ePackage.label.ordinal()].remove(i);
                 return ePackage.event;
             }
         }
@@ -191,7 +201,7 @@ public class EventManager {
     }
 
     public void reset() {
-        for (EventLabel label : EventLabel.values()) eventQueues.get(label).clear();
+        for (EventLabel label : EventLabel.values()) eventQueues[label.ordinal()].clear();
         allQueue.clear();
         rollingID = 0;
     }

@@ -1,6 +1,7 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
+import com.redtoast.neet.Debugger;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
@@ -9,6 +10,7 @@ import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
+import org.jetbrains.annotations.NotNull;
 
 public class EventAPI implements API {
     EventManager eventManager;
@@ -48,7 +50,7 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public Value<List> getFirst(String category){
+    public Value<?> getFirst(String category){
         if (category.equalsIgnoreCase("all")){
             return Value.of(eventManager.getAllFirst());
         }else{
@@ -57,7 +59,7 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public Value<List> getFirst(String category, String filter) {
+    public Value<?> getFirst(String category, String filter) {
         if (category.equalsIgnoreCase("all")){
             return Value.of(eventManager.getAllFirst(filter));
         }else{

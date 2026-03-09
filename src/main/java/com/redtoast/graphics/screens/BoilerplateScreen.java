@@ -78,8 +78,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             EventGeneric event = new EventGeneric("mouseClicked",
                     Value.of(pos.x),
                     Value.of(pos.y),
-                    Value.of(key),
-                    Value.of(!repeatTable.get(key))
+                    Value.of(key)
             );
             event.send(handler);
             repeatTable.put(key, true);
@@ -97,8 +96,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                 new EventGeneric("mouseClicked",
                         Value.of(pos.x),
                         Value.of(pos.y),
-                        Value.of(key),
-                        Value.of(!repeatTable.get(key))
+                        Value.of(key)
                 ).send(handler);
                 repeatTable.put(key, true);
             }

@@ -148,7 +148,7 @@ public class Value<Type> {
     public static Value<String> of(char value){
         return new Value<>(String.valueOf(value));
     }
-    public static<type> Value<type> of(ValueConvertible<type> convertible) {return convertible.asValue();}
+    public static Value<?> of(ValueConvertible<?> convertible) {return convertible==null ? NULL : convertible.asValue();}
     public static Value<Table> of(Table value){
         return new Value<>(value);
     }
