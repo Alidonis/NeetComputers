@@ -2,6 +2,7 @@ package com.redtoast.Lua;
 
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
+import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
@@ -121,6 +122,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         @Override
         public Value call(FunctionInput parameters) {
+            if (!(boolean) ConfigLoader.getServerConfig("print-to-console")) return null;
             LuaValue toStringFunc = globals.get("tostring");
             int iterator = 1;
 
