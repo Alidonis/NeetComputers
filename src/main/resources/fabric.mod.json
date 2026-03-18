@@ -1,12 +1,13 @@
 {
 	"schemaVersion": 1,
 	"id": "neetcomputers",
-	"version": "0.3.3",
+	"version": "0.3.4",
 	"name": "Neet Computers",
 	"description": "N.E.E.T. computers is a Minecraft mod that adds well tested and cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
 	"authors": [
 		"Red Toast",
-		"Wind Clan"
+		"Wind Clan",
+		"Piguman 3"
 	],
 	"contact": {
 		"homepage": "https://red-toast.net/neetcomputers",

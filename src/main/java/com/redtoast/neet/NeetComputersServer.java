@@ -79,7 +79,7 @@ public class NeetComputersServer implements ModInitializer {
 	private static MinecraftServer server = null;
 
 	//internal config
-	public static final String version = "NeetComputers 0.3.3";
+	public static final String version = "NeetComputers 0.3.4";
 
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
