@@ -108,9 +108,6 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
 
     @Override
     public boolean shouldRenderPipeType(PipeType type) {
-        return switch (type){
-            case PERIPHERAL -> true;
-            default -> false;
-        };
+        return type==PipeType.PERIPHERAL;
     }
 }

@@ -3,6 +3,7 @@ package com.redtoast;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
+import com.redtoast.blocks.Generics.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -58,7 +59,7 @@ import java.util.*;
  * @see GlobalManager
  * @see FileSystem
  */
-public abstract class Computer implements PeripheralReceiver {
+public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProvider {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts
@@ -132,7 +133,7 @@ public abstract class Computer implements PeripheralReceiver {
         Graphics = new RGBGraphicsArray(computerConfig.ColorGraphicsSize().x(), computerConfig.ColorGraphicsSize().y());
         this.computerConfig = computerConfig;
         doesBinaryGraphics = computerConfig.doesBinaryGraphics();
-        BinGraphics = computerConfig.doesBinaryGraphics() ? new BinaryGraphicsArray(computerConfig.ColorGraphicsSize().x(), computerConfig.ColorGraphicsSize().y()) : null;
+        BinGraphics = computerConfig.doesBinaryGraphics() ? new BinaryGraphicsArray(computerConfig.BinaryGraphicsSize().x(), computerConfig.BinaryGraphicsSize().y()) : null;
         tickTime = System.currentTimeMillis();
     }
 
@@ -150,9 +151,6 @@ public abstract class Computer implements PeripheralReceiver {
             IsOn = false;
             if (nbt.contains("IsOn")){
                 IsOn = nbt.getBoolean("IsOn");
-                if (IsOn && doesBinaryGraphics && nbt.contains("screen")){
-                    BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
-                }
                 if (nbt.contains("ComputerID")){
                     uuid = nbt.getUuid("ComputerID");
                 }else{
@@ -167,7 +165,6 @@ public abstract class Computer implements PeripheralReceiver {
             }
             if (nbt.contains("crashed")) IsCrashed = nbt.getBoolean("crashed");
             if (nbt.contains("crashMessage")) message = nbt.getString("crashMessage");
-            if (!IsOn && IsCrashed && doesBinaryGraphics && nbt.contains("screen")) BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
             if (nbt.contains("NVRam")){
                 NVRam = NVTable.deserialize(nbt.getCompound("NVRam"), this);
             }else{
@@ -422,9 +419,6 @@ public abstract class Computer implements PeripheralReceiver {
     public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putBoolean("IsOn", IsOn);
-        if ((IsOn || IsCrashed) && doesBinaryGraphics){
-            nbt.put("screen", BinGraphics.writeScreenToNBT());
-        }
         if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         if (IsCrashed) nbt.putBoolean("crashed", true);

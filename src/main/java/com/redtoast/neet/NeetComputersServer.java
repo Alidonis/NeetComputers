@@ -13,6 +13,8 @@ import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.blocks.Generics.ComputerBlock;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.items.generics.ConnectorItem;
 import com.redtoast.items.networkingCable;
@@ -164,6 +166,10 @@ public class NeetComputersServer implements ModInitializer {
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
 		BulkRegistery.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("dynamic_light"), group);
+
+		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> 7));
+		BulkRegistery.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("simple_display"), group);
 
 		Item peripheralCableItem = new peripheralCable(new Item.Settings().maxCount(1));
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);

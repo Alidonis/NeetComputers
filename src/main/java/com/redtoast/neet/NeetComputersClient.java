@@ -6,12 +6,15 @@ import com.redtoast.Connections.PipeType;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
+import com.redtoast.blocks.Generics.BinaryGraphicsProvider;
 import com.redtoast.blocks.Generics.PipeSourceBlockRenderer;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.blocks.Generics.ComputerBlockEntity;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBGraphicsScreen;
 import com.redtoast.graphics.screens.RGBScreenHandler;
@@ -57,6 +60,9 @@ public class NeetComputersClient implements ClientModInitializer {
 		BlockEntityType<DynamicLightBlockEntity> dynamicLightType = (BlockEntityType<DynamicLightBlockEntity>) BulkRegistery.fetchBlockEntityType("dynamic_light");
 		BulkRegistery.register(dynamicLightType, PipeSourceBlockRenderer::new);
 
+		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistery.fetchBlockEntityType("simple_display");
+		BulkRegistery.register(simpleDisplayType, SimpleDisplayRenderer::new);
+
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
 			Object reiScreenRegistryInstance = reiScreenRegistryClass.getMethod("getInstance").invoke(null);
@@ -93,9 +99,9 @@ public class NeetComputersClient implements ClientModInitializer {
 				if (context.client().world == null) return;
 				if (context.client().world.getBlockEntity(pos) == null) return;
 				BlockEntity be = context.client().world.getBlockEntity(pos);
-				if (be instanceof ComputerBlockEntity computer) {
-					computer.getComputer().setBinaryGraphics(graphics);
-					Objects.requireNonNull(computer.getWorld()).updateListeners(pos, computer.getCachedState(), computer.getCachedState(), 3);
+				if (be instanceof BinaryGraphicsProvider provider) {
+					provider.setBinaryGraphics(graphics);
+					Objects.requireNonNull(be.getWorld()).updateListeners(pos, be.getCachedState(), be.getCachedState(), 3);
 				}
 			});
 		});

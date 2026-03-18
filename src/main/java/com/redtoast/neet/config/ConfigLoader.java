@@ -10,7 +10,9 @@ public class ConfigLoader {
     private static final ConfigurationTable serverConfigurationTable = new ConfigurationTable(new ConfigOption[]{
             new IntegerConfigOption(1, "processing-threads"),
             new BooleanConfigOption(true, "computers-emit-light"),
-            new BooleanConfigOption(false, "experimental-compatibility")
+            new BooleanConfigOption(false, "experimental-compatibility"),
+            new BooleanConfigOption(false, "print-to-console"),
+            new BooleanConfigOption(true, "shift-click-to-clear-displays")
     });
     private static final ConfigurationTable clientConfigurationTable = new ConfigurationTable(new ConfigOption[]{
     });
@@ -41,10 +43,14 @@ public class ConfigLoader {
                 config.createNewFile();
                 FileWriter writer = new FileWriter(config, false);
                 writer.write("""
+                        #allows players to shift click peripheral displays to clear them
+                        shift-click-to-clear-displays = true
                         #when true, active computers will emit faint light
                         computers-emit-light = true
                         #determines how many threads the server will create to manage computing, more threads is optimal on CPU's with extra cores to spare
                         processing-threads = 1
+                        #allows the default core print function to echo to the game console, meant for debugging
+                        print-to-console = false
                         #allows experimental compatibility features
                         experimental-compatibility = false
                         """);

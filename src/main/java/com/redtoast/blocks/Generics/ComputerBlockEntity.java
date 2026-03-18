@@ -35,6 +35,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver, PipeRenderSource {
+public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
@@ -208,6 +209,11 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         return peripheralProviderCache;
     }
 
+    private boolean isntDuplicate(LinkedList<PeripheralProvider> peripherals, PeripheralProvider duplicate){
+        for (PeripheralProvider provider : peripherals) if (provider.getUuid().equals(duplicate.getUuid())) return false;
+        return true;
+    }
+
     public List<com.redtoast.Connections.PeripheralProvider> scanForPeripheralsInternal() {
         LinkedList<BlockPos> todoList = new LinkedList<>();
         LinkedList<BlockPos> investigated = new LinkedList<>();
@@ -227,14 +233,14 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 }
                 if (ec) {
                     PeripheralProvider CCprovider = GetCC.getPeripheral(investigating, world, getComputer());
-                    if (CCprovider!=null){
+                    if (CCprovider!=null && isntDuplicate(peripherals, CCprovider)){
                         peripherals.add(CCprovider);
                     }
                 }
                 BlockState block = world.getBlockState(investigating);
                 if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
                     BlockEntity blockEntity = world.getBlockEntity(investigating);
-                    if (blockEntity instanceof PeripheralProvider provider){
+                    if (blockEntity instanceof PeripheralProvider provider && isntDuplicate(peripherals, provider)){
                         peripherals.add(provider);
                     }
                 }
@@ -243,12 +249,12 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 }
                 else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)) {
                     BlockEntity blockEntity = world.getBlockEntity(investigating);
-                    if (blockEntity instanceof PeripheralProvider provider) {
+                    if (blockEntity instanceof PeripheralProvider provider && isntDuplicate(peripherals, provider)) {
                         peripherals.add(provider);
                     }
-                }else{
+                }else if (ec){
                     PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
-                    if (provider!=null){
+                    if (provider!=null && isntDuplicate(peripherals, provider)){
                         peripherals.add(provider);
                     }
                 }
@@ -277,9 +283,54 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public boolean shouldRenderPipeType(PipeType type) {
-        return switch (type){
-            case PERIPHERAL -> true;
-            default -> false;
+        return type == PipeType.PERIPHERAL;
+    }
+
+    @Override
+    public BinaryGraphicsArray getBinaryGraphics() {
+        return getComputer().getBinaryGraphics();
+    }
+
+    @Override
+    public void setBinaryGraphics(BinaryGraphicsArray graphicsArray) {
+        computer.setBinaryGraphics(graphicsArray);
+    }
+
+    @Override
+    public Vec3i getColoration(float clock, int x, int y) {
+        int r = 40;
+        int g = 226;
+        int b = 50;
+        if ((x+2)%3==0){
+            r++;
+            g += 8;
+            b += 3;
+        }
+        if ((y+1)%2==0){
+            r++;
+            g += 10;
+            b += 3;
+        }
+        float density = 0.4f;
+        float offset = (clock + y * density) % 6.2f;
+        double weight = 8;
+        double effect = Math.sin(offset) * weight;
+        r += (int)Math.round(effect);
+        g += (int)Math.round(effect);
+        b += (int)Math.round(effect);
+        return switch (world.getBlockState(getPos()).get(ComputerBlock.STATE)) {
+            default -> {
+                if ((y%4>1 || x%4>1) && !(y%4>1 && x%4>1)) yield new Vec3i(201, 109, 233);
+                yield new Vec3i(0, 0, 0);
+            }
+            case 1 -> new Vec3i(r,g,b);
+            case 2 -> new Vec3i(g, r, b);
+            case 3 -> new Vec3i(b, r, g);
         };
+    }
+
+    @Override
+    public boolean canRender() {
+        return world!=null && world.getBlockState(getPos())!=null && world.getBlockState(getPos()).get(ComputerBlock.STATE)!=0;
     }
 }
