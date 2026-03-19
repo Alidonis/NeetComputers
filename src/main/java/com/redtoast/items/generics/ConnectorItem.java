@@ -23,6 +23,7 @@ public class ConnectorItem extends Item {
     private final Hashtable<PlayerEntity, Long> timers = new Hashtable<>();
     private final Hashtable<PlayerEntity, BlockPos> lastPlaced = new Hashtable<>();
     private PipeInteraction lastInteraction = null;
+
     public ConnectorItem(Settings settings, PipeType pipeType) {
         super(settings);
         this.pipeType = pipeType;

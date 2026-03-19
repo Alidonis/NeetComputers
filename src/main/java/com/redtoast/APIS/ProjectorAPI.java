@@ -1,6 +1,6 @@
 package com.redtoast.APIS;
 
-import com.redtoast.blocks.Generics.BinaryGraphicsProvider;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;

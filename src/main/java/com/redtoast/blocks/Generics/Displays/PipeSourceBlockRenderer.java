@@ -1,4 +1,4 @@
-package com.redtoast.blocks.Generics;
+package com.redtoast.blocks.Generics.Displays;
 
 import com.redtoast.Connections.CableRenderer;
 import com.redtoast.Connections.PipeRenderSource;

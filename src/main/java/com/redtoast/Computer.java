@@ -3,7 +3,7 @@ package com.redtoast;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
-import com.redtoast.blocks.Generics.BinaryGraphicsProvider;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;

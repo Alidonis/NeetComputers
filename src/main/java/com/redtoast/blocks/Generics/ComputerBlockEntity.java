@@ -6,6 +6,7 @@ import com.redtoast.Computer;
 import com.redtoast.Connections.*;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
@@ -331,6 +332,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public boolean canRender() {
-        return world!=null && world.getBlockState(getPos())!=null && world.getBlockState(getPos()).get(ComputerBlock.STATE)!=0;
+        return world!=null && !world.getBlockState(getPos()).isAir() && world.getBlockState(getPos()).get(ComputerBlock.STATE)!=0;
     }
 }

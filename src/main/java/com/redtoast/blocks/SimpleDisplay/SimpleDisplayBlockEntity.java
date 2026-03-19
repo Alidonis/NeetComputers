@@ -4,10 +4,10 @@ import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
-import com.redtoast.blocks.Generics.BinaryGraphicsProvider;
-import com.redtoast.blocks.Generics.BinaryGraphicsRenderProvider;
-import com.redtoast.blocks.Generics.ConnectionMapping;
-import com.redtoast.blocks.Generics.ConnectionMappingAccess;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
+import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
+import com.redtoast.blocks.Generics.Displays.ConnectionMappingAccess;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
@@ -194,7 +194,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
 
     @Override
     public String getTypeName() {
-        return "simple_display";
+        return "neetcomputers:simple_display";
     }
 
     @Override

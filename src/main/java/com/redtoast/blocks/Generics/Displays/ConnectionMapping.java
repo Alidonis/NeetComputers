@@ -1,4 +1,4 @@
-package com.redtoast.blocks.Generics;
+package com.redtoast.blocks.Generics.Displays;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;

@@ -2,12 +2,9 @@ package com.redtoast.blocks.SimpleDisplay;
 
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
-import com.redtoast.blocks.Generics.ComputerBlockEntity;
-import com.redtoast.blocks.Generics.ConnectionMapping;
+import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.neet.config.ConfigLoader;
-import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;

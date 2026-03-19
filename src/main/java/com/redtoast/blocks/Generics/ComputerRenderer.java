@@ -1,7 +1,8 @@
 package com.redtoast.blocks.Generics;
 
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
+import com.redtoast.blocks.Generics.Displays.PipeSourceBlockRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;

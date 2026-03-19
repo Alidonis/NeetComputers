@@ -13,6 +13,8 @@ import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
 import com.redtoast.blocks.Generics.ComputerBlock;
+import com.redtoast.blocks.RedstoneController.RedstoneControllerBlock;
+import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.graphics.screens.RGBScreenHandler;
@@ -163,11 +165,15 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("office_computer"), group);
 
+		Block redstoneController = new RedstoneControllerBlock(Block.Settings.create().strength(3.0f).hardness(2f).sounds(BlockSoundGroup.METAL));
+		BulkRegistery.register("redstone_controller",redstoneController, RedstoneControllerBlockEntity::new,true);
+		BulkRegistery.register(BulkRegistery.fetchItemObject("redstone_controller"), group);
+
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
 		BulkRegistery.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("dynamic_light"), group);
 
-		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> 7));
+		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
 		BulkRegistery.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
 		BulkRegistery.register(BulkRegistery.fetchItemObject("simple_display"), group);
 
@@ -175,9 +181,9 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistery.register("peripheral_cable", peripheralCableItem);
 		BulkRegistery.register(peripheralCableItem, group);
 
-		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
-		BulkRegistery.register("networking_cable", networkingCableItem);
-		BulkRegistery.register(networkingCableItem, group);
+//		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
+//		BulkRegistery.register("networking_cable", networkingCableItem);
+//		BulkRegistery.register(networkingCableItem, group);
 
 		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
