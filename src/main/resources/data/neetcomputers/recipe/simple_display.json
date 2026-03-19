@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     "III",
-    "GRQ",
-    "III"
+    "GRG",
+    "IGI"
   ],
   "key": {
     "I": {
@@ -14,13 +14,10 @@
     },
     "G": {
       "item": "minecraft:glass"
-    },
-    "Q": {
-        "item": "minecraft:gold_ingot"
     }
   },
   "result": {
-    "id": "neetcomputers:large_computer",
-    "count": 1
+    "id": "neetcomputers:simple_display",
+    "count": 6
   }
 }

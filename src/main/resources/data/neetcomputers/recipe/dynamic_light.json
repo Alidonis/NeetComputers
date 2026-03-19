@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "R R",
+    " L ",
+    "R R"
+  ],
+  "key": {
+    "L": {
+      "item": "minecraft:glowstone"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "neetcomputers:dynamic_light",
+    "count": 1
+  }
+}

@@ -1,9 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "GRQ",
-    "III"
+    "R R",
+    "RIR",
+    " R "
   ],
   "key": {
     "I": {
@@ -11,16 +11,10 @@
     },
     "R": {
       "item": "minecraft:redstone"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    },
-    "Q": {
-        "item": "minecraft:gold_ingot"
     }
   },
   "result": {
-    "id": "neetcomputers:large_computer",
+    "id": "neetcomputers:peripheral_cable",
     "count": 1
   }
 }
