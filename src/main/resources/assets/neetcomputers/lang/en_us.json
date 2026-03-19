@@ -2,9 +2,10 @@
   "block.neetcomputers.large_computer": "Large Computer",
   "block.neetcomputers.desktop_computer": "Desktop Computer",
   "block.neetcomputers.office_computer": "Office Computer",
+  "block.neetcomputers.redstone_controller": "Redstone Controller",
   "block.neetcomputers.dynamic_light": "Dynamic Light",
   "block.neetcomputers.simple_display": "Simple Display",
-  "item.neetcomputers.peripheral_cable": "Peripheral Cable",
-  "item.neetcomputers.networking_cable": "Networking Cable",
+  "item.neetcomputers.peripheral_cable": "Peripheral Cable Tool",
+  "item.neetcomputers.networking_cable": "Networking Cable Tool",
   "itemGroup.neetcomputers.main_item_group": "Neet Computers"
 }
