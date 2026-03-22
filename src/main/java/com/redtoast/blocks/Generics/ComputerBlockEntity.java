@@ -270,7 +270,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
         for (PeripheralProvider peripheralProvider : peripheralProviderCache) {
             if (peripheralProvider.getUuid() == uuid) {
-                return peripheralProvider.callFunction(functionName, args);
+                return peripheralProvider.callFunction(computer.getRuntime(), functionName, args);
             }
         }
 

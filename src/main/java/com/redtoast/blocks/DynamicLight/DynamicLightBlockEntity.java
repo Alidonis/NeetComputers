@@ -4,6 +4,7 @@ import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.neet.BulkRegistery;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
@@ -16,6 +17,7 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -24,6 +26,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     private static final ParameterRules ruleset = new ParameterRules(VarType.INT);
     private static final ParameterRules ruleset2 = new ParameterRules();
     private UUID uuid = null;
+    private String tag = null;
     private Integer lightLevel = null;
     private Integer lightLevelCurrent = 0;
 
@@ -40,6 +43,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         if (uuid==null) uuid = UUID.randomUUID();
         nbt.putUuid("uuid", uuid);
+        if (tag!=null) nbt.putString("tag", tag);
         nbt.putInt("light_level", lightLevel==null ? 0 : lightLevel);
         super.writeNbt(nbt, registryLookup);
     }
@@ -50,6 +54,9 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
         if (nbt.contains("uuid", NbtElement.INT_ARRAY_TYPE)){
             uuid = nbt.getUuid("uuid");
         }
+        if (nbt.contains("tag")){
+            tag = nbt.getString("tag");
+        }
         if (nbt.contains("light_level", NbtElement.INT_TYPE) && lightLevel==null){
             lightLevel = nbt.getInt("light_level");
             lightLevelCurrent = nbt.getInt("light_level");
@@ -58,7 +65,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     }
 
     @Override
-    public Value<?> callFunction(String name, Value<?>... args) {
+    public Value<?> callFunction(Runtime runtime, String name, Value<?>... args) {
         if (Objects.equals(name, "setLuminance")){
             ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset, null);
             if (retur.isError()){
@@ -104,6 +111,16 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     public UUID getUuid() {
         if (uuid==null) uuid = UUID.randomUUID();
         return uuid;
+    }
+
+    @Override
+    public String getTag() {
+        return tag;
+    }
+
+    @Override
+    public void setTag(@NotNull String tag) {
+        this.tag = tag.isBlank() ? null : tag.trim();
     }
 
     @Override

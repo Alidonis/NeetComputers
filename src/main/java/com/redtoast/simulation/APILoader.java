@@ -585,7 +585,69 @@ public class APILoader {
         };
     }
 
-    private static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime) throws LoaderError {
+    public static String[] getFunctions(Exposable obj){
+        Class<?> _class = obj.getClass();
+        LinkedList<String> names = new LinkedList<>();
+        Method[] buffer = _class.getMethods();
+        for (Method method : buffer) {
+            if (method.isAnnotationPresent(Exposed.class)) {
+                Exposed annotation = method.getAnnotation(Exposed.class);
+                if (annotation.nameOverride().isBlank()){
+                    if (!names.contains(method.getName())) names.add(method.getName());
+                }else{
+                    if (!names.contains(annotation.nameOverride())) names.add(annotation.nameOverride());
+                }
+            }
+        }
+        names.sort(String::compareTo);
+        return names.toArray(new String[0]);
+    }
+
+    public static String getName(Method method){
+        if (method.isAnnotationPresent(Exposed.class)) {
+            Exposed annotation = method.getAnnotation(Exposed.class);
+            if (annotation.nameOverride().isBlank()){
+                return method.getName();
+            }else{
+                return annotation.nameOverride();
+            }
+        }
+        return "helpmeimtrapedinanightmareofmyowncreation";
+    }
+
+    public static Value<?> searchAndCall(Exposable obj, Runtime runtime, String name, Value<?>... args) throws LoaderError {
+        Class<?> _class = obj.getClass();
+        Method[] buffer = _class.getMethods();
+        LinkedList<String> errors = new LinkedList<>();
+        LinkedList<String> names = new LinkedList<>();
+        for (Method method : buffer){
+            if (getName(method).equals(name)){
+                ParameterRules rules = rulesFromMethod(method);
+                ParameterCheckReturn retur = ParameterRules.checkParameters(args, rules, runtime);
+                if (!retur.isError()){
+                    return sandboxFunction(method, obj, rules, runtime).invoke(retur.getFunctionInput());
+                }else{
+                    errors.add(retur.getMessage());
+                    names.add(name + rules.toString(runtime));
+                }
+            }
+        }
+        if (errors.isEmpty()){
+            return Value.asError("Cant Find Function '"+name+"'");
+        }else if (errors.size()==1){
+            return Value.asError(errors.getFirst());
+        }else{
+            names.sort(String::compareTo);
+            StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+            for (String string : names){
+                error.append('\n');
+                error.append(string);
+            }
+            return new Exception(error.toString()).asValue();
+        }
+    }
+
+    public static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime) throws LoaderError {
         if (!cache.containsKey(obj.getClass())) {
             Class<?> _class = obj.getClass();
             Hashtable<String, LinkedList<Function>> functions = new Hashtable<>();

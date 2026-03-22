@@ -13,6 +13,7 @@ import dan200.computercraft.api.lua.MethodResult;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.util.math.BlockPos;
 import org.checkerframework.checker.units.qual.A;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
@@ -56,7 +57,7 @@ public class WrappedPeripheral implements PeripheralProvider {
     }
 
     @Override
-    public Value<?> callFunction(String name, Value<?>... Args) {
+    public Value<?> callFunction(Runtime runtime, String name, Value<?>... Args) {
         Class<?> clazz = peripheral.getClass();
         Method[] functions = clazz.getMethods();
         for (Method method : functions){
@@ -86,5 +87,15 @@ public class WrappedPeripheral implements PeripheralProvider {
     @Override
     public UUID getUuid() {
         return UUID.nameUUIDFromBytes(Long.toOctalString(pos.asLong()).getBytes());
+    }
+
+    @Override
+    public @Nullable String getTag() {
+        return null;
+    }
+
+    @Override
+    public void setTag(@NotNull String tag) {
+
     }
 }

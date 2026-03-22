@@ -51,7 +51,7 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         //holy run-on sentence
-        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof SimpleDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction("clear").instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction("draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"));
+        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof SimpleDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction(null, "clear").instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction(null, "draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"));
         return ActionResult.PASS;
     }
 

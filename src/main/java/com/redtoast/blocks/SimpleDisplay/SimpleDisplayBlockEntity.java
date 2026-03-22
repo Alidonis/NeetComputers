@@ -12,6 +12,7 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.neet.BulkRegistery;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.simulation.APILoader;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Table;
@@ -27,6 +28,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 
 import java.util.LinkedList;
@@ -36,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralProvider, PipeRenderSource, ConnectionMappingAccess, BinaryGraphicsProvider, BinaryGraphicsRenderProvider {
     private UUID uuid = null;
+    private String tag = null;
     private boolean leader = true;
     private Vector2i size = new Vector2i(1,1);
     private BinaryGraphicsArray graphics = new BinaryGraphicsArray(12, 12);
@@ -60,8 +63,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
             nbt.putUuid("uuid", uuid);
             nbt.putInt("sizex", size.x);
             nbt.putInt("sizey", size.y);
-        }else{
-            nbt.putLong("masterPos", masterPos.asLong());
+            if (tag!=null) nbt.putString("tag", tag);
         }
     }
 
@@ -75,13 +77,11 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         if (nbt.getBoolean("leader")){
             uuid = nbt.getUuid("uuid");
             size = new Vector2i(nbt.getInt("sizex"), nbt.getInt("sizey"));
+            tag = nbt.contains("tag") ? nbt.getString("tag") : null;
             graphics = new BinaryGraphicsArray(size.x*16-4, size.y*16-4);
             api = APILoader.TableizeAPI(new ProjectorAPI(this), null);
             leader = true;
             loaded = true;
-        }else{
-            long tempPos = nbt.getLong("masterPos");
-            masterPos = BlockPos.fromLong(tempPos);
         }
     }
 
@@ -153,6 +153,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         uuid = null;
         loaded = true;
         masterBlock = null;
+        tag=null;
         markDirty();
     }
 
@@ -166,6 +167,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         api = APILoader.TableizeAPI(new ProjectorAPI(this), null);
         loaded = true;
         masterBlock = null;
+        tag=null;
         markDirty();
     }
 
@@ -175,7 +177,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     }
 
     @Override
-    public Value<?> callFunction(String name, Value<?>... Args) {
+    public Value<?> callFunction(Runtime runtime, String name, Value<?>... Args) {
         if (!loaded) return Value.asError("Display not loaded");
         if (leader){
             AtomicReference<Value<?>> dummy = new AtomicReference<>();
@@ -187,7 +189,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
             markDirty();
             return dummy.get()==null ? Value.asError("Cant Find Function '"+name+"'") : dummy.get();
         }else{
-            if (world!=null && masterBlock instanceof SimpleDisplayBlockEntity master) return master.callFunction(name, Args);
+            if (world!=null && masterBlock instanceof SimpleDisplayBlockEntity master) return master.callFunction(runtime, name, Args);
             return Value.asError("Display not loaded");
         }
     }
@@ -203,6 +205,21 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         if (uuid==null) uuid = UUID.randomUUID();
         markDirty();
         return uuid;
+    }
+
+    @Override
+    public String getTag() {
+        if (!leader && world!=null && masterBlock instanceof SimpleDisplayBlockEntity master) return master.getTag();
+        return tag;
+    }
+
+    @Override
+    public void setTag(@NotNull String tag) {
+        if (!leader && world!=null && masterBlock instanceof SimpleDisplayBlockEntity master) {
+            master.setTag(tag);
+            return;
+        }
+        this.tag = tag.isBlank() ? null : tag.trim();
     }
 
     public void renderBinaryGraphics(BinaryGraphicsArray graphics){
