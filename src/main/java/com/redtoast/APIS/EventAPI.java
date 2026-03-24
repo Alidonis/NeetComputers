@@ -66,11 +66,6 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public Value<?> getFucked(){
-        return Value.of(1,2,3,4,5,6,7,8,9,0);
-    }
-
-    @Exposed
     public void clear(){
         eventManager.reset();
     }
