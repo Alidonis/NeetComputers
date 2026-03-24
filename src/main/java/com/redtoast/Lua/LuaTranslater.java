@@ -71,15 +71,14 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                 });
                 return newTable;
             case LIST, TUPLE:
-                assert var.getValue() instanceof List;
-                int size = ((List) var.getValue()).size();
+                int size = var.getType()==VarType.LIST ? var.toList().size() : var.toTuple().size();
                 LuaValue[] values = new LuaValue[size];
                 for (int i = 0; i < size; i++){
-                    Varargs rawValue = fromValue(((List) var.pack().getValue()).get(i));
+                    Varargs rawValue = fromValue(var.toList().get(i));
                     values[i] = (LuaValue) rawValue;
                 }
                 LuaTable array = LuaValue.listOf(values);
-                if (var.getValue() instanceof Tuple){
+                if (var.getType()==VarType.TUPLE){
                     return array.unpack();
                 }else{
                     return array;

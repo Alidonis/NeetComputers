@@ -617,33 +617,73 @@ public class APILoader {
 
     public static Value<?> searchAndCall(Exposable obj, Runtime runtime, String name, Value<?>... args) throws LoaderError {
         Class<?> _class = obj.getClass();
-        Method[] buffer = _class.getMethods();
-        LinkedList<String> errors = new LinkedList<>();
-        LinkedList<String> names = new LinkedList<>();
-        for (Method method : buffer){
-            if (getName(method).equals(name)){
-                ParameterRules rules = rulesFromMethod(method);
-                ParameterCheckReturn retur = ParameterRules.checkParameters(args, rules, runtime);
-                if (!retur.isError()){
-                    return sandboxFunction(method, obj, rules, runtime).invoke(retur.getFunctionInput());
-                }else{
-                    errors.add(retur.getMessage());
-                    names.add(name + rules.toString(runtime));
+        if (cache.containsKey(_class)) {
+            LoaderCache cachedObject = cache.get(_class);
+            for (StaticFunctionCache functionCache : cachedObject.functions()){
+                if (functionCache.functionName().equals(name)){
+                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
+                    if (!retur.isError()){
+                        return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                    }else{
+                        return Value.asError(retur.getMessage());
+                    }
                 }
             }
-        }
-        if (errors.isEmpty()){
-            return Value.asError("Cant Find Function '"+name+"'");
-        }else if (errors.size()==1){
-            return Value.asError(errors.getFirst());
-        }else{
-            names.sort(String::compareTo);
-            StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
-            for (String string : names){
-                error.append('\n');
-                error.append(string);
+            LinkedList<String> errors = new LinkedList<>();
+            LinkedList<String> names = new LinkedList<>();
+            for (PackedFunctionCache pFunctionCache : cachedObject.packedFunctions()){
+                if (pFunctionCache.name.equals(name)){
+                    for (StaticFunctionCache functionCache : pFunctionCache.functions){
+                        ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
+                        if (!retur.isError()){
+                            return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                        }else{
+                            errors.add(retur.getMessage());
+                            names.add(name + functionCache.ruleset().toString(runtime));
+                        }
+                    }
+                }
             }
-            return new Exception(error.toString()).asValue();
+            if (!errors.isEmpty()){
+                names.sort(String::compareTo);
+                StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                for (String string : names){
+                    error.append('\n');
+                    error.append(string);
+                }
+                return new Exception(error.toString()).asValue();
+            }else{
+                return Value.asError("Cant Find Function '"+name+"'");
+            }
+        }else{
+            Method[] buffer = _class.getMethods();
+            LinkedList<String> errors = new LinkedList<>();
+            LinkedList<String> names = new LinkedList<>();
+            for (Method method : buffer){
+                if (getName(method).equals(name)){
+                    ParameterRules rules = rulesFromMethod(method);
+                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, rules, runtime);
+                    if (!retur.isError()){
+                        return sandboxFunction(method, obj, rules, runtime).invoke(retur.getFunctionInput());
+                    }else{
+                        errors.add(retur.getMessage());
+                        names.add(name + rules.toString(runtime));
+                    }
+                }
+            }
+            if (errors.isEmpty()){
+                return Value.asError("Cant Find Function '"+name+"'");
+            }else if (errors.size()==1){
+                return Value.asError(errors.getFirst());
+            }else{
+                names.sort(String::compareTo);
+                StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                for (String string : names){
+                    error.append('\n');
+                    error.append(string);
+                }
+                return new Exception(error.toString()).asValue();
+            }
         }
     }
 

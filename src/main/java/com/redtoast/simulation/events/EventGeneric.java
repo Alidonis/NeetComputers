@@ -13,8 +13,8 @@ import net.minecraft.network.PacketByteBuf;
 import java.util.LinkedList;
 
 public class EventGeneric implements ValueConvertible<List> {
-    private String Name;
-    private List args;
+    private final String Name;
+    private final List args;
     public EventGeneric(String name, List values){
         Name = name;
         args = values;
@@ -28,9 +28,9 @@ public class EventGeneric implements ValueConvertible<List> {
     public String getName(){return Name;}
     public List getValues(){return args;}
     public Value<List> asValue(){
-        LinkedList<Value> list = new LinkedList<>(args);
-        list.add(0, Value.of(Name));
-        return Value.of(list);
+        List list = args.duplicate();
+        list.addFirst(Value.of(Name));
+        return list.asValue();
     }
 
     //writes the event into a packet, voids complex values

@@ -67,8 +67,4 @@ public class GlobalManager extends Table {
     }
 
     public Runtime getParent() {return runtime;}
-
-    public GlobalGeneric[] getSubGlobals(){
-        return subGlobals.values().toArray(new GlobalGeneric[0]);
-    }
 }

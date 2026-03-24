@@ -1,7 +1,5 @@
 package com.redtoast.simulation.events;
 
-import com.redtoast.neet.Debugger;
-
 import java.util.Hashtable;
 import java.util.LinkedList;
 

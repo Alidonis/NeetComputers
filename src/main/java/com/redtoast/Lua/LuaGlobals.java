@@ -199,7 +199,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     public void rawset( LuaValue key, LuaValue value ) {
         super.rawset(key, value);
         if (Objects.equals(this, value)) return;
-        if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
+        //if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
     }
 
     @Override

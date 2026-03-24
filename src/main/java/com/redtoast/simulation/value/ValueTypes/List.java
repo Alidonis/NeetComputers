@@ -25,7 +25,7 @@ public class List implements Collection<Value>, Set<Value> {
         T cast(Value value);
     }
 
-    private LinkedList<Value> vals;
+    private java.util.List<Value> vals;
     public List(Value<?>[] values){
         vals = new LinkedList<>(Arrays.stream(values).toList());
     }
@@ -130,8 +130,13 @@ public class List implements Collection<Value>, Set<Value> {
         return true;
     }
 
+    public boolean addFirst(Value value){
+        vals.addFirst(value);
+        return true;
+    }
+
     public void removeFirst(){
-        vals.remove();
+        vals.removeFirst();
     }
 
     @Override
@@ -164,9 +169,7 @@ public class List implements Collection<Value>, Set<Value> {
 
     public List duplicate(){
         List clone = new List();
-        for (Value<?> value : vals){
-            clone.vals.add(value);
-        }
+        clone.vals.addAll(vals);
         return clone;
     }
 }

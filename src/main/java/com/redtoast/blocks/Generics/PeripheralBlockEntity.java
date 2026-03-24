@@ -6,9 +6,7 @@ import com.redtoast.Connections.PipeType;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.Exposable;
-import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -17,10 +15,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class PeripheralBlockEntity extends BlockEntity implements PeripheralProvider, PipeRenderSource, Exposable {
     private final String typeName;
@@ -31,6 +26,11 @@ public class PeripheralBlockEntity extends BlockEntity implements PeripheralProv
         super(type, pos, state);
         this.typeName = typeName;
         functionTable = APILoader.getFunctions(this);
+        if (doAutoCache() && functionTable.length>0) APILoader.preemptiveCache(this.getClass());
+    }
+
+    public boolean doAutoCache(){
+        return true;
     }
 
     @Override
