@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -394,11 +395,13 @@ public class APILoader {
                     }else{
                         return Value.of(retun);
                     }
-                }catch (ExposedError error){
-                    return Value.asError(error.getMessage());
-                }catch (PassthroughError passthroughError){
-                    throw passthroughError;
-                }catch (Throwable e){
+                }catch (InvocationTargetException e){
+                    if (e.getTargetException() instanceof ExposedError error) {
+                        return Value.asError(error.getMessage());
+                    }
+                    printJavaError(e.getTargetException());
+                    return Value.asError("Unexpected internal error, check log for information");
+                }catch (java.lang.Exception e){
                     printJavaError(e);
                     return Value.asError("Unexpected internal error, check log for information");
                 }
