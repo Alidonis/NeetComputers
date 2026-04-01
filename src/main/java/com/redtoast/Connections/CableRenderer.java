@@ -1,6 +1,7 @@
 package com.redtoast.Connections;
 
 import com.redtoast.items.generics.ConnectorItem;
+import com.redtoast.items.generics.DisplayPipes;
 import com.redtoast.neet.NeetComputersClient;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,7 +26,7 @@ public class CableRenderer {
 
     public static void eventCallback(WorldRenderContext context){
         PlayerEntity mainPlayer = MinecraftClient.getInstance().player;
-        if (mainPlayer!=null && mainPlayer.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
+        if (mainPlayer!=null && mainPlayer.getMainHandStack().getItem() instanceof DisplayPipes connectorItem){
             MatrixStack matrices = context.matrixStack();
             VertexConsumerProvider vertexConsumers = context.consumers();
             Camera camera = context.camera();

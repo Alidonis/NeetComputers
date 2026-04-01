@@ -1,7 +1,7 @@
 package com.redtoast.blocks.DesktopComputer;
 
 import com.redtoast.blocks.Generics.ComputerBlock;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.BulkRegistry;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -19,7 +19,7 @@ public class DesktopBlockComputer extends ComputerBlock {
 
     @Override
     public BlockEntityType<? extends BlockEntity> getType() {
-        return BulkRegistery.fetchBlockEntityType("desktop_computer");
+        return BulkRegistry.fetchBlockEntityType("desktop_computer");
     }
 
     @Override

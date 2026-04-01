@@ -3,7 +3,7 @@ package com.redtoast.blocks.SimpleDisplay;
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.Block;
@@ -62,7 +62,7 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistery.fetchBlockEntityType("simple_display") ? SimpleDisplayBlockEntity::tick : null;
+        return type == BulkRegistry.fetchBlockEntityType("simple_display") ? SimpleDisplayBlockEntity::tick : null;
     }
 
     @Nullable

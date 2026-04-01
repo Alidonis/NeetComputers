@@ -3,6 +3,7 @@ package com.redtoast.blocks.Generics.Displays;
 import com.redtoast.Connections.CableRenderer;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.items.generics.ConnectorItem;
+import com.redtoast.items.generics.DisplayPipes;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -15,11 +16,11 @@ public class PipeSourceBlockRenderer<Type extends BlockEntity> implements BlockE
         if (entity instanceof PipeRenderSource renderSource && !CableRenderer.doesBlockExist(entity.getPos())){
             assert MinecraftClient.getInstance().player != null;
             boolean isholding = false;
-            ConnectorItem connectorItem2 = null;
-            if (MinecraftClient.getInstance().player.getOffHandStack().getItem() instanceof ConnectorItem connectorItem){
+            DisplayPipes connectorItem2 = null;
+            if (MinecraftClient.getInstance().player.getOffHandStack().getItem() instanceof DisplayPipes connectorItem){
                 isholding = true;
                 connectorItem2 = connectorItem;
-            }else if (MinecraftClient.getInstance().player.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
+            }else if (MinecraftClient.getInstance().player.getMainHandStack().getItem() instanceof DisplayPipes connectorItem){
                 isholding = true;
                 connectorItem2 = connectorItem;
             }

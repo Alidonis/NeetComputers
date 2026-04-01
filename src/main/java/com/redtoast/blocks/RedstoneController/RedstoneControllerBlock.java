@@ -2,7 +2,7 @@ package com.redtoast.blocks.RedstoneController;
 
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.BulkRegistry;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -74,7 +74,7 @@ public class RedstoneControllerBlock extends FacingBlock implements BlockEntityP
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistery.fetchBlockEntityType("redstone_controller") ? (world2, blockPos, blockState, t) -> {
+        return type == BulkRegistry.fetchBlockEntityType("redstone_controller") ? (world2, blockPos, blockState, t) -> {
             if (world2!=null && world2.getBlockEntity(blockPos) instanceof RedstoneControllerBlockEntity redstoneControllerBlockEntity){
                 for (Direction direction : Direction.values()) redstoneControllerBlockEntity.submitDirection(getPowerInDirection(world2, blockPos.offset(direction), direction.getOpposite()), direction);
                 redstoneControllerBlockEntity.checkUpdate();

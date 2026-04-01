@@ -9,7 +9,7 @@ import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
 import com.redtoast.blocks.Generics.Displays.ConnectionMappingAccess;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
@@ -49,7 +49,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     private int clock = 0;
 
     public SimpleDisplayBlockEntity(BlockPos pos, BlockState state) {
-        super(BulkRegistery.fetchBlockEntityType("simple_display"), pos, state);
+        super(BulkRegistry.fetchBlockEntityType("simple_display"), pos, state);
         api = APILoader.TableizeAPI(new ProjectorAPI(this), null);
     }
 

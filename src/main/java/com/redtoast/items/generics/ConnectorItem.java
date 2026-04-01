@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 import java.util.Hashtable;
 import java.util.LinkedList;
 
-public class ConnectorItem extends Item {
+public class ConnectorItem extends Item implements DisplayPipes{
     private final PipeType pipeType;
     private final Hashtable<PlayerEntity, Long> timers = new Hashtable<>();
     private final Hashtable<PlayerEntity, BlockPos> lastPlaced = new Hashtable<>();
@@ -29,6 +29,7 @@ public class ConnectorItem extends Item {
         this.pipeType = pipeType;
     }
 
+    @Override
     public PipeType getType() {
         return pipeType;
     }
