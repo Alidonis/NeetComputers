@@ -11,14 +11,10 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.Window;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Language;
-import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.function.Supplier;
 
 public class PeripheralToolScreen extends HandledScreen<PeripheralToolScreenHandler> {
     private final PeripheralToolScreenHandler handler;
@@ -61,9 +57,7 @@ public class PeripheralToolScreen extends HandledScreen<PeripheralToolScreenHand
         if (handler.getTag()!=null) textInput.setText(handler.getTag());
         textInput.setChangedListener((text) -> ClientPlayNetworking.send(new SetPeripheralTagPayload(text, handler.syncId)));
         addSelectableChild(textInput);
-        functionInput = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 200, 50, Text.of(Language.getInstance().get("menu.neetcomputers.function_field_title"))) {
-
-        };
+        functionInput = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 200, 50, Text.of(Language.getInstance().get("menu.neetcomputers.function_field_title")));
         functionInput.setMaxLength(32);
         addSelectableChild(functionInput);
         submitButton = ButtonWidget.builder(Text.of(Language.getInstance().get("menu.neetcomputers.button")), (button) -> {
@@ -91,7 +85,7 @@ public class PeripheralToolScreen extends HandledScreen<PeripheralToolScreenHand
         context.drawText(MinecraftClient.getInstance().textRenderer, handler.getDisplayMessage(), screenPos1.x+3, screenPos1.y+100, handler.getVarType() == VarType.EXCEPTION ? 0xFFa80000 : 0xFFa8a8a8, true);
         boolean isUUID = inbounds(mouseX, mouseY, 3, 28, 3, 38);
         boolean isType = inbounds(mouseX, mouseY, 3, 18, 3, 27);
-        boolean isRetur = inbounds(mouseX, mouseY, 3, 100, 3, 110) && !handler.getDisplayMessage().equals(handler.getMessage());
+        boolean isRetur = inbounds(mouseX, mouseY, 3, 100, 3, 110) && handler.isLong();
         context.drawText(MinecraftClient.getInstance().textRenderer, Language.getInstance().get("menu.neetcomputers.uuid_field")+"...", screenPos1.x+3, screenPos1.y+28, isUUID ? 0xFFcccccc : 0xFFa8a8a8, true);
         context.drawText(MinecraftClient.getInstance().textRenderer, Language.getInstance().get("menu.neetcomputers.type_field")+"...", screenPos1.x+3, screenPos1.y+18, isType ? 0xFFcccccc : 0xFFa8a8a8, true);
         super.render(context, mouseX, mouseY, delta);
@@ -120,39 +114,6 @@ public class PeripheralToolScreen extends HandledScreen<PeripheralToolScreenHand
     @Override
     public void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
 
-    }
-
-    public Vector2d graphicsToScreen(int x, int y) {
-        double screenWidth = screenPos2.x - screenPos1.x;
-        double screenHeight = screenPos2.y - screenPos1.y;
-
-        int logicalWidth = size.x;
-        int logicalHeight = size.y;
-
-        double scaleX = screenWidth / logicalWidth;
-        double scaleY = screenHeight / logicalHeight;
-
-        double screenX = screenPos1.x + x * scaleX;
-        double screenY = screenPos1.y + y * scaleY;
-
-        return new Vector2d(screenX, screenY);
-    }
-
-    public Vector2i screenToGraphics(double screenX, double screenY) {
-        if (screenX < screenPos1.x || screenX > screenPos2.x || screenY < screenPos1.y || screenY > screenPos2.y) return null;
-        double screenWidth = screenPos2.x - screenPos1.x;
-        double screenHeight = screenPos2.y - screenPos1.y;
-
-        int logicalWidth = size.x;
-        int logicalHeight = size.y;
-
-        double scaleX = screenWidth / logicalWidth;
-        double scaleY = screenHeight / logicalHeight;
-
-        int x = (int) ((screenX - screenPos1.x) / scaleX);
-        int y = (int) ((screenY - screenPos1.y) / scaleY);
-
-        return new Vector2i(x, y);
     }
 
     public void adjustBounding(){
