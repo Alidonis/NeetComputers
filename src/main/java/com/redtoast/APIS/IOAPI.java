@@ -33,7 +33,7 @@ public class IOAPI implements API {
             if (!computer.isOn() || computer.isCrashed()) return Value.asError("Computer dead, how did you get here?");
             for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
                 if (Objects.equals(peripheralProvider.getUuid().toString(), uuid.toString())){
-                    return peripheralProvider.callFunction(getName(), parameters.toArray());
+                    return peripheralProvider.callFunction(computer.getRuntime(), getName(), parameters.toArray());
                 }
             }
             return Value.asError("Peripheral not found");
@@ -102,7 +102,7 @@ public class IOAPI implements API {
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
             if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)){
                 for (String functionName2 : peripheralProvider.getFunctionNames()){
-                    if (functionName.equals(functionName2)) return peripheralProvider.callFunction(functionName, args);
+                    if (functionName.equals(functionName2)) return peripheralProvider.callFunction(computer.getRuntime(), functionName, args);
                 }
             }
         }

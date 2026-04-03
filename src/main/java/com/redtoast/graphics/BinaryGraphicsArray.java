@@ -1,6 +1,5 @@
 package com.redtoast.graphics;
 
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 
@@ -19,10 +18,6 @@ public class BinaryGraphicsArray {
         sizex = pixel[0].length;
     }
 
-    public BinaryGraphicsArray blankClone(){
-        return new BinaryGraphicsArray(sizex,sizey);
-    }
-
     public boolean get(int x, int y){
         if (x<0 || y<0){
             return true;
@@ -34,36 +29,41 @@ public class BinaryGraphicsArray {
     }
 
     public void set(int x, int y, boolean state){
-        pixels[y][x] = state;
+        pixels[sizey-y-1][x] = state;
     }
 
     public Vector2i getSize(){
         return new Vector2i(sizex,sizey);
     }
 
-    public int getAmount(){
-        return sizex * sizey;
-    }
-
-    private static int boolArrayToByte(boolean[] array){
+    private static void boolArrayToByte(boolean[] array, PacketByteBuf buf){
         int buffer = 0;
-        for (int i = 0; i < array.length; i++){
-            buffer = buffer << 1;
-            if (array[i]){
-                buffer++;
+        int bitsPacked = 0;
+        for (boolean bit : array) {
+            if (bitsPacked==15){
+                bitsPacked = 0;
+                buf.writeShort(buffer);
+                buffer = 0;
             }
+            if (bit) buffer |= 1<<bitsPacked;
+            bitsPacked++;
         }
-        return buffer;
+        buf.writeShort(buffer);
     }
 
-    private static boolean[] ByteToBoolArray(int _byte, int size){
-        int buffer = _byte;
-        boolean[] array = new boolean[size];
+    private static boolean[] ByteToBoolArray(PacketByteBuf buf, int size){
+        boolean[] bits = new boolean[size];
+        int buffer = buf.readShort();
+        int bitsUnpacked = 0;
         for (int i = 0; i < size; i++){
-            array[size-i-1] = buffer%2==1;
-            buffer = buffer >> 1;
+            if (bitsUnpacked==15){
+                bitsUnpacked = 0;
+                buffer = buf.readShort();
+            }
+            bits[i] = (buffer>>bitsUnpacked & 1) == 1;
+            bitsUnpacked++;
         }
-        return array;
+        return bits;
     }
 
     public void writeScreenToPacketBuf(PacketByteBuf buf) {
@@ -72,7 +72,7 @@ public class BinaryGraphicsArray {
         buf.writeShort(y);
         buf.writeShort(size.x());
         for (int i=0; i < y; i++) {
-            buf.writeShort(boolArrayToByte(pixels[i]));
+            boolArrayToByte(pixels[i], buf);
         }
     }
 
@@ -81,28 +81,7 @@ public class BinaryGraphicsArray {
         int x = buf.readShort();
         boolean[][] array = new boolean[y][x];
         for (int i = 0; i < y; i++) {
-            array[i] = ByteToBoolArray(buf.readShort(),x);
-        }
-        return new BinaryGraphicsArray(array);
-    }
-
-    public NbtCompound writeScreenToNBT(){
-        Vector2i size = this.getSize();
-        NbtCompound nbt = new NbtCompound();
-        nbt.putShort("sizeX", (short) size.x);
-        nbt.putShort("sizeY", (short) size.y);
-        for (int i=0; i < size.y; i++) {
-            nbt.putShort(""+i, (short) boolArrayToByte(pixels[i]));
-        }
-        return nbt;
-    }
-
-    public static BinaryGraphicsArray fromNbt(NbtCompound nbt){
-        int x = nbt.getShort("sizeX");
-        int y = nbt.getShort("sizeY");
-        boolean[][] array = new boolean[y][x];
-        for (int i = 0; i < y; i++) {
-            array[i] = ByteToBoolArray(nbt.getShort(""+i),x);
+            array[i] = ByteToBoolArray(buf,x);
         }
         return new BinaryGraphicsArray(array);
     }

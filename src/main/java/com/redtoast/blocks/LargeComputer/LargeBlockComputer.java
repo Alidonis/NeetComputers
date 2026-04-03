@@ -1,13 +1,11 @@
 package com.redtoast.blocks.LargeComputer;
 
-import com.redtoast.blocks.generic.ComputerBlock;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.blocks.Generics.ComputerBlock;
+import com.redtoast.neet.BulkRegistry;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 public class LargeBlockComputer extends ComputerBlock {
     public LargeBlockComputer(Settings settings) {
@@ -21,7 +19,7 @@ public class LargeBlockComputer extends ComputerBlock {
 
     @Override
     public BlockEntityType<? extends BlockEntity> getType() {
-        return BulkRegistery.fetchBlockEntityType("large_computer");
+        return BulkRegistry.fetchBlockEntityType("large_computer");
     }
 
     @Override

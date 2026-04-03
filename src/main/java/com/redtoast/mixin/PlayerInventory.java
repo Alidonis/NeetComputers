@@ -1,6 +1,7 @@
 package com.redtoast.mixin;
 
 import com.redtoast.items.generics.ConnectorItem;
+import com.redtoast.items.generics.DisplayPipes;
 import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -23,7 +24,7 @@ public class PlayerInventory {
         if (!player.getWorld().isClient()){
             if (selection2 != selectedSlot){
                 selection2 = selectedSlot;
-                if (player.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
+                if (player.getMainHandStack().getItem() instanceof DisplayPipes connectorItem){
                     NeetComputersServer.sendPipeBufferToPlayer((ServerPlayerEntity) player, connectorItem.getType());
                 }
             }

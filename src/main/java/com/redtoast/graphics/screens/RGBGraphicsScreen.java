@@ -1,8 +1,6 @@
 package com.redtoast.graphics.screens;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.redtoast.graphics.RGBGraphicsArray;
-import dan200.computercraft.client.gui.ComputerScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
@@ -12,9 +10,6 @@ import net.minecraft.text.Text;
 import org.joml.Matrix4f;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 import static com.mojang.blaze3d.systems.RenderSystem.*;
 

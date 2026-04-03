@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Optional;
 
 /**
@@ -110,7 +109,7 @@ public abstract class Runtime {
                 }
                 LanguageGeneric langObject = NeetComputersServer.getLanguage(bootPath.language().getVersion());
                 assert langObject != null;
-                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getSpecifications());
+                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getConfiguration());
             }catch (Throwable e){
                 APILoader.printJavaError(e);
                 kill=true;
@@ -121,11 +120,6 @@ public abstract class Runtime {
         }
         System.out.println("booting complete");
     }
-
-    /**
-     * retrieves the event callbacks from the parent computer
-     */
-    public abstract LinkedList<EventGeneric.eventCallback> getCallbacks();
 
     /**
      * called when runtime completes a tick, if true kills the process
@@ -142,12 +136,6 @@ public abstract class Runtime {
                 kill = true;
                 return;
             }
-            while (!parent.getEventQue().isEmpty()) {
-                for (EventGeneric.eventCallback callback : getCallbacks()){
-                    callback.onEvent(parent.getEventQue().getFirst());
-                }
-                parent.getEventQue().remove();
-            }
             if (que!=null){
                 product = que.call(parameters);
                 que = null;
@@ -156,6 +144,7 @@ public abstract class Runtime {
             if (thread.isAlive()) {
                 inTick=true;
                 if (parent.isCrashed()) return;
+                parent.getEventManager().update();
                 thread.tick();
                 inTick=false;
                 if (!thread.isAlive()) {

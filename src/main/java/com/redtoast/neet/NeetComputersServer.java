@@ -12,19 +12,28 @@ import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
-import com.redtoast.blocks.generic.ComputerBlock;
+import com.redtoast.blocks.Generics.ComputerBlock;
+import com.redtoast.blocks.RedstoneController.RedstoneControllerBlock;
+import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
+import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
+import com.redtoast.graphics.screens.PeripheralToolScreenHandler;
 import com.redtoast.graphics.screens.RGBScreenHandler;
-import com.redtoast.items.generics.ConnectorItem;
-import com.redtoast.items.networkingCable;
+import com.redtoast.items.PeripheralTool;
+import com.redtoast.items.generics.DisplayPipes;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
+import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
+import com.redtoast.simulation.events.EventLabel;
+import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.VarType;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -32,13 +41,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.registry.Registries;
@@ -58,30 +65,29 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Position;
-import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class NeetComputersServer implements ModInitializer {
 
 	//create packet id's and screen handler
 	private static final ExtendedScreenHandlerType<RGBScreenHandler, ComputerScreenInitPayload> HANDLER = new ExtendedScreenHandlerType<>(RGBScreenHandler::new, ComputerScreenInitPayload.CODEC);
-	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistery.register("graphics", Registries.SCREEN_HANDLER, HANDLER);
+	private static final ExtendedScreenHandlerType<PeripheralToolScreenHandler, PeripheralToolScreenInitPayload> HANDLER2 = new ExtendedScreenHandlerType<>(PeripheralToolScreenHandler::new, PeripheralToolScreenInitPayload.CODEC);
+	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistry.register("graphics", Registries.SCREEN_HANDLER, HANDLER);
+	public static final ScreenHandlerType<PeripheralToolScreenHandler> PERIPHERAL_TOOL_SCREEN_HANDLER = BulkRegistry.register("peripheral_tool", Registries.SCREEN_HANDLER, HANDLER2);
 	public static CableManager cableManager = null;
 	private static MinecraftServer server = null;
 
 	//internal config
-	public static final String version = "NeetComputers 0.3.1";
+	public static final String version = "NeetComputers 0.3.4";
 
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
@@ -151,43 +157,96 @@ public class NeetComputersServer implements ModInitializer {
 				ComponentType.<ComputerDataComponent>builder().codec(ComputerDataComponent.CODEC).build()
 		);
 
-		BulkRegistery.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.ON) ? 8 : 0));
-		BulkRegistery.register("large_computer",largeComputer, LargeEntityComputer::new,true);
-		RegistryKey<ItemGroup> group = BulkRegistery.registerGroup("main_item_group", BulkRegistery.fetchItemObject("large_computer"));
-		BulkRegistery.register(BulkRegistery.fetchItemObject("large_computer"), group);
+		BulkRegistry.setNamespace("neetcomputers");
+		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 8 : 0));
+		BulkRegistry.register("large_computer",largeComputer, LargeEntityComputer::new,true);
+		RegistryKey<ItemGroup> group = BulkRegistry.registerGroup("main_item_group", BulkRegistry.fetchItemObject("large_computer"));
+		BulkRegistry.register(BulkRegistry.fetchItemObject("large_computer"), group);
 
-		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.ON) ? 4 : 0));
-		BulkRegistery.register("desktop_computer",desktopComputer, DesktopEntityComputer::new,true);
-		BulkRegistery.register(BulkRegistery.fetchItemObject("desktop_computer"), group);
+		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
+		BulkRegistry.register("desktop_computer",desktopComputer, DesktopEntityComputer::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("desktop_computer"), group);
 
-		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 ? 5 : 0));
-		BulkRegistery.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
-		BulkRegistery.register(BulkRegistery.fetchItemObject("office_computer"), group);
+		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
+		BulkRegistry.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("office_computer"), group);
+
+		Block redstoneController = new RedstoneControllerBlock(Block.Settings.create().strength(3.0f).hardness(2f).sounds(BlockSoundGroup.METAL));
+		BulkRegistry.register("redstone_controller",redstoneController, RedstoneControllerBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("redstone_controller"), group);
 
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
-		BulkRegistery.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
-		BulkRegistery.register(BulkRegistery.fetchItemObject("dynamic_light"), group);
+		BulkRegistry.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("dynamic_light"), group);
+
+		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
+		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("simple_display"), group);
+
+		Item peripheralTool = new PeripheralTool(new Item.Settings().maxCount(1));
+		BulkRegistry.register("peripheral_tool", peripheralTool);
+		BulkRegistry.register(peripheralTool, group);
 
 		Item peripheralCableItem = new peripheralCable(new Item.Settings().maxCount(1));
-		BulkRegistery.register("peripheral_cable", peripheralCableItem);
-		BulkRegistery.register(peripheralCableItem, group);
+		BulkRegistry.register("peripheral_cable", peripheralCableItem);
+		BulkRegistry.register(peripheralCableItem, group);
 
-		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
-		BulkRegistery.register("networking_cable", networkingCableItem);
-		BulkRegistery.register(networkingCableItem, group);
+//		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
+//		BulkRegistery.register("networking_cable", networkingCableItem);
+//		BulkRegistery.register(networkingCableItem, group);
 
-		PayloadTypeRegistry.playC2S().register(EventTransferPayload.ID, EventTransferPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(SetPeripheralTagPayload.ID, SetPeripheralTagPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(SubmitCommandPayload.ID, SubmitCommandPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ReturnMessagePayload.ID, ReturnMessagePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RGBComputerPayload.ID, RGBComputerPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PipeBufferPayload.ID, PipeBufferPayload.CODEC);
 
-		ServerPlayNetworking.registerGlobalReceiver(EventTransferPayload.ID, (payload, context) -> computerMap.get(payload.uuid()).queueEvent(payload.event()));
 		ServerPlayNetworking.registerGlobalReceiver(EventUploadPayload.ID, (payload, context) -> {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
-				computer.queueEvent(payload.event());
+				computer.queueEvent(payload.event(), EventLabel.USER);
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(SetPeripheralTagPayload.ID, (payload, context) -> {
+			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof PeripheralToolScreenHandler handler)){
+				handler.setTag(payload.tag());
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(SubmitCommandPayload.ID, (payload, context) -> {
+			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof PeripheralToolScreenHandler handler)){
+				String[] parts = payload.command().split("(?!\\B\\\"[^\\\"]*)[, \\.\\(\\)](?![^\\\"]*\\\"\\B)");
+				try{
+					String functionname = "";
+					ArrayList<Value<?>> parameters = new ArrayList<>();
+					for (String part : parts){
+						if (!part.isBlank()){
+							if (functionname.isBlank()){
+								if (part.matches("^[a-zA-Z]*\\z")){
+									functionname = part;
+								}else{
+									throw new NumberFormatException();
+								}
+							}else if (part.equals("true")){
+								parameters.add(Value.TRUE);
+							}else if(part.equals("false")){
+								parameters.add(Value.FALSE);
+							}else if(part.matches("^\\\"[^\\\"]*\\\"\\z")){
+								parameters.add(Value.of(part.substring(1, part.length()-1)));
+							}else{
+								parameters.add(Value.of(Integer.parseInt(part)));
+							}
+						}
+                    }
+					if (functionname.isBlank()) throw new NumberFormatException();
+					Value<?> done = handler.call(functionname, parameters);
+					ServerPlayNetworking.send(context.player(), new ReturnMessagePayload(done.isNull() ? "No result" : done.getValue().toString(), done.getType()));
+				}catch (NumberFormatException e){
+					ServerPlayNetworking.send(context.player(), new ReturnMessagePayload("Invalid Command", VarType.EXCEPTION));
+				}
 			}
 		});
 
@@ -213,9 +272,7 @@ public class NeetComputersServer implements ModInitializer {
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
-			public @NotNull API Create(Computer computer) {
-				return new EventAPI(computer);
-			}
+			public @NotNull API Create(Computer computer) {return new EventAPI(computer);}
 		});
 		APILoader.register(new APIRegistry() {
 			@Override
@@ -225,6 +282,10 @@ public class NeetComputersServer implements ModInitializer {
 		});
     }
 
+	public static boolean emitLight(){
+		return (boolean) ConfigLoader.getServerConfig("computers-emit-light");
+	}
+
 	public static void updateClientPipes(){
 		if (server==null) return;
 		PlayerManager playerManager = server.getPlayerManager();
@@ -233,10 +294,10 @@ public class NeetComputersServer implements ModInitializer {
 			boolean isHoldingConnector = false;
 			PipeType type = null;
             assert player != null;
-            if (player.getOffHandStack().getItem() instanceof ConnectorItem connectorItem){
+            if (player.getOffHandStack().getItem() instanceof DisplayPipes connectorItem){
 				isHoldingConnector = true;
 				type = connectorItem.getType();
-			}else if (player.getMainHandStack().getItem() instanceof ConnectorItem connectorItem){
+			}else if (player.getMainHandStack().getItem() instanceof DisplayPipes connectorItem){
 				isHoldingConnector = true;
 				type = connectorItem.getType();
 			}
@@ -286,6 +347,7 @@ public class NeetComputersServer implements ModInitializer {
 		NeetComputersServer.server = server;
 		timeBenchMark = System.currentTimeMillis();
 		worldPath = server.getSavePath(WorldSavePath.ROOT);
+		ConfigLoader.loadServerConfig(server);
 		if (!worldPath.resolve("neetcomputers").toFile().exists()){
 			LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
@@ -316,7 +378,7 @@ public class NeetComputersServer implements ModInitializer {
 		}
 
 		ProcessManager.clear();
-		ProcessManager.openNewThread();
+		for (int i = 0; i < (int) ConfigLoader.getServerConfig("processing-threads"); i++) ProcessManager.openNewThread();
 	}
 
 	public static LanguageTranslater getTranslater(String lang){

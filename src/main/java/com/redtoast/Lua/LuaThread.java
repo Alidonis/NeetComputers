@@ -1,8 +1,8 @@
 package com.redtoast.Lua;
 
-import com.redtoast.computerSpecs;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.Runtime;
+import com.redtoast.simulation.config.ComputerConfig;
 import org.luaj.vm2.LuaError;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
@@ -24,22 +24,22 @@ public class LuaThread extends LangThread {
         }
     }
 
-    private computerSpecs specs;
+    private ComputerConfig computerConfig;
     private org.luaj.vm2.LuaThread coroutine;
     private LuaValue chunk;
     private Runtime runtime;
     private LuaGlobals globals;
     protected short ticket = 0;
 
-    public LuaThread(String script, Runtime parentRuntime, computerSpecs specification){
+    public LuaThread(String script, Runtime parentRuntime, ComputerConfig computerConfig){
         super();
-        specs = specification;
+        this.computerConfig = computerConfig;
         runtime = parentRuntime;
         try{
             globals = new LuaGlobals(runtime.getGlobals());
             chunk = globals.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(globals, chunk);
-            globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(specs.BatchSize)});
+            globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(computerConfig.instructionsPerBatch())});
         } catch (Exception e) {
             if (e instanceof LuaError error){
                 kill(error.getMessage());
@@ -79,13 +79,17 @@ public class LuaThread extends LangThread {
     public void tick(){
         clearJavaLag();
         if (!isAlive()) return;
-        ticket += specs.Batches;
+        ticket += (short) computerConfig.batchesPerTick();
         while (ticket>0) {
             if (runtime.getParent().isCrashed()) kill("Parent computer crashed");
+            if (runtime.shouldDie()) {
+                kill("host stopped");
+                runtime.getParent().stop();
+            }
             if (!isAlive()) return;
             step();
             if (isAlive()){
-                short tax = (short) getJavaTaxBulk((short) (10*specs.BatchSize));
+                short tax = (short) getJavaTaxBulk((short) (10*computerConfig.instructionsPerBatch()));
                 ticket -= (short) (tax * 25);
             }
         }

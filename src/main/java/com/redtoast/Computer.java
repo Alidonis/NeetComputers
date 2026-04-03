@@ -3,11 +3,11 @@ package com.redtoast;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
+import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputersServer;
-import com.redtoast.neet.Networking.EventTransferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.ProcessManager;
 import com.redtoast.simulation.*;
@@ -16,8 +16,11 @@ import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.FS.builder.SystemPreset;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
+import com.redtoast.simulation.config.ComputerConfig;
+import com.redtoast.simulation.events.EventGeneric;
+import com.redtoast.simulation.events.EventLabel;
+import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.value.NVTable;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -37,7 +40,7 @@ import java.util.*;
  * </p>
  *
  * <p>
- *     First initialize the computer instance, provide a {@link computerSpecs} instance and implement abstract methods
+ *     First initialize the computer instance, provide a {@link ComputerConfig} instance and implement abstract methods
  *     you can think of this as creating the <i>model</i> that the computer with use
  * </p>
  *
@@ -51,12 +54,12 @@ import java.util.*;
  *     {@code computer.tick()}
  * </p>
  *
- * @see computerSpecs
+ * @see ComputerConfig
  * @see Runtime
  * @see GlobalManager
  * @see FileSystem
  */
-public abstract class Computer implements PeripheralReceiver {
+public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProvider {
     //logger used for debugging
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts
@@ -71,27 +74,25 @@ public abstract class Computer implements PeripheralReceiver {
     private UUID uuid = null;
     //object representing the computers file interpreter
     private FileSystem fs = null;
+    //object that handles the computers events
+    private final EventManager eventManager = new EventManager();
     //object representing the systems build
     private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
-    private boolean doesBinaryGraphics;
+    private final boolean doesBinaryGraphics;
     //increments every tick, loops back at 100
     private short clock = 0;
     //object representing colored graphics (gui)
-    private RGBGraphicsArray Graphics;
+    private final RGBGraphicsArray Graphics;
     //state defining if the computer instance is crashed
     private boolean IsCrashed = false;
     //state for defining if the computer is paused
     private boolean paused = false;
     //crash message for crash events
     private String message = null;
-    //represents que for events
-    private final LinkedList<EventGeneric> eventQue = new LinkedList<>();
-    //list of all event callbacks
-    private final LinkedList<EventGeneric.eventCallback> eventCallbacks = new LinkedList<>();
     //specify computer specifications
-    private computerSpecs specs;
+    private ComputerConfig computerConfig;
     //table storing NVRam
     private NVTable NVRam;
     //value holding last time computer ticked
@@ -128,15 +129,15 @@ public abstract class Computer implements PeripheralReceiver {
     public abstract @Nullable Object getParentEntity();
 
     //constructor
-    public Computer(computerSpecs specifications){
-        Graphics = new RGBGraphicsArray(specifications.ColorGraphicsSizeX,specifications.ColorGraphicsSizeY);
-        specs = specifications;
-        doesBinaryGraphics = specifications.doesBinaryGraphics;
-        BinGraphics = new BinaryGraphicsArray(specifications.GraphicsSizeX, specifications.GraphicsSizeY);
+    public Computer(ComputerConfig computerConfig){
+        Graphics = new RGBGraphicsArray(computerConfig.ColorGraphicsSize().x(), computerConfig.ColorGraphicsSize().y());
+        this.computerConfig = computerConfig;
+        doesBinaryGraphics = computerConfig.doesBinaryGraphics();
+        BinGraphics = computerConfig.doesBinaryGraphics() ? new BinaryGraphicsArray(computerConfig.BinaryGraphicsSize().x(), computerConfig.BinaryGraphicsSize().y()) : null;
         tickTime = System.currentTimeMillis();
     }
 
-    //generic load function all other load functions call after implementing data
+    //Generics load function all other load functions call after implementing data
     private void load(){
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();
@@ -150,9 +151,6 @@ public abstract class Computer implements PeripheralReceiver {
             IsOn = false;
             if (nbt.contains("IsOn")){
                 IsOn = nbt.getBoolean("IsOn");
-                if (IsOn && doesBinaryGraphics && nbt.contains("screen")){
-                    BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
-                }
                 if (nbt.contains("ComputerID")){
                     uuid = nbt.getUuid("ComputerID");
                 }else{
@@ -167,7 +165,6 @@ public abstract class Computer implements PeripheralReceiver {
             }
             if (nbt.contains("crashed")) IsCrashed = nbt.getBoolean("crashed");
             if (nbt.contains("crashMessage")) message = nbt.getString("crashMessage");
-            if (!IsOn && IsCrashed && doesBinaryGraphics && nbt.contains("screen")) BinGraphics = BinaryGraphicsArray.fromNbt(nbt.getCompound("screen"));
             if (nbt.contains("NVRam")){
                 NVRam = NVTable.deserialize(nbt.getCompound("NVRam"), this);
             }else{
@@ -228,15 +225,10 @@ public abstract class Computer implements PeripheralReceiver {
             }
 
             Graphics.clear();
+            eventManager.reset();
 
             //overwrites runtime with a new instance
             runtime = new Runtime(this, NVRam) {
-
-                @Override
-                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
-                    return eventCallbacks;
-                }
-
                 @Override
                 public boolean shouldDie() {
                     boolean temp = killFlag;
@@ -270,8 +262,7 @@ public abstract class Computer implements PeripheralReceiver {
             if (runtime.isInTick()){
                 killFlag = true;
             }else{
-                eventCallbacks.clear();
-                eventQue.clear();
+                eventManager.reset();
                 runtime=null;
                 IsOn =false;
                 saveNBT();
@@ -302,6 +293,7 @@ public abstract class Computer implements PeripheralReceiver {
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
+    public EventManager getEventManager() {return eventManager;}
     public NVTable getNVRam(){return NVRam;}
     public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
@@ -311,10 +303,9 @@ public abstract class Computer implements PeripheralReceiver {
         return runtime;
     }
     public int getAddress(){return fs.pointer;}
-    public LinkedList<EventGeneric> getEventQue() {return eventQue;}
     public UUID getUuid() {return uuid;}
-    public computerSpecs getSpecifications(){
-        return specs;
+    public ComputerConfig getConfiguration(){
+        return computerConfig;
     }
 
     //muli-line fetch methods
@@ -419,25 +410,15 @@ public abstract class Computer implements PeripheralReceiver {
         return scanForPeripherals();
     }
 
-    //que's an event to the computer if server-side or sends event to server to be que'd if not
-    public void queueEvent(EventGeneric event) {
-        if (isClient()){
-            ClientPlayNetworking.send(new EventTransferPayload(uuid, event));
-        }else{
-            eventQue.add(event);
-        }
-    }
-    public void addEventCallback(EventGeneric.eventCallback callback){
-        eventCallbacks.add(callback);
+    //queues an event to the event manager
+    public void queueEvent(EventGeneric event, EventLabel queue){
+        eventManager.queueEvent(event, queue);
     }
 
     //writes current state to NBT tag
     public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putBoolean("IsOn", IsOn);
-        if ((IsOn || IsCrashed) && doesBinaryGraphics){
-            nbt.put("screen", BinGraphics.writeScreenToNBT());
-        }
         if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         if (IsCrashed) nbt.putBoolean("crashed", true);
@@ -474,12 +455,6 @@ public abstract class Computer implements PeripheralReceiver {
         if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
             Graphics.clear();
             runtime = new Runtime(this, NVRam) {
-
-                @Override
-                public LinkedList<EventGeneric.eventCallback> getCallbacks() {
-                    return eventCallbacks;
-                }
-
                 @Override
                 public boolean shouldDie() {
                     boolean temp = killFlag;

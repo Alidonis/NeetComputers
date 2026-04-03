@@ -1,6 +1,6 @@
 package com.redtoast.graphics.screens;
 
-import com.redtoast.simulation.EventGeneric;
+import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.value.Value;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -34,7 +34,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         if (code!=0){
             EventGeneric event = new EventGeneric("keyPressed",
                     Value.of(code),
-                    Value.of(code>31 && code<128 ? (char) code : Value.NULL),
+                    Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
             event.send(handler);
@@ -48,7 +48,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
         if (code!=0){
             EventGeneric event = new EventGeneric("keyReleased",
                     Value.of(code),
-                    Value.of(code>31 && code<128 ? (char) code : Value.NULL),
+                    Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
             event.send(handler);
@@ -78,8 +78,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             EventGeneric event = new EventGeneric("mouseClicked",
                     Value.of(pos.x),
                     Value.of(pos.y),
-                    Value.of(key),
-                    Value.of(!repeatTable.get(key))
+                    Value.of(key)
             );
             event.send(handler);
             repeatTable.put(key, true);
@@ -97,8 +96,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                 new EventGeneric("mouseClicked",
                         Value.of(pos.x),
                         Value.of(pos.y),
-                        Value.of(key),
-                        Value.of(!repeatTable.get(key))
+                        Value.of(key)
                 ).send(handler);
                 repeatTable.put(key, true);
             }

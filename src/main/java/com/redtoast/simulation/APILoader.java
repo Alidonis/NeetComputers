@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
     private final Runtime ParentRuntime;
-    private static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
+    public static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
     private static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
     private static final Hashtable<Class<? extends Exposable>, LoaderCache> cache = new Hashtable<>();
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
@@ -360,7 +361,7 @@ public class APILoader {
     public static void profilerFunction(long startTime, String function, @Nullable Context context){
         short timeSpent = (short) (System.currentTimeMillis() - startTime);
         if (timeSpent>100){
-            profiler.warn(function +" exited 100 milliseconds ("+timeSpent+")");
+            profiler.warn(function +" exceeded 100 milliseconds ("+timeSpent+")");
             if (context!=null && context.runtime.getThread()!=null){
                 context.runtime.getThread().taxJavaLag((short) 1000);
             }
@@ -394,11 +395,13 @@ public class APILoader {
                     }else{
                         return Value.of(retun);
                     }
-                }catch (ExposedError error){
-                    return Value.asError(error.getMessage());
-                }catch (PassthroughError passthroughError){
-                    throw passthroughError;
-                }catch (Throwable e){
+                }catch (InvocationTargetException e){
+                    if (e.getTargetException() instanceof ExposedError error) {
+                        return Value.asError(error.getMessage());
+                    }
+                    printJavaError(e.getTargetException());
+                    return Value.asError("Unexpected internal error, check log for information");
+                }catch (java.lang.Exception e){
                     printJavaError(e);
                     return Value.asError("Unexpected internal error, check log for information");
                 }
@@ -585,7 +588,109 @@ public class APILoader {
         };
     }
 
-    private static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime) throws LoaderError {
+    public static String[] getFunctions(Exposable obj){
+        Class<?> _class = obj.getClass();
+        LinkedList<String> names = new LinkedList<>();
+        Method[] buffer = _class.getMethods();
+        for (Method method : buffer) {
+            if (method.isAnnotationPresent(Exposed.class)) {
+                Exposed annotation = method.getAnnotation(Exposed.class);
+                if (annotation.nameOverride().isBlank()){
+                    if (!names.contains(method.getName())) names.add(method.getName());
+                }else{
+                    if (!names.contains(annotation.nameOverride())) names.add(annotation.nameOverride());
+                }
+            }
+        }
+        names.sort(String::compareTo);
+        return names.toArray(new String[0]);
+    }
+
+    public static String getName(Method method){
+        if (method.isAnnotationPresent(Exposed.class)) {
+            Exposed annotation = method.getAnnotation(Exposed.class);
+            if (annotation.nameOverride().isBlank()){
+                return method.getName();
+            }else{
+                return annotation.nameOverride();
+            }
+        }
+        return "helpmeimtrapedinanightmareofmyowncreation";
+    }
+
+    public static Value<?> searchAndCall(Exposable obj, Runtime runtime, String name, Value<?>... args) throws LoaderError {
+        Class<?> _class = obj.getClass();
+        if (cache.containsKey(_class)) {
+            LoaderCache cachedObject = cache.get(_class);
+            for (StaticFunctionCache functionCache : cachedObject.functions()){
+                if (functionCache.functionName().equals(name)){
+                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
+                    if (!retur.isError()){
+                        return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                    }else{
+                        return Value.asError(retur.getMessage());
+                    }
+                }
+            }
+            LinkedList<String> errors = new LinkedList<>();
+            LinkedList<String> names = new LinkedList<>();
+            for (PackedFunctionCache pFunctionCache : cachedObject.packedFunctions()){
+                if (pFunctionCache.name.equals(name)){
+                    for (StaticFunctionCache functionCache : pFunctionCache.functions){
+                        ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
+                        if (!retur.isError()){
+                            return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                        }else{
+                            errors.add(retur.getMessage());
+                            names.add(name + functionCache.ruleset().toString(runtime));
+                        }
+                    }
+                }
+            }
+            if (!errors.isEmpty()){
+                names.sort(String::compareTo);
+                StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                for (String string : names){
+                    error.append('\n');
+                    error.append(string);
+                }
+                return new Exception(error.toString()).asValue();
+            }else{
+                return Value.asError("Cant Find Function '"+name+"'");
+            }
+        }else{
+            Method[] buffer = _class.getMethods();
+            LinkedList<String> errors = new LinkedList<>();
+            LinkedList<String> names = new LinkedList<>();
+            for (Method method : buffer){
+                if (getName(method).equals(name)){
+                    ParameterRules rules = rulesFromMethod(method);
+                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, rules, runtime);
+                    if (!retur.isError()){
+                        return sandboxFunction(method, obj, rules, runtime).invoke(retur.getFunctionInput());
+                    }else{
+                        errors.add(retur.getMessage());
+                        names.add(name + rules.toString(runtime));
+                    }
+                }
+            }
+            if (errors.isEmpty()){
+                return Value.asError("Cant Find Function '"+name+"'");
+            }else if (errors.size()==1){
+                return Value.asError(errors.getFirst());
+            }else{
+                names.sort(String::compareTo);
+                StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
+                for (String string : names){
+                    error.append('\n');
+                    error.append(string);
+                }
+                return new Exception(error.toString()).asValue();
+            }
+        }
+    }
+
+    public static Function[] translateAPI(Exposable obj, @Nullable Runtime runtime) throws LoaderError {
         if (!cache.containsKey(obj.getClass())) {
             Class<?> _class = obj.getClass();
             Hashtable<String, LinkedList<Function>> functions = new Hashtable<>();

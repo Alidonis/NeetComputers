@@ -371,10 +371,17 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public void floodFill(int x, int y,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+    public void floodFill(int x, int y, @Index( strict = true, offset=-1 ) @Range( range = 256 ) int tolerance){
+        floodFill(x, y, tolerance, defualtColor.x, defualtColor.y, defualtColor.z);
+    }
+
+    @Exposed
+    public void floodFill(int x, int y){
+        floodFill(x, y, 0, defualtColor.x, defualtColor.y, defualtColor.z);
+    }
+
+    @Exposed
+    public void floodFill(int x, int y,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int R,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int G,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int B){
         floodFill(x, y, 0, R, G, B);
     }
 
@@ -406,7 +413,12 @@ public class GraphicalAPI implements Exposable {
         fill(x1, y1, x2, y2, defualtColor.x, defualtColor.y, defualtColor.z);
     }
 
-    public int average(int... nums) {
+    @Exposed
+    public void fill(){
+        fill(defualtColor.x, defualtColor.y, defualtColor.z);
+    }
+
+    public int average(int... nums){
         int toltal = 0;
         for (int i = 0; i < nums.length; i++) {
             toltal += nums[i];

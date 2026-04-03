@@ -2,6 +2,7 @@ package com.redtoast.Lua;
 
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
+import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.FileSpace;
@@ -102,8 +103,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
-            }else if (computer.libraryExists(path)){
-                return APILoader.TableizeAPI(computer.getLibrary(path), computer.getRuntime()).asValue();
+            }else if (computer.libraryExists(path.toLowerCase())){
+                return APILoader.TableizeAPI(computer.getLibrary(path.toLowerCase()), computer.getRuntime()).asValue();
             }else{
                 return Value.asError("Invalid asset path");
             }
@@ -121,6 +122,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         @Override
         public Value call(FunctionInput parameters) {
+            if (!(boolean) ConfigLoader.getServerConfig("print-to-console")) return null;
             LuaValue toStringFunc = globals.get("tostring");
             int iterator = 1;
 
@@ -197,7 +199,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     public void rawset( LuaValue key, LuaValue value ) {
         super.rawset(key, value);
         if (Objects.equals(this, value)) return;
-        if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
+        //if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
     }
 
     @Override

@@ -28,12 +28,13 @@ public class ChipAPI implements API {
 
     @Exposed
     public String getMachine(){
-        return computer.getSpecifications().MachineName;
+        return computer.getConfiguration().modelName();
     }
 
     @Exposed
     public void shutdown(){
         computer.stop();
+        computer.yield();
     }
 
     @Exposed
@@ -58,4 +59,5 @@ public class ChipAPI implements API {
     public String getLabel() {
         return "chip";
     }
+
 }

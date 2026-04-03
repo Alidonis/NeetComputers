@@ -1,7 +1,6 @@
 package com.redtoast.simulation.FS;
 
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.external.PeripheralProvider;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;

@@ -1,14 +1,11 @@
 package com.redtoast.simulation.FS;
 
 import com.redtoast.Computer;
-import com.redtoast.external.PeripheralConsumer;
-import com.redtoast.external.PeripheralProvider;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.builder.FileContext;
 import com.redtoast.simulation.FS.builder.SystemBuild;
 import com.redtoast.simulation.annotations.Exposed;
-import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
@@ -24,7 +21,7 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
 
-public class FileSystem implements BootablePartitionedFileSpace, PeripheralProvider {
+public class FileSystem implements BootablePartitionedFileSpace {
     public final SystemBuild build;
     public final int pointer;
     public final Computer parent;
@@ -243,35 +240,5 @@ public class FileSystem implements BootablePartitionedFileSpace, PeripheralProvi
         if (!file.isFile()) throw new IOException("File cant be a directory");
         if (!file.canRead()) throw new IOException("File not readable");
         return true;
-    }
-
-    @Override
-    public boolean kill(PeripheralConsumer peripheralConsumer) {
-        return parent.isDead();
-    }
-
-    @Override
-    public Exposable getAPI(PeripheralConsumer peripheralConsumer) {
-        return this;
-    }
-
-    @Override
-    public void tick(PeripheralConsumer peripheralConsumer, short deltaTime) {
-
-    }
-
-    @Override
-    public boolean impermeable() {
-        return true;
-    }
-
-    @Override
-    public UUID getProviderUuid() {
-        return parent.getUuid();
-    }
-
-    @Override
-    public String getType() {
-        return "File System";
     }
 }

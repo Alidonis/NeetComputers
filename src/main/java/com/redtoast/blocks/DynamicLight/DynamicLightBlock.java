@@ -1,8 +1,7 @@
 package com.redtoast.blocks.DynamicLight;
 
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.blocks.generic.ComputerBlockEntity;
-import com.redtoast.neet.BulkRegistery;
+import com.redtoast.neet.BulkRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
@@ -11,7 +10,6 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +25,7 @@ public class DynamicLightBlock extends Block implements BlockEntityProvider {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistery.fetchBlockEntityType("dynamic_light") ? DynamicLightBlockEntity::tick : null;
+        return type == BulkRegistry.fetchBlockEntityType("dynamic_light") ? DynamicLightBlockEntity::tick : null;
     }
 
     @Nullable
