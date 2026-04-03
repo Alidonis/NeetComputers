@@ -25,10 +25,12 @@ public class ConfigurationTable {
     }
 
     public void attemptPush(String key, String value) {
+        System.out.println("test "+key+" : "+value);
         String refinedKey = key.trim().toLowerCase();
         if (optionTable.containsKey(refinedKey)) {
             try {
                 Object obj = optionTable.get(refinedKey).parseFromString(value);
+                System.out.println("1"+obj);
                 valueTable.put(refinedKey, obj);
             }catch (Exception ignored) {
                 LOGGER.warn("NEET computers config error, {} isn't a valid option for setting '{}'", value, refinedKey);

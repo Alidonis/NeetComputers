@@ -23,11 +23,14 @@ import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.PipeBufferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.Networking.ReturnMessagePayload;
+import com.redtoast.neet.config.ConfigLoader;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
@@ -42,10 +45,15 @@ public class NeetComputersClient implements ClientModInitializer {
 	public static BlockPos[] positionsForPipeRendering = new BlockPos[0];
 	public static PipeType lastTypeSent = PipeType.PERIPHERAL;
 
+	public static void updateClient(MinecraftClient server) {
+		//ConfigLoader.loadClientConfig(server);
+	}
+
 	@Override
 	public void onInitializeClient() {
 		// Setup pipe renderer
 		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
+		ClientLifecycleEvents.CLIENT_STARTED.register(NeetComputersClient::updateClient);
 
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);

@@ -7,6 +7,10 @@ public class BooleanConfigOption extends ConfigOption<Boolean>{
 
     @Override
     Boolean parseFromString(String string) {
-        return Boolean.parseBoolean(string.trim());
+        string = string.trim();
+        System.out.println(string);
+        if (string.equalsIgnoreCase("true")) return true;
+        if (string.equalsIgnoreCase("false")) return false;
+        throw new RuntimeException();
     }
 }
