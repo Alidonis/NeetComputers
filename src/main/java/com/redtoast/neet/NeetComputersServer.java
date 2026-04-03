@@ -283,7 +283,7 @@ public class NeetComputersServer implements ModInitializer {
     }
 
 	public static boolean emitLight(){
-		return false;//(boolean) ConfigLoader.getClientConfig("computers-emit-light");
+		return true;//(boolean) ConfigLoader.getClientConfig("computers-emit-light");
 	}
 
 	public static void updateClientPipes(){
