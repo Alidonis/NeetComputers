@@ -3,6 +3,7 @@ package com.redtoast.blocks.Generics;
 import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
+import com.redtoast.ComputerStatus;
 import com.redtoast.Connections.*;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
@@ -14,8 +15,14 @@ import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.neet.config.ConfigLoader;
+import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.config.ComputerConfig;
+import com.redtoast.simulation.events.EventGeneric;
+import com.redtoast.simulation.events.EventLabel;
+import com.redtoast.simulation.parameter.ParameterCheckReturn;
+import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.VarType;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -38,6 +45,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
@@ -45,11 +53,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
+public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralProvider, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
     private Computer computer;
     private boolean collectedComputer = false;
     private RGBGraphicsArray graphics;
     private boolean corrupted = false;
+    private String tag = null;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, ComputerConfig specifications) {
@@ -113,24 +122,23 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
-        if (!corrupted) nbt = computer.saveNBT(nbt);
+        nbt = computer.saveNBT(nbt);
+        if (tag!=null) nbt.putString("peripheralTag", tag);
         super.writeNbt(nbt, registryLookup);
     }
 
     @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.readNbt(nbt, registryLookup);
-        corrupted = false;//evalCorruption(nbt);
-        if (!corrupted){
-            if (nbt.contains("uuid") && !collectedComputer){
-                collectedComputer=true;
-                if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
-                    computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
-                    graphics = computer.getGraphics();
-                }
+        if (nbt.contains("peripheralTag")) tag = nbt.getString("peripheralTag");
+        if (nbt.contains("uuid") && !collectedComputer){
+            collectedComputer=true;
+            if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
+                computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
+                graphics = computer.getGraphics();
             }
-            computer.load(nbt);
         }
+        computer.load(nbt);
     }
 
     public ActionResult onUse(PlayerEntity player, BlockState state){
@@ -333,5 +341,77 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public boolean canRender() {
         return world!=null && !world.getBlockState(getPos()).isAir() && world.getBlockState(getPos()).get(ComputerBlock.STATE)!=0;
+    }
+
+    @Override
+    public String[] getFunctionNames() {
+        return new String[]{"shutdown", "startup", "getId", "getMachine", "isOn", "notify"};
+    }
+
+    private static final ParameterRules blankRuleset = new ParameterRules();
+
+    @Override
+    public Value<?> callFunction(Runtime runtime, String name, Value<?>... Args) {
+        if (computer==null) return Value.asError("computer not loaded");
+        if (Objects.equals(name, "shutdown")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
+            if (retur.isError()) return Value.asError(retur.getMessage());
+            computer.stop();
+            return Value.NULL;
+        }
+        if (Objects.equals(name, "startup")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
+            if (retur.isError()) return Value.asError(retur.getMessage());
+            computer.start();
+            return Value.NULL;
+        }
+        if (Objects.equals(name, "getId")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
+            if (retur.isError()) return Value.asError(retur.getMessage());
+            return Value.of(computer.getUuid().toString());
+        }
+        if (Objects.equals(name, "getMachine")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
+            if (retur.isError()) return Value.asError(retur.getMessage());
+            return Value.of(computer.getConfiguration().modelName());
+        }
+        if (Objects.equals(name, "isOn")){
+            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
+            if (retur.isError()) return Value.asError(retur.getMessage());
+            return Value.of(computer.getStatus()==ComputerStatus.ON);
+        }
+        if (Objects.equals(name, "notify")){
+            if (Args.length>6) return Value.asError("notify does not except more then 6 arguments");
+            if (computer.getStatus()!=ComputerStatus.ON) return Value.asError("computer must be on to receive notifications");
+            boolean flag = true;
+            for (Value<?> arg : Args) if (!arg.instanceOf(VarType.PRIMITIVE)) flag = false;
+            if (flag) {
+                computer.queueEvent(new EventGeneric("notification", Args), EventLabel.PERIPHERAL);
+            }else{
+                return Value.asError("notify does not except non-primitive arguments");
+            }
+            return Value.NULL;
+        }
+        return Value.asError("Cant Find Function '"+name+"'");
+    }
+
+    @Override
+    public String getTypeName() {
+        return "neetcomputers:computer";
+    }
+
+    @Override
+    public UUID getUuid() {
+        return computer.getUuid();
+    }
+
+    @Override
+    public String getTag() {
+        return tag;
+    }
+
+    @Override
+    public void setTag(@NotNull String tag) {
+        this.tag = tag.isBlank() ? null : tag.trim();
     }
 }
