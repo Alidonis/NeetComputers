@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.13-SNAPSHOT'
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 }
 version = project.mod_version
@@ -10,9 +10,9 @@ base {
 }
 
 repositories {
-	maven { url "https://maven.shedaniel.me" }
+	maven { url  = "https://maven.shedaniel.me" }
 	maven {
-		url "https://maven.squiddev.cc"
+		url = "https://maven.squiddev.cc"
 		content {
 			includeGroup("cc.tweaked")
 		}
@@ -27,22 +27,28 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	implementation "org.luaj:luaj-jse:${project.luaj}"
+	include(implementation "org.luaj:luaj-jse:${project.luaj}")
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	// Vanilla (i.e. for multi-loader systems)
-	//compileOnly("cc.tweaked:cc-tweaked-${project.minecraft_version}-common-api:1.116.1")
-	modImplementation("cc.tweaked:cc-tweaked-${project.minecraft_version}-fabric-api:1.116.1")
-	modImplementation("cc.tweaked:cc-tweaked-${project.minecraft_version}-fabric:1.116.1")
+
+	modImplementation("cc.tweaked:cc-tweaked-${project.minecraft_version}-fabric-api:1.117.1")
+	modImplementation("cc.tweaked:cc-tweaked-${project.minecraft_version}-fabric:1.117.1")
 }
 
 processResources {
+	filteringCharset "UTF-8"
 	inputs.property "version", project.version
+	inputs.property "fabricApi", project.fabric_version
+	inputs.property "fabricLoader", project.loader_version
+	inputs.property "minecraft", project.minecraft_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": project.version,
+				"fabricApi": project.fabric_version,
+				"fabricLoader": project.loader_version,
+				"minecraft": project.minecraft_version
 	}
 }
 

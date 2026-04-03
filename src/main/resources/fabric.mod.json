@@ -1,20 +1,20 @@
 {
 	"schemaVersion": 1,
 	"id": "neetcomputers",
-	"version": "0.3.4",
+	"version": "${version}",
 	"name": "Neet Computers",
 	"description": "N.E.E.T. computers is a Minecraft mod that adds well tested and cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
 	"authors": [
 		"Red Toast",
-		"Wind Clan",
-		"Piguman 3"
+		"WindClan",
+		"piguman3"
 	],
 	"contact": {
 		"homepage": "https://red-toast.net/neetcomputers",
 		"sources": "https://github.com/redtoast/NeetComputers"
 	},
 	"license": "MIT",
-	"icon": "icon.png",
+	"icon": "assets/neetcomputers/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
@@ -25,19 +25,15 @@
 		]
 	},
 	"mixins": [
-		"modid.mixins.json",
+		"neetcomputers.mixins.json",
 		{
-			"config": "modid.client.mixins.json",
+			"config": "neetcomputers.client.mixins.json",
 			"environment": "client"
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.15.11",
-		"minecraft": "~1.21.1",
-		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
+		"fabricloader": ">=${fabricLoader}",
+		"minecraft": "~${minecraft}",
+		"fabric-api": ">=${fabricApi}"
 	}
 }
