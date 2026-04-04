@@ -18,7 +18,6 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 
 import java.util.UUID;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GraphicalAPI implements Exposable {
@@ -547,7 +546,7 @@ public class GraphicalAPI implements Exposable {
         startRotationSession(average(points));
         int samples = 0;
         for (int i = 0; i < points.length - 1; i++) {
-            samples += Math.sqrt(Math.pow(Math.abs(points[i].x - points[i + 1].x), 2)
+            samples += (int) Math.sqrt(Math.pow(Math.abs(points[i].x - points[i + 1].x), 2)
                     + Math.pow(Math.abs(points[i].y - points[i + 1].y), 2));
         }
         samples /= 5;
@@ -843,8 +842,7 @@ public class GraphicalAPI implements Exposable {
             int pixelCount = bufferSize / 4;
             actualWidth = (int) Math.sqrt(pixelCount);
             if (actualWidth * actualWidth * 4 != bufferSize) {
-                throw new ExposedError(
-                        "Cannot infer dimensions: buffer size must be width*height*4 or specify dimensions");
+                throw new ExposedError("Cannot infer dimensions: buffer size must be width*height*4 or specify dimensions");
             }
             actualHeight = actualWidth;
         }
@@ -862,28 +860,11 @@ public class GraphicalAPI implements Exposable {
 
         if (needsRotation) {
             startRotationSession(x + actualWidth / 2, y + actualHeight / 2);
-            GraphicsBuffer.bulkBlendPixelsWithTransform(x, y, pixels, actualWidth, actualHeight,
-                    (tx, ty) -> rotateLocal(tx, ty));
+            GraphicsBuffer.bulkBlendPixelsWithTransform(x, y, pixels, actualWidth, actualHeight, this::rotateLocal);
             endRotationSession();
         } else {
             GraphicsBuffer.bulkBlendPixels(x, y, pixels, actualWidth, actualHeight);
         }
     }
 
-    public void drawPixels(int x, int y, int[] buffer, int width, int height) {
-        if (buffer.length != width * height * 4) {
-            throw new ExposedError("Buffer size does not match dimensions");
-        }
-
-        boolean needsRotation = (rotatePos != null && angle != 0);
-
-        if (needsRotation) {
-            startRotationSession(x + width / 2, y + height / 2);
-            GraphicsBuffer.bulkBlendPixelsWithTransform(x, y, buffer, width, height,
-                    (tx, ty) -> rotateLocal(tx, ty));
-            endRotationSession();
-        } else {
-            GraphicsBuffer.bulkBlendPixels(x, y, buffer, width, height);
-        }
-    }
 }
