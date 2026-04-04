@@ -41,17 +41,24 @@ dependencies {
 }
 
 processResources {
+	def timestamp = Instant.now()
 	filteringCharset = "UTF-8"
 	inputs.property "version", project.version
 	inputs.property "fabricApi", project.fabric_version
 	inputs.property "fabricLoader", project.loader_version
 	inputs.property "minecraft", project.minecraft_version
+	inputs.property "buildTime", timestamp
 
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version,
 				"fabricApi": project.fabric_version,
 				"fabricLoader": project.loader_version,
 				"minecraft": project.minecraft_version
+	}
+
+	filesMatching("data/neetcomputers/builddat.json") {
+		expand "version": project.version,
+				"buildTime": timestamp
 	}
 }
 

@@ -88,7 +88,7 @@ public class NeetComputersServer implements ModInitializer {
 	private static MinecraftServer server = null;
 
 	//internal config
-	public static final String version = "NeetComputers 0.3.4";
+	public static String version = "NeetComputers ";
 
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
@@ -105,6 +105,12 @@ public class NeetComputersServer implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		BuildData.updateDat();
+		version += BuildData.VERSION;
+
+		LOGGER.info(version+" running using "+ Lua._VERSION);
+		LOGGER.info("mod build from "+BuildData.BUILD_TIME);
+
 		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputersServer::updateServer);
 		ServerLifecycleEvents.SERVER_STARTED.register(server1 -> updateClientPipes());
 		ServerTickEvents.START_SERVER_TICK.register(Identifier.of("neetcomputers:tick"), server -> {
@@ -138,7 +144,6 @@ public class NeetComputersServer implements ModInitializer {
 			}
 		});
 
-		LOGGER.info(version+" running using "+ Lua._VERSION);
 		//register stuff
 
 		BlockSoundGroup computerSound = new BlockSoundGroup(
