@@ -66,6 +66,7 @@ import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Position;
 import org.jetbrains.annotations.NotNull;
+import org.luaj.vm2.Lua;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,8 +138,7 @@ public class NeetComputersServer implements ModInitializer {
 			}
 		});
 
-		LOGGER.info("Hello From Neet Computers!");
-
+		LOGGER.info(version+" running using "+ Lua._VERSION);
 		//register stuff
 
 		BlockSoundGroup computerSound = new BlockSoundGroup(

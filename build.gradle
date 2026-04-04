@@ -17,6 +17,9 @@ repositories {
 			includeGroup("cc.tweaked")
 		}
 	}
+	flatDir {
+		dirs 'lib'
+	}
 }
 
 loom {
@@ -38,7 +41,7 @@ dependencies {
 }
 
 processResources {
-	filteringCharset "UTF-8"
+	filteringCharset = "UTF-8"
 	inputs.property "version", project.version
 	inputs.property "fabricApi", project.fabric_version
 	inputs.property "fabricLoader", project.loader_version
