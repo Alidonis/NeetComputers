@@ -59,7 +59,7 @@ public class IOAPI implements API {
     }
 
     @Exposed
-    public String getPeripheralType(String uuidString){
+    public String getType(String uuidString){
         try {
             UUID.fromString(uuidString);
         }catch (IllegalArgumentException illegalArgumentException){
@@ -69,6 +69,57 @@ public class IOAPI implements API {
             if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) return peripheralProvider.getTypeName();
         }
         throw new ExposedError("Peripheral not found");
+    }
+
+    @Exposed
+    public String getTag(String uuidString){
+        try {
+            UUID.fromString(uuidString);
+        }catch (IllegalArgumentException illegalArgumentException){
+            throw new ExposedError("UUID invalidly formatted");
+        }
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) return peripheralProvider.getTag();
+        }
+        throw new ExposedError("Peripheral not found");
+    }
+
+    @Exposed
+    public void setTag(String uuidString){
+        setTag(uuidString, "");
+    }
+
+    @Exposed
+    public void setTag(String uuidString, String tag){
+        try {
+            UUID.fromString(uuidString);
+        }catch (IllegalArgumentException illegalArgumentException){
+            throw new ExposedError("UUID invalidly formatted");
+        }
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) peripheralProvider.setTag(tag);
+        }
+        throw new ExposedError("Peripheral not found");
+    }
+
+    @Exposed
+    public List queryTag(String tag){
+        if (tag.isBlank()) throw new ExposedError("tag cant be blank");
+        tag = tag.trim();
+        List buffer = new List();
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getTag(), tag)) buffer.add(Value.of(peripheralProvider.getUuid().toString()));
+        }
+        return buffer;
+    }
+
+    @Exposed
+    public List queryType(String type){
+        List buffer = new List();
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getTypeName(), type)) buffer.add(Value.of(peripheralProvider.getUuid().toString()));
+        }
+        return buffer;
     }
 
     @Exposed
@@ -100,7 +151,7 @@ public class IOAPI implements API {
             throw new ExposedError("UUID invalidly formatted");
         }
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
-            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)){
+            if (Objects.equals(peripheralProvider.getUuid(), uuid)){
                 for (String functionName2 : peripheralProvider.getFunctionNames()){
                     if (functionName.equals(functionName2)) return peripheralProvider.callFunction(computer.getRuntime(), functionName, args);
                 }
