@@ -8,6 +8,7 @@ import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
+import com.redtoast.blocks.Generics.PeripheralBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class NeetComputersServer implements ModInitializer {
 
@@ -93,6 +95,7 @@ public class NeetComputersServer implements ModInitializer {
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
 	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
+	public static final ConcurrentLinkedQueue<PeripheralBlockEntity> peripheralUpdateQueue = new ConcurrentLinkedQueue<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath = null;
 	public static Long timeBenchMark = null;
@@ -105,6 +108,7 @@ public class NeetComputersServer implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		peripheralUpdateQueue.clear();
 		BuildData.updateDat();
 		version += BuildData.VERSION;
 
@@ -117,6 +121,9 @@ public class NeetComputersServer implements ModInitializer {
 			if (timeBenchMark!=null && timeBenchMark + 1000 < System.currentTimeMillis()) {
 				updateClientPipes();
 				timeBenchMark = System.currentTimeMillis();
+			}
+			while (!peripheralUpdateQueue.isEmpty()){
+				peripheralUpdateQueue.poll().processEventQueue();
 			}
 		});
 		ServerLifecycleEvents.AFTER_SAVE.register((server,a,b) -> {
