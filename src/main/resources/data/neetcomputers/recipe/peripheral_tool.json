@@ -6,12 +6,8 @@
     " R "
   ],
   "key": {
-    "G": {
-      "item": "minecraft:gold_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "G": "minecraft:gold_ingot",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "neetcomputers:peripheral_tool",

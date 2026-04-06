@@ -8,9 +8,12 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 
 public class PipeSourceBlockRenderer<Type extends BlockEntity> implements BlockEntityRenderer<Type> {
+    public PipeSourceBlockRenderer(BlockEntityRendererFactory.Context ctx) {}
+
     @Override
     public void render(Type entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         if (entity instanceof PipeRenderSource renderSource && !CableRenderer.doesBlockExist(entity.getPos())){

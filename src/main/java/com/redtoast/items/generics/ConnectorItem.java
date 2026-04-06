@@ -7,7 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -115,7 +115,7 @@ public class ConnectorItem extends Item implements DisplayPipes{
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand){
+    public ActionResult use(World world, PlayerEntity player, Hand hand){
         if (!world.isClient()){
             BlockHitResult blockHitResult = raycast(world, player, RaycastContext.FluidHandling.NONE);
             if (blockHitResult.getType() == HitResult.Type.BLOCK) {
@@ -130,6 +130,6 @@ public class ConnectorItem extends Item implements DisplayPipes{
                 interaction.apply(world, blockHitResult.getBlockPos(), player);
             }
         }
-        return TypedActionResult.success(player.getStackInHand(hand));
+        return ActionResult.SUCCESS;
     }
 }

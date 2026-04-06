@@ -2,10 +2,15 @@ package com.redtoast.blocks.DesktopComputer;
 
 import com.redtoast.blocks.Generics.ComputerRenderer;
 import com.redtoast.graphics.RotationTools;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 public class DesktopComputerRenderer extends ComputerRenderer<DesktopEntityComputer> {
+
+    public DesktopComputerRenderer(BlockEntityRendererFactory.Context ctx) {
+        super(ctx);
+    }
 
     @Override
     public Vector3f getOffset(DesktopEntityComputer i) {

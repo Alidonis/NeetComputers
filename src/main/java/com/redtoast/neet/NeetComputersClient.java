@@ -28,10 +28,12 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,23 +61,12 @@ public class NeetComputersClient implements ClientModInitializer {
 		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 		HandledScreens.register(NeetComputersServer.PERIPHERAL_TOOL_SCREEN_HANDLER, PeripheralToolScreen::new);
 
-		BlockEntityType<LargeEntityComputer> largeType = (BlockEntityType<LargeEntityComputer>) BulkRegistry.fetchBlockEntityType("large_computer");
-		BulkRegistry.register(largeType, LargeComputerRenderer::new);
-
-		BlockEntityType<DesktopEntityComputer> desktopType = (BlockEntityType<DesktopEntityComputer>) BulkRegistry.fetchBlockEntityType("desktop_computer");
-		BulkRegistry.register(desktopType, DesktopComputerRenderer::new);
-
-		BlockEntityType<OfficeEntityComputer> officeType = (BlockEntityType<OfficeEntityComputer>) BulkRegistry.fetchBlockEntityType("office_computer");
-		BulkRegistry.register(officeType, OfficeComputerRenderer::new);
-
-		BlockEntityType<RedstoneControllerBlockEntity> redstoneController = (BlockEntityType<RedstoneControllerBlockEntity>) BulkRegistry.fetchBlockEntityType("redstone_controller");
-		BulkRegistry.register(redstoneController, PipeSourceBlockRenderer::new);
-
-		BlockEntityType<DynamicLightBlockEntity> dynamicLightType = (BlockEntityType<DynamicLightBlockEntity>) BulkRegistry.fetchBlockEntityType("dynamic_light");
-		BulkRegistry.register(dynamicLightType, PipeSourceBlockRenderer::new);
-
-		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("simple_display");
-		BulkRegistry.register(simpleDisplayType, SimpleDisplayRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.largeComputerType, LargeComputerRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.desktopComputerType, DesktopComputerRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.officeComputerType, OfficeComputerRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.redstoneControllerType, PipeSourceBlockRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.dynamicLightType, PipeSourceBlockRenderer::new);
+		BlockEntityRendererFactories.register(NeetComputersServer.simpleDisplayType, SimpleDisplayRenderer::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");

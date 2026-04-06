@@ -39,13 +39,19 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.component.ComponentType;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
@@ -78,6 +84,7 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 
 public class NeetComputersServer implements ModInitializer {
 
@@ -105,6 +112,61 @@ public class NeetComputersServer implements ModInitializer {
 	protected static LanguageGeneric[] LanguageCache;
 	private static LanguageTranslater[] translators;
 	private final static LinkedList<LanguageGeneric> languageGenerics = new LinkedList<>();
+
+	// https://wiki.fabricmc.net/tutorial:blocks#registering_blocks_in_1212
+	private static Block registerBlock(String path, Function<AbstractBlock.Settings, Block> factory, AbstractBlock.Settings settings) {
+		final Identifier identifier = Identifier.of("neetcomputers", path);
+		final RegistryKey<Block> registryKey = RegistryKey.of(RegistryKeys.BLOCK, identifier);
+
+		final Block block = Blocks.register(registryKey, factory, settings);
+		return block;
+	}
+	// https://wiki.fabricmc.net/tutorial:blockentity
+	public static <T extends BlockEntityType<?>> T registerBlockEntity(String path, T blockEntityType) {
+		return Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of("neetcomputers", path), blockEntityType);
+	}
+	// https://wiki.fabricmc.net/tutorial:items#creating_items_in_1212
+	public static Item registerItem(String path, Function<Item.Settings, Item> factory, Item.Settings settings) {
+		final RegistryKey<Item> registryKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of("neetcomputers", path));
+		return Items.register(registryKey, factory, settings);
+	}
+
+	public static BlockSoundGroup computerSound = new BlockSoundGroup(
+			1.0F,
+			1.0F,
+			SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
+			SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
+			SoundEvents.BLOCK_COPPER_BULB_PLACE,
+			SoundEvents.BLOCK_COPPER_BULB_HIT,
+			SoundEvents.BLOCK_ANVIL_FALL
+	);
+
+	public static Block largeComputer = registerBlock("large_computer",LargeBlockComputer::new,Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 8 : 0));
+	public static BlockEntityType<LargeEntityComputer> largeComputerType = registerBlockEntity("large_computer", FabricBlockEntityTypeBuilder.create(LargeEntityComputer::new,largeComputer).build());
+	public static Item largeComputerItem = Items.register(largeComputer);
+
+	public static Block desktopComputer = registerBlock("desktop_computer",DesktopBlockComputer::new,Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
+	public static BlockEntityType<DesktopEntityComputer> desktopComputerType = registerBlockEntity("desktop_computer", FabricBlockEntityTypeBuilder.create(DesktopEntityComputer::new,desktopComputer).build());
+	public static Item desktopComputerItem = Items.register(desktopComputer);
+
+	public static Block officeComputer = registerBlock("office_computer",OfficeBlockComputer::new,Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
+	public static BlockEntityType<OfficeEntityComputer> officeComputerType = registerBlockEntity("office_computer", FabricBlockEntityTypeBuilder.create(OfficeEntityComputer::new,officeComputer).build());
+	public static Item officeComputerItem = Items.register(officeComputer);
+
+	public static Block redstoneController = registerBlock("redstone_controller",RedstoneControllerBlock::new,Block.Settings.create().strength(3.0f).hardness(2f).sounds(BlockSoundGroup.METAL));
+	public static BlockEntityType<RedstoneControllerBlockEntity> redstoneControllerType = registerBlockEntity("redstone_controller", FabricBlockEntityTypeBuilder.create(RedstoneControllerBlockEntity::new,redstoneController).build());
+	public static Item redstoneControllerItem = Items.register(redstoneController);
+
+	public static Block dynamicLight = registerBlock("dynamic_light",DynamicLightBlock::new,Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
+	public static BlockEntityType<DynamicLightBlockEntity> dynamicLightType = registerBlockEntity("dynamic_light", FabricBlockEntityTypeBuilder.create(DynamicLightBlockEntity::new,dynamicLight).build());
+	public static Item dynamicLightItem = Items.register(dynamicLight);
+
+	public static Block simpleDisplay = registerBlock("simple_display",SimpleDisplayBlock::new,Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
+	public static BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = registerBlockEntity("simple_display", FabricBlockEntityTypeBuilder.create(SimpleDisplayBlockEntity::new,simpleDisplay).build());
+	public static Item simpleDisplayItem = Items.register(simpleDisplay);
+
+	public static Item peripheralTool = registerItem("peripheral_tool",PeripheralTool::new,new Item.Settings().maxCount(1));
+	public static Item peripheralCableItem = registerItem("peripheral_cable",peripheralCable::new,new Item.Settings().maxCount(1));
 
 	@Override
 	public void onInitialize() {
@@ -152,17 +214,6 @@ public class NeetComputersServer implements ModInitializer {
 		});
 
 		//register stuff
-
-		BlockSoundGroup computerSound = new BlockSoundGroup(
-				1.0F,
-				1.0F,
-				SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
-				SoundEvents.BLOCK_NETHERITE_BLOCK_BREAK,
-				SoundEvents.BLOCK_COPPER_BULB_PLACE,
-				SoundEvents.BLOCK_COPPER_BULB_HIT,
-				SoundEvents.BLOCK_ANVIL_FALL
-		);
-
 		ComputerDataComponent.TYPE = Registry.register(
 				Registries.DATA_COMPONENT_TYPE,
 				RegistryKey.of(RegistryKeys.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "computerdata")),
@@ -170,37 +221,16 @@ public class NeetComputersServer implements ModInitializer {
 		);
 
 		BulkRegistry.setNamespace("neetcomputers");
-		Block largeComputer = new LargeBlockComputer(Block.Settings.create().strength(3.0f).hardness(2.0f).sounds(computerSound).luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 8 : 0));
-		BulkRegistry.register("large_computer",largeComputer, LargeEntityComputer::new,true);
-		RegistryKey<ItemGroup> group = BulkRegistry.registerGroup("main_item_group", BulkRegistry.fetchItemObject("large_computer"));
-		BulkRegistry.register(BulkRegistry.fetchItemObject("large_computer"), group);
 
-		Block desktopComputer = new DesktopBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
-		BulkRegistry.register("desktop_computer",desktopComputer, DesktopEntityComputer::new,true);
-		BulkRegistry.register(BulkRegistry.fetchItemObject("desktop_computer"), group);
+		RegistryKey<ItemGroup> group = BulkRegistry.registerGroup("main_item_group", largeComputerItem);
+		BulkRegistry.register(largeComputerItem, group);
+		BulkRegistry.register(desktopComputerItem, group);
+		BulkRegistry.register(officeComputerItem, group);
+		BulkRegistry.register(redstoneControllerItem, group);
+		BulkRegistry.register(dynamicLightItem, group);
+		BulkRegistry.register(simpleDisplayItem, group);
 
-		Block officeComputer = new OfficeBlockComputer(Block.Settings.create().strength(2.0f).hardness(1.5f).sounds(computerSound).nonOpaque().luminance(state -> state.get(ComputerBlock.STATE)!=0 && emitLight() ? 5 : 0));
-		BulkRegistry.register("office_computer",officeComputer, OfficeEntityComputer::new,true);
-		BulkRegistry.register(BulkRegistry.fetchItemObject("office_computer"), group);
-
-		Block redstoneController = new RedstoneControllerBlock(Block.Settings.create().strength(3.0f).hardness(2f).sounds(BlockSoundGroup.METAL));
-		BulkRegistry.register("redstone_controller",redstoneController, RedstoneControllerBlockEntity::new,true);
-		BulkRegistry.register(BulkRegistry.fetchItemObject("redstone_controller"), group);
-
-		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
-		BulkRegistry.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
-		BulkRegistry.register(BulkRegistry.fetchItemObject("dynamic_light"), group);
-
-		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
-		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
-		BulkRegistry.register(BulkRegistry.fetchItemObject("simple_display"), group);
-
-		Item peripheralTool = new PeripheralTool(new Item.Settings().maxCount(1));
-		BulkRegistry.register("peripheral_tool", peripheralTool);
 		BulkRegistry.register(peripheralTool, group);
-
-		Item peripheralCableItem = new peripheralCable(new Item.Settings().maxCount(1));
-		BulkRegistry.register("peripheral_cable", peripheralCableItem);
 		BulkRegistry.register(peripheralCableItem, group);
 
 //		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));

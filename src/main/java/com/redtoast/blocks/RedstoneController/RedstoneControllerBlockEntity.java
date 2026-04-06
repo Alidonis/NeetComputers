@@ -2,6 +2,7 @@ package com.redtoast.blocks.RedstoneController;
 
 import com.redtoast.blocks.Generics.PeripheralBlockEntity;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
@@ -21,7 +22,7 @@ public class RedstoneControllerBlockEntity extends PeripheralBlockEntity {
     private boolean shouldUpdate = true;
 
     public RedstoneControllerBlockEntity(BlockPos pos, BlockState state) {
-        super(BulkRegistry.fetchBlockEntityType("redstone_controller"), pos, state, "neetcomputers:redstone_controller");
+        super(NeetComputersServer.redstoneControllerType, pos, state, "neetcomputers:redstone_controller");
         facing = state.get(FacingBlock.FACING);
     }
 

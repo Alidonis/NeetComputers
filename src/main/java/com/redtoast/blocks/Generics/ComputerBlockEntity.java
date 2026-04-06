@@ -143,7 +143,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     public ActionResult onUse(PlayerEntity player, BlockState state){
         if (corrupted) {
-            player.sendMessage(Text.literal("NBT DATA CORRUPTED, the files are still being stored server-side"));
+            player.sendMessage(Text.of("NBT DATA CORRUPTED, the files are still being stored server-side"),false);
             return ActionResult.SUCCESS;
         }
         if (!player.isSneaking() && !player.isUsingItem() && computer.isOn()){
@@ -159,7 +159,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 computer.stop();
             }
         }else{
-            if (computer.isCrashed()) player.sendMessage(Text.literal(computer.getCrashMessage()));
+            if (computer.isCrashed()) player.sendMessage(Text.of(computer.getCrashMessage()),false);
             computer.start();
         }
         return ActionResult.SUCCESS;

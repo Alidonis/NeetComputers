@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.PlayerScreenHandler;
@@ -20,9 +21,15 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import static net.minecraft.client.texture.SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
+
 public abstract class  ComputerRenderer<BlockEntityType extends BlockEntity> extends PipeSourceBlockRenderer<BlockEntityType> {
     float clock = 0;
     static int opacity = 255;
+
+    public ComputerRenderer(BlockEntityRendererFactory.Context ctx) {
+        super(ctx);
+    }
 
     @Override
     public void render(BlockEntityType entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
@@ -40,12 +47,12 @@ public abstract class  ComputerRenderer<BlockEntityType extends BlockEntity> ext
         matrices.push();
 
         matrices.translate(0.5, 0.5, 0.5);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-facing.asRotation()));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-facing.getPositiveHorizontalDegrees()));
         matrices.translate(-0.5, -0.5, -0.5);
 
         Matrix4f mat = matrices.peek().getPositionMatrix();
         if (renderProvider.getBinaryGraphics()!=null){
-            sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", "block/white"));
+            sprite = MinecraftClient.getInstance().getSpriteAtlas(BLOCK_ATLAS_TEXTURE).apply(Identifier.of("neetcomputers", "block/white"));
             BinaryGraphicsArray graphics = renderProvider.getBinaryGraphics();
             int sizex = graphics.getSize().x, sizey = graphics.getSize().y;
             for (int x = 0; x < sizex; x++){

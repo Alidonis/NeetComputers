@@ -4,6 +4,7 @@ import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
@@ -31,7 +32,7 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     private Integer lightLevelCurrent = 0;
 
     public DynamicLightBlockEntity(BlockPos pos, BlockState state) {
-        super(BulkRegistry.fetchBlockEntityType("dynamic_light"), pos, state);
+        super(NeetComputersServer.dynamicLightType, pos, state);
     }
 
     @Override

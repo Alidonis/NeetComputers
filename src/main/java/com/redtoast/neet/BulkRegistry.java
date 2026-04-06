@@ -75,31 +75,6 @@ public class BulkRegistry {
         return null;
     }
 
-    @Nullable
-    public static BlockEntityType<?> fetchBlockEntityType(String address){
-        Registered result = get(address);
-        if (result==null){
-            return null;
-        }
-        return result.blockEntity;
-    }
-    @Nullable
-    public static Item fetchItemObject(String address){
-        Registered result = get(address);
-        if (result==null){
-            return null;
-        }
-        return result.item;
-    }
-    @Nullable
-    public static Block fetchBlockObject(String address){
-        Registered result = get(address);
-        if (result==null){
-            return null;
-        }
-        return result.block;
-    }
-
     private static void add(String address, Registered registered){
         keys.add(address);
         value.add(registered);

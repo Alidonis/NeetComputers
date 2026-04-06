@@ -12,6 +12,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
@@ -89,7 +90,7 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
     }
 
     @Override
-    public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
+    public void onDestroyedByExplosion(ServerWorld world, BlockPos pos, Explosion explosion) {
         super.onDestroyedByExplosion(world, pos, explosion);
         if (!world.isClient()) {
             BlockEntity be = world.getBlockEntity(pos);

@@ -2,6 +2,7 @@ package com.redtoast.blocks.DynamicLight;
 
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
@@ -25,7 +26,7 @@ public class DynamicLightBlock extends Block implements BlockEntityProvider {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistry.fetchBlockEntityType("dynamic_light") ? DynamicLightBlockEntity::tick : null;
+        return type == NeetComputersServer.dynamicLightType ? DynamicLightBlockEntity::tick : null;
     }
 
     @Nullable

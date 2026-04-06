@@ -6,15 +6,9 @@
     "IGI"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "G": {
-      "item": "minecraft:glass"
-    }
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone",
+    "G": "minecraft:glass"
   },
   "result": {
     "id": "neetcomputers:simple_display",

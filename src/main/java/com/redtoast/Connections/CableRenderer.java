@@ -21,6 +21,8 @@ import org.joml.Matrix4f;
 
 import java.util.Hashtable;
 
+import static net.minecraft.client.texture.SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
+
 @Environment(EnvType.CLIENT)
 public class CableRenderer {
 
@@ -74,7 +76,7 @@ public class CableRenderer {
     public static void renderPipe(MatrixStack matrices, VertexConsumerProvider vertexConsumers, Identifier texture, Hashtable<Direction, Boolean> neighborMap) {
         RenderLayer layer = RenderLayer.getCutout();
         VertexConsumer vc = vertexConsumers.getBuffer(layer);
-        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE).apply(texture);
+        Sprite sprite = MinecraftClient.getInstance().getSpriteAtlas(BLOCK_ATLAS_TEXTURE).apply(texture);
 
         MatrixStack.Entry entry = matrices.peek();
         Matrix4f positionMatrix = entry.getPositionMatrix();

@@ -6,12 +6,8 @@
     " R "
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "neetcomputers:peripheral_cable",

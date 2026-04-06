@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.Block;
@@ -25,6 +26,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import net.minecraft.world.block.WireOrientation;
 import org.jetbrains.annotations.Nullable;
 
 @PeripheralBlock
@@ -42,7 +44,7 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
     }
 
     @Override
-    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, WireOrientation sourcePos, boolean notify) {
         Direction direction = state.get(FACING);
         new ConnectionMapping(world, pos, direction, (pos2) -> (world.getBlockEntity(pos2) instanceof SimpleDisplayBlockEntity && world.getBlockState(pos2).get(SimpleDisplayBlock.FACING).equals(direction))).start();
         super.neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
@@ -51,7 +53,7 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         //holy run-on sentence
-        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof SimpleDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction(null, "clear").instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction(null, "draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"));
+        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof SimpleDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction(null, "clear").instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction(null, "draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"),false);
         return ActionResult.PASS;
     }
 
@@ -62,7 +64,7 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistry.fetchBlockEntityType("simple_display") ? SimpleDisplayBlockEntity::tick : null;
+        return type == NeetComputersServer.simpleDisplayType ? SimpleDisplayBlockEntity::tick : null;
     }
 
     @Nullable

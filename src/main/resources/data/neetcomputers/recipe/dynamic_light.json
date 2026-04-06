@@ -6,12 +6,8 @@
     "R R"
   ],
   "key": {
-    "L": {
-      "item": "minecraft:glowstone"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
+    "L": "minecraft:glowstone",
+    "R": "minecraft:redstone"
   },
   "result": {
     "id": "neetcomputers:dynamic_light",

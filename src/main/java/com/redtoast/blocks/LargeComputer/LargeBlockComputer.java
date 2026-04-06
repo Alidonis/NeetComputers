@@ -2,6 +2,7 @@ package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.blocks.Generics.ComputerBlock;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -19,7 +20,7 @@ public class LargeBlockComputer extends ComputerBlock {
 
     @Override
     public BlockEntityType<? extends BlockEntity> getType() {
-        return BulkRegistry.fetchBlockEntityType("large_computer");
+        return NeetComputersServer.largeComputerType;
     }
 
     @Override

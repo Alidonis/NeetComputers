@@ -2,6 +2,7 @@ package com.redtoast.blocks.OfficeComputer;
 
 import com.redtoast.blocks.Generics.ComputerBlock;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ShapeContext;
@@ -19,7 +20,7 @@ public class OfficeBlockComputer extends ComputerBlock {
 
     @Override
     public BlockEntityType<? extends BlockEntity> getType() {
-        return BulkRegistry.fetchBlockEntityType("office_computer");
+        return NeetComputersServer.officeComputerType;
     }
 
     @Override
