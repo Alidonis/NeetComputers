@@ -345,7 +345,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public String[] getFunctionNames() {
-        return new String[]{"shutdown", "startup", "getId", "getMachine", "isOn", "notify"};
+        return new String[]{"shutdown", "startup", "getId", "getMachine", "isOn"};
     }
 
     private static final ParameterRules blankRuleset = new ParameterRules();
@@ -379,18 +379,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
             if (retur.isError()) return Value.asError(retur.getMessage());
             return Value.of(computer.getStatus()==ComputerStatus.ON);
-        }
-        if (Objects.equals(name, "notify")){
-            if (Args.length>6) return Value.asError("notify does not except more then 6 arguments");
-            if (computer.getStatus()!=ComputerStatus.ON) return Value.asError("computer must be on to receive notifications");
-            boolean flag = true;
-            for (Value<?> arg : Args) if (!arg.instanceOf(VarType.PRIMITIVE)) flag = false;
-            if (flag) {
-                computer.queueEvent(new EventGeneric("notification", Args), EventLabel.PERIPHERAL);
-            }else{
-                return Value.asError("notify does not except non-primitive arguments");
-            }
-            return Value.NULL;
         }
         return Value.asError("Cant Find Function '"+name+"'");
     }

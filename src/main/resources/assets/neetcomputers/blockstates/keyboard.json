@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "model=north": { "model": "neetcomputers:block/keyboard_up"},
+    "model=east":  { "model": "neetcomputers:block/keyboard_up", "y":  90},
+    "model=south": { "model": "neetcomputers:block/keyboard_up", "y": 180},
+    "model=west":  { "model": "neetcomputers:block/keyboard_up", "y": 270},
+    "model=northwall": { "model": "neetcomputers:block/keyboard_up", "x": 270},
+    "model=eastwall":  { "model": "neetcomputers:block/keyboard_up", "y":  90, "x": 270},
+    "model=southwall": { "model": "neetcomputers:block/keyboard_up", "y": 180, "x": 270},
+    "model=westwall":  { "model": "neetcomputers:block/keyboard_up", "y": 270, "x": 270},
+    "model=northdown": { "model": "neetcomputers:block/keyboard_down"},
+    "model=eastdown":  { "model": "neetcomputers:block/keyboard_down", "y":  90},
+    "model=southdown": { "model": "neetcomputers:block/keyboard_down", "y": 180},
+    "model=westdown":  { "model": "neetcomputers:block/keyboard_down", "y": 270},
+    "model=northwalldown": { "model": "neetcomputers:block/keyboard_down", "x": 270},
+    "model=eastwalldown":  { "model": "neetcomputers:block/keyboard_down", "y":  90, "x": 270},
+    "model=southwalldown": { "model": "neetcomputers:block/keyboard_down", "y": 180, "x": 270},
+    "model=westwalldown":  { "model": "neetcomputers:block/keyboard_down", "y": 270, "x": 270}
+  }
+}

@@ -49,6 +49,7 @@ public class PeripheralBlockEntity extends BlockEntity implements PeripheralProv
         if (getWorld()!=null && !getWorld().isClient){
             List buffer = Value.of(args).getValue();
             buffer.addFirst(Value.of(eventName));
+            buffer.addFirst(Value.of(getUuid().toString()));
             sendQueue.add(new EventPackage(new EventGeneric(typeName, buffer), recipient));
             if (!NeetComputersServer.peripheralUpdateQueue.contains(this)) NeetComputersServer.peripheralUpdateQueue.add(this);
         }

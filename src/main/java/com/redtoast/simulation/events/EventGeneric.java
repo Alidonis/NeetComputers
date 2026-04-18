@@ -9,6 +9,7 @@ import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.ScreenHandler;
 
 import java.util.LinkedList;
 
@@ -88,7 +89,7 @@ public class EventGeneric implements ValueConvertible<List> {
         return new EventGeneric(name, values);
     }
 
-    public void send(RGBScreenHandler handler){
+    public void send(ScreenHandler handler){
         ClientPlayNetworking.send(new EventUploadPayload(this, handler.syncId));
     }
 

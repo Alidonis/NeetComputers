@@ -1,0 +1,38 @@
+{
+	"format_version": "1.21.6",
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "neetcomputers:block/keyboard",
+		"particle": "neetcomputers:block/keyboard"
+	},
+	"elements": [
+		{
+			"from": [2, 0, 7],
+			"to": [14, 1, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [14, 0, 14]},
+			"faces": {
+				"north": {"uv": [6, 0.5, 12, 1], "texture": "#0"},
+				"east": {"uv": [6, 1.5, 9.5, 2], "texture": "#0"},
+				"south": {"uv": [6, 0, 12, 0.5], "texture": "#0"},
+				"west": {"uv": [6, 1, 9.5, 1.5], "texture": "#0"},
+				"up": {"uv": [6, 3.5, 0, 0], "rotation": 180, "texture": "#0"},
+				"down": {"uv": [6, 3.5, 0, 7], "rotation": 180, "texture": "#0"}
+			}
+		},
+		{
+			"from": [13.999, 0.999, 9],
+			"to": [13.999, 0.999, 9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [13.999, 0.999, 9]},
+			"color": 2,
+			"faces": {
+				"north": {"uv": [0, 1, 0, 1], "texture": "#missing"},
+				"east": {"uv": [1, 1, 1, 1], "texture": "#missing"},
+				"south": {"uv": [1, 1, 1, 1], "texture": "#missing"},
+				"west": {"uv": [0, 1, 0, 1], "texture": "#missing"},
+				"up": {"uv": [1, 0, 1, 0], "texture": "#missing"},
+				"down": {"uv": [1, 1, 1, 1], "texture": "#missing"}
+			}
+		}
+	]
+}

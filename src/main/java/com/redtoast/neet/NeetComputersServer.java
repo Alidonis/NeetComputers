@@ -9,6 +9,8 @@ import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.Generics.PeripheralBlockEntity;
+import com.redtoast.blocks.Keyboard.KeyboardBlock;
+import com.redtoast.blocks.Keyboard.KeyboardBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeBlockComputer;
@@ -18,6 +20,7 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlock;
 import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
+import com.redtoast.graphics.screens.KeyboardScreenHandler;
 import com.redtoast.graphics.screens.PeripheralToolScreenHandler;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.items.PeripheralTool;
@@ -43,6 +46,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
+import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -84,8 +88,10 @@ public class NeetComputersServer implements ModInitializer {
 	//create packet id's and screen handler
 	private static final ExtendedScreenHandlerType<RGBScreenHandler, ComputerScreenInitPayload> HANDLER = new ExtendedScreenHandlerType<>(RGBScreenHandler::new, ComputerScreenInitPayload.CODEC);
 	private static final ExtendedScreenHandlerType<PeripheralToolScreenHandler, PeripheralToolScreenInitPayload> HANDLER2 = new ExtendedScreenHandlerType<>(PeripheralToolScreenHandler::new, PeripheralToolScreenInitPayload.CODEC);
+	private static final ExtendedScreenHandlerType<KeyboardScreenHandler, KeyboardScreenHandler.Payload> HANDLER3 = new ExtendedScreenHandlerType<>(KeyboardScreenHandler::new, KeyboardScreenHandler.Payload.CODEC);
 	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistry.register("graphics", Registries.SCREEN_HANDLER, HANDLER);
 	public static final ScreenHandlerType<PeripheralToolScreenHandler> PERIPHERAL_TOOL_SCREEN_HANDLER = BulkRegistry.register("peripheral_tool", Registries.SCREEN_HANDLER, HANDLER2);
+	public static final ScreenHandlerType<KeyboardScreenHandler> KEYBOARD_SCREEN_HANDLER = BulkRegistry.register("keyboard", Registries.SCREEN_HANDLER, HANDLER3);
 	public static CableManager cableManager = null;
 	private static MinecraftServer server = null;
 
@@ -195,6 +201,10 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("simple_display"), group);
 
+//		Block KeyboardBlock = new KeyboardBlock(Block.Settings.create().breakInstantly().sounds(BlockSoundGroup.STONE).pistonBehavior(PistonBehavior.DESTROY).noCollision());
+//		BulkRegistry.register("keyboard",KeyboardBlock,KeyboardBlockEntity::new,true);
+//		BulkRegistry.register(BulkRegistry.fetchItemObject("keyboard"), group);
+
 		Item peripheralTool = new PeripheralTool(new Item.Settings().maxCount(1));
 		BulkRegistry.register("peripheral_tool", peripheralTool);
 		BulkRegistry.register(peripheralTool, group);
@@ -219,6 +229,9 @@ public class NeetComputersServer implements ModInitializer {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
 				computer.queueEvent(payload.event(), EventLabel.USER);
+			}
+			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof KeyboardScreenHandler handler)){
+				handler.keyboard.queueEvent(payload.event().getName(), (Object[]) payload.event().getValues().toArray());
 			}
 		});
 

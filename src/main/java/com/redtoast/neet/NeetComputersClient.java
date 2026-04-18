@@ -7,6 +7,7 @@ import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.blocks.Generics.Displays.PipeSourceBlockRenderer;
+import com.redtoast.blocks.Keyboard.KeyboardBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeComputerRenderer;
 import com.redtoast.blocks.LargeComputer.LargeEntityComputer;
 import com.redtoast.blocks.OfficeComputer.OfficeComputerRenderer;
@@ -15,15 +16,15 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.screens.PeripheralToolScreen;
-import com.redtoast.graphics.screens.PeripheralToolScreenHandler;
-import com.redtoast.graphics.screens.RGBGraphicsScreen;
-import com.redtoast.graphics.screens.RGBScreenHandler;
+import com.redtoast.graphics.screens.*;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.PipeBufferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.Networking.ReturnMessagePayload;
 import com.redtoast.neet.config.ConfigLoader;
+import me.shedaniel.rei.api.client.registry.screen.ExclusionZonesProvider;
+import me.shedaniel.rei.api.client.registry.screen.OverlayDecider;
+import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -31,12 +32,15 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -58,6 +62,7 @@ public class NeetComputersClient implements ClientModInitializer {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 		HandledScreens.register(NeetComputersServer.PERIPHERAL_TOOL_SCREEN_HANDLER, PeripheralToolScreen::new);
+		HandledScreens.register(NeetComputersServer.KEYBOARD_SCREEN_HANDLER, KeyboardScreen::new);
 
 		BlockEntityType<LargeEntityComputer> largeType = (BlockEntityType<LargeEntityComputer>) BulkRegistry.fetchBlockEntityType("large_computer");
 		BulkRegistry.register(largeType, LargeComputerRenderer::new);
@@ -76,6 +81,9 @@ public class NeetComputersClient implements ClientModInitializer {
 
 		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("simple_display");
 		BulkRegistry.register(simpleDisplayType, SimpleDisplayRenderer::new);
+
+		BlockEntityType<KeyboardBlockEntity> keyboardType = (BlockEntityType<KeyboardBlockEntity>) BulkRegistry.fetchBlockEntityType("keyboard");
+		BulkRegistry.register(keyboardType, PipeSourceBlockRenderer::new);
 
 		try {
 			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
