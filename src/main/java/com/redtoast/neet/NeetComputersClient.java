@@ -21,10 +21,6 @@ import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.PipeBufferPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.Networking.ReturnMessagePayload;
-import com.redtoast.neet.config.ConfigLoader;
-import me.shedaniel.rei.api.client.registry.screen.ExclusionZonesProvider;
-import me.shedaniel.rei.api.client.registry.screen.OverlayDecider;
-import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -32,18 +28,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.awt.*;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 public class NeetComputersClient implements ClientModInitializer {
 	public static BlockPos[] positionsForPipeRendering = new BlockPos[0];
@@ -85,25 +73,31 @@ public class NeetComputersClient implements ClientModInitializer {
 		BlockEntityType<KeyboardBlockEntity> keyboardType = (BlockEntityType<KeyboardBlockEntity>) BulkRegistry.fetchBlockEntityType("keyboard");
 		BulkRegistry.register(keyboardType, PipeSourceBlockRenderer::new);
 
-		try {
-			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.gui.screen.REIScreenRegistry");
-			Object reiScreenRegistryInstance = reiScreenRegistryClass.getMethod("getInstance").invoke(null);
-
-			reiScreenRegistryClass
-				.getMethod("registerExclusionZones", Class.class, Function.class)
-				.invoke(reiScreenRegistryInstance, RGBGraphicsScreen.class, (Function<RGBGraphicsScreen, List<Rectangle>>) screen -> {
-					int x = screen.screenPos1.x;
-					int y = screen.screenPos1.y;
-					int w = screen.screenPos2.x - screen.screenPos1.x;
-					int h = screen.screenPos2.y - screen.screenPos1.y;
-					return List.of(new Rectangle(x, y, w, h));
-				});
-		} catch (ClassNotFoundException e) {
-			Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
-			LOGGER.warn("REI not installed");
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+//		try {
+//			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.registry.screen.ScreenRegistry");
+//			Object reiScreenRegistryInstance = reiScreenRegistryClass.getMethod("getInstance").invoke(null);
+//
+//			reiScreenRegistryClass
+//				.getMethod("registerExclusionZones", Class.class, Function.class)
+//				.invoke(reiScreenRegistryInstance, RGBGraphicsScreen.class, (Function<RGBGraphicsScreen, List<Rectangle>>) screen -> {
+//					int x = screen.screenPos1.x;
+//					int y = screen.screenPos1.y;
+//					int w = screen.screenPos2.x - screen.screenPos1.x;
+//					int h = screen.screenPos2.y - screen.screenPos1.y;
+//					return List.of(new Rectangle(x, y, w, h));
+//				});
+//			reiScreenRegistryClass
+//					.getMethod("registerExclusionZones", Class.class, Function.class)
+//					.invoke(reiScreenRegistryInstance, KeyboardScreen.class, (Function<KeyboardScreen, List<Rectangle>>) screen -> {
+//						return List.of(new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE));
+//					});
+//		} catch (ClassNotFoundException e) {
+//			throw new RuntimeException(e);
+//			//Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
+//			//LOGGER.warn("REI not installed");
+//		} catch (Throwable t) {
+//			t.printStackTrace();
+//		}
 
 		ClientPlayNetworking.registerGlobalReceiver(PipeBufferPayload.ID, ((payload, context) -> {
 			positionsForPipeRendering = payload.buffer();
