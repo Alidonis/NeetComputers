@@ -201,9 +201,9 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("simple_display"), group);
 
-//		Block KeyboardBlock = new KeyboardBlock(Block.Settings.create().breakInstantly().sounds(BlockSoundGroup.STONE).pistonBehavior(PistonBehavior.DESTROY).noCollision());
-//		BulkRegistry.register("keyboard",KeyboardBlock,KeyboardBlockEntity::new,true);
-//		BulkRegistry.register(BulkRegistry.fetchItemObject("keyboard"), group);
+		Block KeyboardBlock = new KeyboardBlock(Block.Settings.create().breakInstantly().sounds(BlockSoundGroup.STONE).pistonBehavior(PistonBehavior.DESTROY).noCollision());
+		BulkRegistry.register("keyboard",KeyboardBlock,KeyboardBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("keyboard"), group);
 
 		Item peripheralTool = new PeripheralTool(new Item.Settings().maxCount(1));
 		BulkRegistry.register("peripheral_tool", peripheralTool);
