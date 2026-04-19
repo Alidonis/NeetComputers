@@ -1,12 +1,10 @@
 package com.redtoast.neet;
 
 import com.redtoast.Computer;
-import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ProcessManager extends Thread{
@@ -24,23 +22,25 @@ public class ProcessManager extends Thread{
 
     @Override
     public void run(){
-        do {
+        while (!killFlag) {
             try {
                 que.take().run();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        } while (!killFlag);
+        }
     }
 
     public static void openNewThread(){
         ProcessManager processManager = new ProcessManager();
-        processManager.start();
         processManagers.add(processManager);
+        processManager.start();
     }
 
     public static void clear(){
-        for (ProcessManager processManager : processManagers) processManager.killFlag = true;
+        for (ProcessManager processManager : processManagers) {
+            processManager.killFlag = true;
+        }
         processManagers.clear();
         knownUUIDs.clear();
     }
@@ -54,7 +54,10 @@ public class ProcessManager extends Thread{
                 score = processManagers.get(i).que.size();
             }
         }
-        if (index==null || score == 99999) return false;
+        if (index==null || score == 99999) {
+            System.out.println("a");
+            return false;
+        }
         processManagers.get(index).que.add(task);
         return true;
     }
@@ -66,6 +69,7 @@ public class ProcessManager extends Thread{
      */
     public static boolean queComputerTick(Computer computer){
         if (knownUUIDs.contains(computer.getUuid())) return false;
+        knownUUIDs.add(computer.getUuid());
         return donateTask(() -> {
             if (computer.getRuntime() != null) {
                 computer.getRuntime().tick();

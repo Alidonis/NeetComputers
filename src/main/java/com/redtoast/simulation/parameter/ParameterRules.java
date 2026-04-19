@@ -55,6 +55,7 @@ public class ParameterRules {
         if (ruleset.doAny()){
             return new ParameterCheckReturn(new FunctionInput(new LinkedList<>(Arrays.asList(values)), new LinkedList<>()));
         }
+        if (values==null) values = new Value[0];
         LinkedList<Value> output = new LinkedList<>();
         LinkedList<Value> packed = new LinkedList<>();
         for (int i = 0; i < Math.max(values.length, ruleset.rules.size()); i++){

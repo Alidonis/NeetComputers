@@ -147,7 +147,7 @@ public abstract class Runtime {
                 parent.getEventManager().update();
                 thread.tick();
                 inTick=false;
-                if (!thread.isAlive()) {
+                if (thread == null || !thread.isAlive()) {
                     thread = null;
                 }
             }
