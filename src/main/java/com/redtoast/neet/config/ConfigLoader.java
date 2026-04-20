@@ -47,7 +47,7 @@ public class ConfigLoader {
                         #allows players to shift click peripheral displays to clear them
                         shift-click-to-clear-displays = true
                         #determines how many threads the server will create to manage computing, more threads is optimal on CPU's with extra cores to spare
-                        processing-threads = 2
+                        processing-threads = 1
                         #allows the default core print function to echo to the game console, meant for debugging
                         print-to-console = false
                         #allows experimental compatibility features

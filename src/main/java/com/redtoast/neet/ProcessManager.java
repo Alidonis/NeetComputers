@@ -40,6 +40,12 @@ public class ProcessManager extends Thread{
     public static void clear(){
         for (ProcessManager processManager : processManagers) {
             processManager.killFlag = true;
+            processManager.que.add(() -> {});
+            try{
+                processManager.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         processManagers.clear();
         knownUUIDs.clear();
