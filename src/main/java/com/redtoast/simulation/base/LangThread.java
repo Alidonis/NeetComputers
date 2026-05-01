@@ -8,9 +8,8 @@ import java.util.UUID;
 public abstract class LangThread {
     private static Logger logger = LoggerFactory.getLogger("NeetComputers: Threads");
     private int javaLag = 0;
-    private long javaLagCache = 0;
     private boolean killed = false;
-    protected String errorMessage;
+    protected String errorMessage = null;
     private UUID uuid;
     public LangThread(){
         uuid = UUID.randomUUID();
@@ -28,6 +27,9 @@ public abstract class LangThread {
     public void kill(){
         killed = true;
     }
+    public String getErrorMessage() {
+        return errorMessage;
+    }
     public UUID getUuid(){
         return uuid;
     }
@@ -36,13 +38,8 @@ public abstract class LangThread {
     public abstract void yield();
     public abstract void tick();
     public abstract String getSource();
-    public abstract void crash(String message);
     public void taxJavaLag(short lagTime){
         javaLag += lagTime;
-        javaLagCache += lagTime;
-        if (javaLagCache>=5000){
-            crash("Computer forcibly terminated due to lag, check console for more information");
-        }
     }
     public int getJavaTaxBulk(short batch){
         int i = javaLag / batch;
@@ -51,6 +48,5 @@ public abstract class LangThread {
     }
     public void clearJavaLag(){
         javaLag=0;
-        javaLagCache=0;
     }
 }

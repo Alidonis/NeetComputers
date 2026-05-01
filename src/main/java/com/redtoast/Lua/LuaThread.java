@@ -81,9 +81,9 @@ public class LuaThread extends LangThread {
         if (!isAlive()) return;
         ticket += (short) computerConfig.batchesPerTick();
         while (ticket>0) {
-            if (runtime.getParent().isCrashed()) kill("Parent computer crashed");
+            if (runtime.getParent().isCrashed()) kill();
             if (runtime.shouldDie()) {
-                kill("host stopped");
+                kill();
                 runtime.getParent().stop();
             }
             if (!isAlive()) return;
@@ -98,10 +98,5 @@ public class LuaThread extends LangThread {
     @Override
     public String getSource(){
         return "lua:"+globals.debuglib.traceback(1).split(":")[2];
-    }
-
-    @Override
-    public void crash(String message) {
-        runtime.getParent().crash(message);
     }
 }

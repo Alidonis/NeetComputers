@@ -3,9 +3,7 @@ package com.redtoast.simulation;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.*;
-import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.NVTable;
-import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
 
 /**
  * represents the code execution of a computer, and ticks on the computer ticking thread
@@ -31,36 +28,11 @@ public abstract class Runtime {
     private boolean inTick = false;
     private boolean kill = false;
 
-    public interface FunctionCall {
-        Value<?> call(FunctionInput parameters);
-    }
-
     public Runtime(Computer Parent, NVTable NVRam){
         globalManager = new GlobalManager(this, NVRam);
         fs = Parent.getFs();
         parent = Parent;
     }
-
-    //weird temporary bullshit start
-    private FunctionCall que = null;
-    private FunctionInput parameters = null;
-    private Value<?> product = null;
-    public void queCall(FunctionCall call, FunctionInput parameters){
-        if (que!=null || product!=null) return;
-        que = call;
-        this.parameters = parameters;
-        product = null;
-    }
-    public Optional<Value<?>> pullQue(){
-        if (product==null) {
-            return Optional.empty();
-        } else {
-            Optional<Value<?>> buffer = Optional.of(product);
-            product = null;
-            return buffer;
-        }
-    }
-    //weird temporary bullshit end
 
     /**
         Tests if the thread is being processed
@@ -131,15 +103,11 @@ public abstract class Runtime {
      * ticks the process forward once and performs state maintenance
      */
     public void tick(){
+        String errorMessage = null;
         if (!kill) {
             if (thread == null) {
                 kill = true;
                 return;
-            }
-            if (que!=null){
-                product = que.call(parameters);
-                que = null;
-                parameters = null;
             }
             if (thread.isAlive()) {
                 inTick=true;
@@ -147,7 +115,8 @@ public abstract class Runtime {
                 parent.getEventManager().update();
                 thread.tick();
                 inTick=false;
-                if (thread == null || !thread.isAlive()) {
+                if (!thread.isAlive()) {
+                    errorMessage = thread.getErrorMessage();
                     thread = null;
                 }
             }
@@ -156,7 +125,13 @@ public abstract class Runtime {
             }
         }
         if (shouldDie()){
-            parent.stop();
+            if (errorMessage==null) {
+                parent.stop();
+            }else{
+                parent.crash(errorMessage);
+            }
+        } else if (errorMessage!=null) {
+            parent.crash(errorMessage);
         }
     }
 

@@ -259,7 +259,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (IsOn){
-            if (runtime.isInTick()){
+            if (runtime!=null && runtime.isInTick()){
                 killFlag = true;
             }else{
                 eventManager.reset();
@@ -282,7 +282,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //yields the computer
     public void yield(){
-        if (isOn()) Objects.requireNonNull(runtime.getThread()).yield();
+        if (isOn() && runtime!=null && runtime.getThread()!=null) runtime.getThread().yield();
     }
 
     //one line fetch methods

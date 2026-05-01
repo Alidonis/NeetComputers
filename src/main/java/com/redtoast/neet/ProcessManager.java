@@ -1,8 +1,10 @@
 package com.redtoast.neet;
 
 import com.redtoast.Computer;
+import com.redtoast.simulation.value.Value;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,8 +14,14 @@ public class ProcessManager extends Thread{
     private static final ArrayList<ProcessManager> processManagers = new ArrayList<>();
     private static final LinkedList<UUID> knownUUIDs = new LinkedList<>();
 
+    //Main thread functionality
+    private static final Hashtable<UUID, Value> returnTable = new Hashtable<>();
+    private record FunctionPackage(UUID uuuid, Runnable runnable){}
+    private static final ArrayList<FunctionPackage> mainQue = new ArrayList<>();
+
     //dynamic functions
     private boolean killFlag = false;
+    private boolean wrapUp = false;
     private final LinkedBlockingQueue<Runnable> que = new LinkedBlockingQueue<>();
 
     private ProcessManager(){
@@ -25,10 +33,30 @@ public class ProcessManager extends Thread{
         while (!killFlag) {
             try {
                 que.take().run();
+                if ((killFlag || wrapUp) && que.isEmpty()) break;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    public void kill() {
+        killFlag = true;
+        que.add(() -> {});
+        try{
+            join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void wrapUp() {
+        wrapUp = true;
+        que.add(() -> {});
+    }
+
+    public boolean available(){
+        return !(killFlag || wrapUp) && isAlive();
     }
 
     public static void openNewThread(){
@@ -39,13 +67,7 @@ public class ProcessManager extends Thread{
 
     public static void clear(){
         for (ProcessManager processManager : processManagers) {
-            processManager.killFlag = true;
-            processManager.que.add(() -> {});
-            try{
-                processManager.join();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            processManager.kill();
         }
         processManagers.clear();
         knownUUIDs.clear();
@@ -55,7 +77,7 @@ public class ProcessManager extends Thread{
         Integer index = null;
         int score = 99999;
         for (int i = 0; i < processManagers.size(); i++) {
-            if (!processManagers.get(i).killFlag && processManagers.get(i).que.size() < score) {
+            if (processManagers.get(i).available() && processManagers.get(i).que.size() < score) {
                 index = i;
                 score = processManagers.get(i).que.size();
             }
