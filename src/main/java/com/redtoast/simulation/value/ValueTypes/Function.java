@@ -53,9 +53,9 @@ public abstract class Function{
     public abstract Value call(FunctionInput parameters);
     public Value invoke(FunctionInput parameters){
         if (mainThread && runtime!=null) {
-            runtime.queCall(this::call, parameters);
-            if (runtime.pullQue().isEmpty()) Objects.requireNonNull(runtime.getThread()).yield();
-            return runtime.pullQue().get();
+//            runtime.queCall(this::call, parameters);
+//            if (runtime.pullQue().isEmpty()) Objects.requireNonNull(runtime.getThread()).yield();
+//            return runtime.pullQue().get();
         }
         return call(parameters);
     }
