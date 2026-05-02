@@ -305,6 +305,48 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
+    public void drawLayer(@Index int x, @Index int y,@Index int x0,@Index int y0,@Index int x1,@Index int y1, Table layer) {
+        AtomicReference<String> rasterizedUUID = new AtomicReference<>();
+        layer.foreach((key, value) -> {
+            if (key.toString() != null && key.toString().equals("_uuid")) {
+                if (value.instanceOf(VarType.STRING)) {
+                    rasterizedUUID.set(value.toString());
+                } else {
+                    throw new ExposedError("Table provided not valid layer2");
+                }
+            }
+        });
+        if (rasterizedUUID.get() == null)
+            throw new ExposedError("Table provided not valid layer1");
+        UUID uuid = UUID.fromString(rasterizedUUID.get());
+        Layer finalisedLayer = Layer.memoryTable.get(uuid);
+        Vector2i size = finalisedLayer.GraphicsBuffer.getSize();
+        int x2 = 0;
+        x1 = Math.clamp(x1,0,size.x);
+        x0 = Math.clamp(x0,0,size.x);
+        y1 = Math.clamp(y1,0,size.y);
+        y0 = Math.clamp(y0,0,size.y);
+        int signx = x1-x0==0 ? 1 : (x1-x0)/Math.abs(x1-x0);
+        int signy = y1-y0==0 ? 1 : (y1-y0)/Math.abs(y1-y0);
+        for (int sourcex = x0; sourcex != x1; sourcex+=signx) {
+            int y2 = 0;
+            for (int sourcey = y0; sourcey != y1; sourcey+=signy) {
+                if (finalisedLayer.GraphicsBuffer instanceof RGBAGraphicsArray rgba) {
+                    if (!rgba.isCellBlank(sourcex, sourcey)) {
+                        Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(sourcex, sourcey));
+                        rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
+                    }
+                } else {
+                    Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(sourcex, sourcey));
+                    rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
+                }
+                y2++;
+            }
+            x2++;
+        }
+    }
+
+    @Exposed
     public Table copy(@Index int x1, @Index int y1, int x2, int y2) {
         int sizex = Math.max(x1, x2) - Math.min(x1, x2);
         int sizey = Math.max(y1, y2) - Math.min(y1, y2);
