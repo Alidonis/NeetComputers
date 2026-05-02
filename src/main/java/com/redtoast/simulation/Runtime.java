@@ -3,7 +3,6 @@ package com.redtoast.simulation;
 import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.*;
-import com.redtoast.simulation.value.NVTable;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import org.jetbrains.annotations.Nullable;
@@ -28,8 +27,8 @@ public abstract class Runtime {
     private boolean inTick = false;
     private boolean kill = false;
 
-    public Runtime(Computer Parent, NVTable NVRam){
-        globalManager = new GlobalManager(this, NVRam);
+    public Runtime(Computer Parent){
+        globalManager = new GlobalManager(this);
         fs = Parent.getFs();
         parent = Parent;
     }
@@ -82,6 +81,13 @@ public abstract class Runtime {
                 LanguageGeneric langObject = NeetComputersServer.getLanguage(bootPath.language().getVersion());
                 assert langObject != null;
                 thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getConfiguration());
+                if (!thread.isAlive()) {
+                    if (thread.getErrorMessage()==null) {
+                        parent.stop();
+                    }else{
+                        parent.crash(thread.getErrorMessage());
+                    }
+                }
             }catch (Throwable e){
                 APILoader.printJavaError(e);
                 kill=true;
@@ -90,7 +96,6 @@ public abstract class Runtime {
             debug.warn("Computer failed to boot ({})", ioException.getMessage());
             kill=true;
         }
-        System.out.println("booting complete");
     }
 
     /**
@@ -117,6 +122,7 @@ public abstract class Runtime {
                 inTick=false;
                 if (!thread.isAlive()) {
                     errorMessage = thread.getErrorMessage();
+                    if (errorMessage!=null) errorMessage = errorMessage.replaceFirst("\n\t\\[Java]: in \\?$", "").replaceAll("\t", "    ");
                     thread = null;
                 }
             }
