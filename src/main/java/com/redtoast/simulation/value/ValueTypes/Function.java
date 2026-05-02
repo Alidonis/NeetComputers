@@ -21,8 +21,8 @@ import java.util.Objects;
 public abstract class Function{
     private ParameterRules ruleset;
     private String name;
-    private boolean mainThread = false;
     private final Runtime runtime;
+    private boolean mainThread = false;
 
     private static final Logger error = LoggerFactory.getLogger("Neetcomputer: java function");
     public static void logError(String e){
@@ -47,16 +47,9 @@ public abstract class Function{
         name=Name;
         this.runtime = runtime;
     }
-    public void makeMainThread(){
-        mainThread = true;
-    }
+    public void makeMain() {mainThread = true;}
     public abstract Value call(FunctionInput parameters);
     public Value invoke(FunctionInput parameters){
-        if (mainThread && runtime!=null) {
-            runtime.queCall(this::call, parameters);
-            if (runtime.pullQue().isEmpty()) Objects.requireNonNull(runtime.getThread()).yield();
-            return runtime.pullQue().get();
-        }
         return call(parameters);
     }
     public ParameterRules getRules(){
