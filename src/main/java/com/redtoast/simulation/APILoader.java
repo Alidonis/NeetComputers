@@ -16,6 +16,7 @@ import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
+import dan200.computercraft.api.lua.Coerced;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import org.jetbrains.annotations.Nullable;
@@ -290,7 +291,13 @@ public class APILoader {
             }else{
                 if (parameters[i].getType()==String.class){
                     args[i] = input.get(i).toString();
-                }else if (parameters[i].getType()==int.class){
+                } else if (parameters[i].getType().toString().contains("Coerced")) {
+                    if (input.get(i).toString() != null) { //make sure we dont try to turn wrong var into a string
+                        args[i] = new Coerced<>(input.get(i).toString());
+                    } else {
+                        args[i] = new Coerced<>(input.get(i).getValue());
+                    }
+                } else if (parameters[i].getType()==int.class){
                     int offset = parameters[i].isAnnotationPresent(Index.class) ? (context!=null ? (context.language.bumpIndexs() ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;
                     args[i] = input.get(i).toInt() - offset;
                 }else if (parameters[i].getType()==double.class){
