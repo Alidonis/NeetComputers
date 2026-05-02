@@ -5,6 +5,7 @@ import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 
@@ -63,7 +64,10 @@ public class Layer extends GraphicalAPI{
     public List getAsArray(){
         List list = new List();
         for (int[] numb : GraphicsBuffer.pixels){
-            List subList = new List(numb);
+            List subList = new List();
+            for (int num : numb) {
+                subList.add(Value.of(num));
+            }
             list.add(subList.asValue());
         }
         return list;
