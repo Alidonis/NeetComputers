@@ -100,7 +100,6 @@ public class NeetComputersServer implements ModInitializer {
 
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
-	public static final Hashtable<UUID, Computer> computerMap = new Hashtable<>();
 	public static final ConcurrentLinkedQueue<PeripheralBlockEntity> peripheralUpdateQueue = new ConcurrentLinkedQueue<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath = null;
@@ -298,12 +297,6 @@ public class NeetComputersServer implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {return new EventAPI(computer);}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				return new Flash(computer);
-			}
 		});
     }
 

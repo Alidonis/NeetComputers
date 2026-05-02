@@ -143,7 +143,6 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     }
 
     public Value<?> toValueWithoutMetadata(Varargs var) {
-        //System.out.println("1"+var.getClass().getName());
         if (!(var instanceof LuaValue)){
             Value[] values = new Value<?>[var.narg()];
             for (int i = 0; i < var.narg(); i++){

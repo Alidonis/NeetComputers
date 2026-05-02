@@ -13,19 +13,18 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.UUID;
 
-public record ComputerDataComponent(int address, boolean isOn, UUID id, SystemBuild build, NbtCompound NVRam) {
+public record ComputerDataComponent(int address, boolean isOn, UUID id, SystemBuild build) {
     private static final ByteBuffer empty = serialize(new NbtCompound());
     public static final Codec<ComputerDataComponent> CODEC = RecordCodecBuilder.create(builder -> builder.group(
             Codec.INT.fieldOf("address").forGetter(ComputerDataComponent::address),
             Codec.BOOL.fieldOf("isOn").forGetter(ComputerDataComponent::isOn),
             Codec.STRING.fieldOf("id").forGetter(ComputerDataComponent::getId),
-            Codec.BYTE_BUFFER.fieldOf("build").forGetter(ComputerDataComponent::getBuild),
-            Codec.BYTE_BUFFER.fieldOf("nvram").forGetter(ComputerDataComponent::getNVRamByte)
+            Codec.BYTE_BUFFER.fieldOf("build").forGetter(ComputerDataComponent::getBuild)
     ).apply(builder, ComputerDataComponent::reconstruct));
     public static ComponentType<ComputerDataComponent> TYPE;
 
-    public static ComputerDataComponent reconstruct(int address, boolean isOn, String idSerial, ByteBuffer build, ByteBuffer nvram){
-        return new ComputerDataComponent(address, isOn, UUID.fromString(idSerial), new SystemBuild(deserialize(build)), deserialize(nvram));
+    public static ComputerDataComponent reconstruct(int address, boolean isOn, String idSerial, ByteBuffer build){
+        return new ComputerDataComponent(address, isOn, UUID.fromString(idSerial), new SystemBuild(deserialize(build)));
     }
 
     private String getId(){
@@ -64,17 +63,5 @@ public record ComputerDataComponent(int address, boolean isOn, UUID id, SystemBu
 
     private ByteBuffer getBuild(){
         return serialize(build.save());
-    }
-
-    private ByteBuffer getNVRamByte(){
-        return NVRam==null ? empty : serialize(NVRam());
-    }
-
-    private String getEnteryPoint(){
-        return build.entrypoint;
-    }
-
-    public Optional<NbtCompound> getNVRam(){
-        return NVRam()==null ? Optional.empty() : Optional.of(NVRam());
     }
 }

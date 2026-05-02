@@ -1,6 +1,6 @@
 package com.redtoast;
 
-public enum ComputerStatus {
+public enum ComputerState {
     OFF,
     ON,
     CRASHED,

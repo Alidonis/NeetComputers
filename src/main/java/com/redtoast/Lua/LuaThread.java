@@ -42,11 +42,11 @@ public class LuaThread extends LangThread {
             globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(computerConfig.instructionsPerBatch())});
         } catch (Exception e) {
             if (e instanceof LuaError error){
-                kill(error.getMessage());
-                error(error.toString());
+                kill(error.getMessage().replaceFirst("^load", "[Compilation Error]"));
+                error(error.getMessage());
             }else{
                 kill("Unexpected java issue, please check logs");
-                error(e.toString());
+                error(e.getMessage());
             }
         }
     }
@@ -58,7 +58,11 @@ public class LuaThread extends LangThread {
 
     @Override
     public void yield() {
-        globals.yield(LuaValue.NIL);
+        try{
+            globals.yield(LuaValue.NIL);
+        }catch (LuaError error){
+            if (!error.getMessage().equals("cannot yield main thread")) throw error;
+        }
     }
 
     private void step(){

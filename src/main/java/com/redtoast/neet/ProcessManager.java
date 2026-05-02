@@ -83,7 +83,6 @@ public class ProcessManager extends Thread{
             }
         }
         if (index==null || score == 99999) {
-            System.out.println("a");
             return false;
         }
         processManagers.get(index).que.add(task);

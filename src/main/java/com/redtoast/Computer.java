@@ -20,7 +20,6 @@ import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
-import com.redtoast.simulation.value.NVTable;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -68,8 +67,9 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private int pointer = 0;
     //determines if a 'load' function has been called, providing important information to computer, most methods won't run if this is false
     private boolean loaded = false;
-    //determines if the computer is on
-    private boolean IsOn = false;
+    //stores the computers state
+    private ComputerState state = ComputerState.OFF;
+    private String crashMessage = null;
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
     //object representing the computers file interpreter
@@ -85,16 +85,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private short clock = 0;
     //object representing colored graphics (gui)
     private final RGBGraphicsArray Graphics;
-    //state defining if the computer instance is crashed
-    private boolean IsCrashed = false;
-    //state for defining if the computer is paused
-    private boolean paused = false;
-    //crash message for crash events
-    private String message = null;
     //specify computer specifications
-    private ComputerConfig computerConfig;
-    //table storing NVRam
-    private NVTable NVRam;
+    private final ComputerConfig computerConfig;
     //value holding last time computer ticked
     private long tickTime;
     //tells the computer to shut down at the end of a tick cycle
@@ -141,21 +133,21 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private void load(){
         loaded = true;
         if (uuid==null) uuid = UUID.randomUUID();
-        NeetComputersServer.computerMap.put(uuid, this);
         if (doesBinaryGraphics) refreshBinaryGraphics();
+        maintainState();
     }
     //loads computer from NBT data
     public void load(NbtCompound nbt){
         if (!loaded){
             pointer = nbt.getInt("Address");
-            IsOn = false;
-            if (nbt.contains("IsOn")){
-                IsOn = nbt.getBoolean("IsOn");
-                if (nbt.contains("ComputerID")){
-                    uuid = nbt.getUuid("ComputerID");
-                }else{
-                    uuid = UUID.randomUUID();
-                }
+            state = ComputerState.OFF;
+            if (nbt.contains("State")){
+                state = ComputerState.values()[nbt.getShort("State")];
+            }
+            if (nbt.contains("ComputerID")){
+                uuid = nbt.getUuid("ComputerID");
+            }else{
+                uuid = UUID.randomUUID();
             }
             if (nbt.contains("build")){
                 build = new SystemBuild(nbt.getCompound("build"));
@@ -163,36 +155,17 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
                 build = new SystemBuild(SystemPreset.NEETOS);
                 debug.warn("Failed to load computer build [address: {}]", pointer);
             }
-            if (nbt.contains("crashed")) IsCrashed = nbt.getBoolean("crashed");
-            if (nbt.contains("crashMessage")) message = nbt.getString("crashMessage");
-            if (nbt.contains("NVRam")){
-                NVRam = NVTable.deserialize(nbt.getCompound("NVRam"), this);
-            }else{
-                NVRam = new NVTable(this);
-            }
+            if (nbt.contains("crashMessage") && state == ComputerState.CRASHED) crashMessage = nbt.getString("crashMessage");
             load();
-        }else{
-            if (nbt.contains("IsOn")){
-                if (nbt.getBoolean("IsOn")!=IsOn){
-                    start();
-                }else{
-                    stop();
-                }
-            }
         }
     }
     //loads computer from data component
     public void load(ComputerDataComponent dataComponent){
         if (!loaded){
             pointer = dataComponent.address();
-            IsOn = dataComponent.isOn();
+            state = dataComponent.isOn() ? ComputerState.ON : ComputerState.OFF;
             uuid = dataComponent.id();
             build = dataComponent.build();
-            if (dataComponent.getNVRam().isPresent()){
-                NVRam = NVTable.deserialize(dataComponent.NVRam(), this);
-            }else{
-                NVRam = new NVTable(this);
-            }
             load();
         }
     }
@@ -203,9 +176,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             IDFactory.getServerState(GameServer);
             IDFactory.PointerIteration++;
             pointer = IDFactory.PointerIteration;
-            IsOn = false;
+            state = ComputerState.OFF;
             build = new SystemBuild(SystemPreset.NEETOS);
-            NVRam = new NVTable(this);
             load();
         }
     }
@@ -214,87 +186,57 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
-        if (!IsOn && loaded && fs!=null && !IsCrashed){
-            //wipes binary graphics
-            if (doesBinaryGraphics){
-                for (int x = 0; x < BinGraphics.getSize().x; x++){
-                    for (int y = 0; y < BinGraphics.getSize().y; y++){
-                        BinGraphics.set(x,y,false);
-                    }
-                }
-            }
-
-            Graphics.clear();
-            eventManager.reset();
-
-            //overwrites runtime with a new instance
-            runtime = new Runtime(this, NVRam) {
-                @Override
-                public boolean shouldDie() {
-                    boolean temp = killFlag;
-                    if (temp) killFlag = false;
-                    return temp;
-                }
-            };
-
-            //adds context-sensitive peripherals
-            new APILoader(this);
-
-            //load the runtime (create entry thread)
-            runtime.load();
-
-            //marks state as on
-            IsOn = true;
-            saveNBT();
+        if (loaded && fs!=null && (state == ComputerState.OFF || state == ComputerState.PAUSED)){
+            state = ComputerState.ON;
+            maintainState();
         }
-    }
-
-    //un-crashes the computer
-    public void reset(){
-        stop();
-        IsCrashed=false;
-        saveNBT();
     }
 
     //marks computer as off and overrides the runtime with null
     public void stop(){
-        if (IsOn){
-            if (runtime!=null && runtime.isInTick()){
-                killFlag = true;
-            }else{
-                eventManager.reset();
-                runtime=null;
-                IsOn =false;
-                saveNBT();
-            }
+        if (loaded && fs!=null && state != ComputerState.OFF){
+            state = ComputerState.OFF;
+            maintainState();
+        }
+    }
+
+    //marks computer as off and overrides the runtime with null
+    public void pause(){
+        if (loaded && fs!=null && state != ComputerState.PAUSED){
+            state = ComputerState.PAUSED;
+            maintainState();
         }
     }
 
     //sets the computer to a crashed state
     public void crash(String message){
-        if (isOn() && !IsCrashed){
-            this.message = runtime.getCurrentSource() + " " + message;
-            IsCrashed = true;
+        if (loaded && fs!=null && state != ComputerState.CRASHED){
+            state = ComputerState.CRASHED;
+            if (runtime==null || runtime.isDead()){
+                crashMessage = message;
+            }else{
+                crashMessage = runtime.getCurrentSource() == null ? message : runtime.getCurrentSource() + " " + message;
+            }
             this.yield();
-            saveNBT();
+            maintainState();
         }
     }
 
     //yields the computer
     public void yield(){
-        if (isOn() && runtime!=null && runtime.getThread()!=null) runtime.getThread().yield();
+        if (runtime!=null && runtime.getThread()!=null) runtime.getThread().yield();
     }
 
     //one line fetch methods
-    public boolean isOn(){return IsOn;}
-    public boolean isDead(){return !IsOn;}
-    public boolean isCrashed(){return IsCrashed;}
-    public String getCrashMessage(){return IsCrashed ? message : null;}
+    public boolean isOn(){return state == ComputerState.ON;}
+    public boolean isDead(){return state == ComputerState.OFF;}
+    public boolean isCrashed(){return state == ComputerState.CRASHED;}
+    public boolean isPaused(){return state == ComputerState.PAUSED;}
+    public String getCrashMessage(){return isCrashed() ? crashMessage : null;}
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
     public EventManager getEventManager() {return eventManager;}
-    public NVTable getNVRam(){return NVRam;}
     public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
@@ -308,22 +250,15 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         return computerConfig;
     }
 
-    //muli-line fetch methods
-    public ComputerStatus getStatus(){
-        if (IsOn && paused){
-            return ComputerStatus.PAUSED;
-        }else if (IsOn){
-            return ComputerStatus.ON;
-        }
-        if (isCrashed()) return ComputerStatus.CRASHED;
-        return ComputerStatus.OFF;
+    public ComputerState getStatus(){
+        return state;
     }
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         if (!doesBinaryGraphics) return null;
         return BinGraphics;
     }
     public @Nullable GlobalManager getGlobals(){
-        if (IsOn){
+        if (runtime!=null && !runtime.isDead()){
             return runtime.getGlobals();
         }else{
             return null;
@@ -374,14 +309,12 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
                 createLibraryAlias("filesystem", "file system");
                 createLibraryAlias("fs", "file system");
             }
-            if (fs!=null) maintainState();
-            if (NeetComputersServer.worldPath!=null && !IsCrashed){
+            maintainState();
+            if (fs!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON){
                 step(delta);
                 for (PlayerEntity p : world.getPlayers()) {
                     if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) ServerPlayNetworking.send((ServerPlayerEntity) p, new RGBComputerPayload(Graphics));
                 }
-            }else if (IsCrashed){
-                stop();
             }
             if (clock%10==0 && doesBinaryGraphics) refreshBinaryGraphics();
             if (clock%30==0) saveNBT();
@@ -392,17 +325,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //steps the runtime forward (tick with less protection)
     public void step(short delta){
-        if (loaded){
-            if (IsOn && runtime !=null && !IsCrashed){
-                if (runtime.isDead()){
-                    stop();
-                }else{
-                    if (IsOn) {
-                        ProcessManager.queComputerTick(this);
-                    }
-                }
-            }
-        }
+        ProcessManager.queComputerTick(this);
     }
 
     //gets a list of all peripheral providers on the system
@@ -412,49 +335,49 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //queues an event to the event manager
     public void queueEvent(EventGeneric event, EventLabel queue){
-        eventManager.queueEvent(event, queue);
+        if (state == ComputerState.ON) eventManager.queueEvent(event, queue);
     }
 
     //writes current state to NBT tag
     public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
-        nbt.putBoolean("IsOn", IsOn);
+        nbt.putShort("State", (short) state.ordinal());
         if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
-        if (IsCrashed) nbt.putBoolean("crashed", true);
-        if (IsCrashed) nbt.putString("crashMessage", message);
-        try{
-            if (NVRam!=null && !IsCrashed) nbt.put("NVRam", NVRam.serialize());
-        }catch (Throwable ignored){
-            debug.info("Failed to save NVRam: {}", ignored.toString());
-            NVRam.clear();
-        }
+        if (isCrashed() && crashMessage!=null) nbt.putString("crashMessage", crashMessage);
         return nbt;
     }
 
     //writes current state to item
     public ComputerDataComponent saveToItem(){
-        NbtCompound NVRamObj = null;
-        try{
-            if (NVRam!=null && !IsCrashed) NVRamObj = NVRam.serialize();
-        }catch (Throwable ignored){
-            debug.info("Failed to save NVRam: {}", ignored.toString());
-            NVRam.clear();
-        }
         return new ComputerDataComponent(
                 pointer,
-                IsOn && !isCrashed(),
+                isOn(),
                 uuid,
-                build,
-                NVRamObj
+                build
         );
     }
 
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
-        if (IsOn && runtime ==null && loaded && fs!=null && !IsCrashed){
+        boolean save = false;
+        if (state != ComputerState.CRASHED && crashMessage != null) {
+            crashMessage = null;
+            save = true;
+        }
+        if (state == ComputerState.ON && runtime==null && fs!=null) {
+            if (doesBinaryGraphics){
+                for (int x = 0; x < BinGraphics.getSize().x; x++){
+                    for (int y = 0; y < BinGraphics.getSize().y; y++){
+                        BinGraphics.set(x,y,false);
+                    }
+                }
+            }
+
             Graphics.clear();
-            runtime = new Runtime(this, NVRam) {
+            eventManager.reset();
+
+            runtime = new Runtime(this) {
                 @Override
                 public boolean shouldDie() {
                     boolean temp = killFlag;
@@ -466,6 +389,35 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
             new APILoader(this);
             runtime.load();
+            save = true;
         }
+        if (state == ComputerState.ON && runtime!=null && runtime.isDead()) {
+            state = ComputerState.OFF;
+            if (doesBinaryGraphics){
+                for (int x = 0; x < BinGraphics.getSize().x; x++){
+                    for (int y = 0; y < BinGraphics.getSize().y; y++){
+                        BinGraphics.set(x,y,false);
+                    }
+                }
+            }
+
+            Graphics.clear();
+            eventManager.reset();
+            save = true;
+        }
+        if ((state == ComputerState.OFF || state == ComputerState.CRASHED) && runtime!=null) {
+            if (!runtime.isDead() && runtime.isInTick()){
+                killFlag = true;
+            }else{
+                eventManager.reset();
+                runtime=null;
+                save = true;
+            }
+        }
+        if (state == ComputerState.CRASHED && crashMessage == null) {
+            crashMessage = "Unknown error [No Message Provided]";
+            save = true;
+        }
+        if (save) saveNBT();
     }
 }

@@ -82,21 +82,9 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
                 item.setCount(1);
                 item.set(ComputerDataComponent.TYPE, computer.getComputer().saveToItem());
                 Block.dropStack(world, pos, item);
-                computer.unload();
             }
         }
         return super.onBreak(world, pos, state, player);
-    }
-
-    @Override
-    public void onDestroyedByExplosion(World world, BlockPos pos, Explosion explosion) {
-        super.onDestroyedByExplosion(world, pos, explosion);
-        if (!world.isClient()) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (be instanceof ComputerBlockEntity computer) {
-                computer.unload();
-            }
-        }
     }
 
     @Override

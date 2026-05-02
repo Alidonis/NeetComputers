@@ -3,7 +3,7 @@ package com.redtoast.blocks.Generics;
 import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
-import com.redtoast.ComputerStatus;
+import com.redtoast.ComputerState;
 import com.redtoast.Connections.*;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
@@ -11,18 +11,14 @@ import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
-import com.redtoast.neet.ComputerStorage;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.config.ComputerConfig;
-import com.redtoast.simulation.events.EventGeneric;
-import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.VarType;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -133,10 +129,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (nbt.contains("peripheralTag")) tag = nbt.getString("peripheralTag");
         if (nbt.contains("uuid") && !collectedComputer){
             collectedComputer=true;
-            if (ComputerStorage.storage.contains(nbt.getUuid("uuid"))){
-                computer = ComputerStorage.storage.get(nbt.getUuid("uuid"));
-                graphics = computer.getGraphics();
-            }
         }
         computer.load(nbt);
     }
@@ -153,11 +145,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
         }
         if (player.isSneaking()){
-            if (computer.isCrashed()){
-                computer.reset();
-            }else{
-                computer.stop();
-            }
+            computer.stop();
         }else{
             if (computer.isCrashed()) player.sendMessage(Text.literal(computer.getCrashMessage()));
             computer.start();
@@ -188,13 +176,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 }
                 if (!computerBlock.computer.isLoaded()) return;
                 computerBlock.computer.tick(world);
-                if (computerBlock.computer.isOn()){
-                    if (!ComputerStorage.storage.contains(computerBlock.computer)){
-                        ComputerStorage.storage.put(computerBlock.computer.getUuid(), computerBlock.computer);
-                    }
-                }else{
-                    ComputerStorage.storage.remove(computerBlock.computer.getUuid());
-                }
                 BlockState current = world.getBlockState(blockPos);
                 if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.isOn()) {
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.isOn()), Block.NOTIFY_ALL);
@@ -205,10 +186,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 world.setBlockState(blockPos, current.with(DesktopBlockComputer.STATE, computerBlock.computer.getStatus().ordinal()), Block.NOTIFY_ALL);
             }
         }
-    }
-
-    public void unload(){
-        ComputerStorage.storage.remove(computer.getUuid());
     }
 
     public Computer getComputer() {return computer;}
@@ -378,7 +355,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (Objects.equals(name, "isOn")){
             ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
             if (retur.isError()) return Value.asError(retur.getMessage());
-            return Value.of(computer.getStatus()==ComputerStatus.ON);
+            return Value.of(computer.getStatus()== ComputerState.ON);
         }
         return Value.asError("Cant Find Function '"+name+"'");
     }

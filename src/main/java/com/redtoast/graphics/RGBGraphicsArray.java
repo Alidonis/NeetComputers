@@ -42,6 +42,10 @@ public class RGBGraphicsArray {
     }
 
     public int get(int x, int y) {
+        if (x < 0 || y < 0)
+            return 0;
+        if (x >= sizex || y >= sizey)
+            return 0;
         return pixels[y][x];
     }
 

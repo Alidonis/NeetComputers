@@ -1,7 +1,6 @@
 package com.redtoast.simulation;
 
 import com.redtoast.simulation.base.GlobalGeneric;
-import com.redtoast.simulation.value.NVTable;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Table;
 
@@ -10,14 +9,12 @@ import java.util.UUID;
 
 public class GlobalManager extends Table {
     private Hashtable<UUID, GlobalGeneric> subGlobals = new Hashtable<>();
-    public NVTable NVRam;
     private int blockoutTimer = 0;
     private Runtime runtime;
 
-    public GlobalManager(Runtime runtime, NVTable NVRam){
+    public GlobalManager(Runtime runtime){
         super();
         this.runtime = runtime;
-        this.NVRam = NVRam;
     }
 
     public void register(GlobalGeneric subGlobal){
