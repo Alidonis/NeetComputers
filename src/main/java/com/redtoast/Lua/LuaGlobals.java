@@ -98,7 +98,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 assert translater != null;
                 try{
                     Varargs args = require.call(LuaValue.valueOf(path));
-                    System.out.println("2"+args.getClass().getName());
                     return translater.toValue(args);
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
