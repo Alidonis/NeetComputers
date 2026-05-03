@@ -1,5 +1,6 @@
 package com.redtoast.graphics;
 
+import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
@@ -21,6 +22,29 @@ public class RGBGraphicsArray {
         for (int x = 0; x < sizex; x++) {
             for (int y = 0; y < sizey; y++) {
                 pixels[y][x] = arr[y][x];
+            }
+        }
+    }
+
+    public void substituteColor(int targetColor, int substituteColor, boolean ignoreAlpha, boolean matchAlpha) {
+        int noAlphaMask = 0x00FFFFFF;
+        int onlyAlphaMask = 0xFF000000;
+        for (int y = 0; y < sizey; y++) {
+            for (int x = 0; x < sizex; x++) {
+                int color = pixels[y][x];
+                if (!ignoreAlpha) {
+                    if (color == targetColor) {
+                        pixels[y][x] = substituteColor;
+                    }
+                } else {
+                    if ((color & noAlphaMask) == (targetColor & noAlphaMask)) {
+                        if (matchAlpha) {
+                            pixels[y][x] = (substituteColor&noAlphaMask) | (color & onlyAlphaMask);
+                        } else {
+                            pixels[y][x] = substituteColor;
+                        }
+                    }
+                }
             }
         }
     }

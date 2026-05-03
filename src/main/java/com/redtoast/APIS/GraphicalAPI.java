@@ -181,6 +181,33 @@ public class GraphicalAPI implements Exposable {
         alpha = A;
     }
 
+    @Exposed
+    public void substituteColor(@Index(strict = true, offset = -1) @Range(range = 256) int Rt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Gt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Bt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Rs,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Gs,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Bs) {
+        int targetColor = (255<<24) | (Rt << 16) | (Gt << 8) | Bt;
+        int substituteColor = (255<<24) | (Rs << 16) | (Gs << 8) | Bs;
+        GraphicsBuffer.substituteColor(targetColor,substituteColor,true,true);
+    }
+
+
+    @Exposed
+    public void substituteColor(@Index(strict = true, offset = -1) @Range(range = 256) int Rt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Gt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Bt,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int At,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Rs,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Gs,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int Bs,
+                                @Index(strict = true, offset = -1) @Range(range = 256) int As) {
+        int targetColor = (At << 24) | (Rt << 16) | (Gt << 8) | Bt;
+        int substituteColor = (As << 24) | (Rs << 16) | (Gs << 8) | Bs;
+        GraphicsBuffer.substituteColor(targetColor,substituteColor,false,false);
+    }
+
     public void setColor(BadVector color) {
         setColor(color.x, color.y, color.z);
     }
