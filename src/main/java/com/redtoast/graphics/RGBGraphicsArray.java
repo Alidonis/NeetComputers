@@ -1,6 +1,5 @@
 package com.redtoast.graphics;
 
-import com.redtoast.neet.NeetComputersServer;
 import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 import org.joml.Vector3i;

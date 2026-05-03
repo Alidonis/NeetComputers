@@ -1,6 +1,5 @@
 package com.redtoast.APIS;
 
-import com.redtoast.Lua.LuaThread;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Exposed;
