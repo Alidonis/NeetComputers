@@ -49,6 +49,8 @@ public class WrappedPeripheral implements PeripheralProvider {
         }
         functionNames = names.toArray(new String[0]);
         this.pos = pos;
+
+        peripheral.attach(new ComputerWrapper(computer, peripheral));
     }
 
     @Override
