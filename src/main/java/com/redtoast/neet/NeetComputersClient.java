@@ -2,6 +2,8 @@ package com.redtoast.neet;
 
 import com.redtoast.Connections.CableRenderer;
 import com.redtoast.Connections.PipeType;
+import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
+import com.redtoast.blocks.ColorDisplay.ColorDisplayRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
@@ -16,11 +18,11 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
+import com.redtoast.graphics.RGBAGraphicsArray;
+import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.screens.*;
-import com.redtoast.neet.Networking.BinaryGraphicsPayload;
-import com.redtoast.neet.Networking.PipeBufferPayload;
-import com.redtoast.neet.Networking.RGBComputerPayload;
-import com.redtoast.neet.Networking.ReturnMessagePayload;
+import com.redtoast.neet.Networking.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -70,6 +72,9 @@ public class NeetComputersClient implements ClientModInitializer {
 		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("simple_display");
 		BulkRegistry.register(simpleDisplayType, SimpleDisplayRenderer::new);
 
+		BlockEntityType<ColorDisplayBlockEntity> colorDisplayType = (BlockEntityType<ColorDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("color_display");
+		BulkRegistry.register(colorDisplayType, ColorDisplayRenderer::new);
+
 		BlockEntityType<KeyboardBlockEntity> keyboardType = (BlockEntityType<KeyboardBlockEntity>) BulkRegistry.fetchBlockEntityType("keyboard");
 		BulkRegistry.register(keyboardType, PipeSourceBlockRenderer::new);
 
@@ -105,7 +110,7 @@ public class NeetComputersClient implements ClientModInitializer {
 		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(RGBComputerPayload.ID, (payload, context) -> {
-            if (context.client().player.currentScreenHandler instanceof RGBScreenHandler) ((RGBScreenHandler) context.client().player.currentScreenHandler).updateGraphics(payload.graphicsArray());
+            if (context.client().player.currentScreenHandler instanceof RGBScreenHandler) ((RGBScreenHandler) context.client().player.currentScreenHandler).updateGraphics((SectoredGraphics) payload.graphics());
 		});
 
         ClientPlayNetworking.registerGlobalReceiver(BinaryGraphicsPayload.ID, (payload, context) -> {
@@ -117,6 +122,20 @@ public class NeetComputersClient implements ClientModInitializer {
 				BlockEntity be = context.client().world.getBlockEntity(pos);
 				if (be instanceof BinaryGraphicsProvider provider) {
 					provider.setBinaryGraphics(graphics);
+					Objects.requireNonNull(be.getWorld()).updateListeners(pos, be.getCachedState(), be.getCachedState(), 3);
+				}
+			});
+		});
+
+		ClientPlayNetworking.registerGlobalReceiver(ColorDisplayGraphicsPayload.ID, (payload, context) -> {
+			BlockPos pos = payload.blockPos();
+			SectoredGraphics graphics = (SectoredGraphics) payload.graphics();
+			context.client().execute(() -> {
+				if (context.client().world == null) return;
+				if (context.client().world.getBlockEntity(pos) == null) return;
+				BlockEntity be = context.client().world.getBlockEntity(pos);
+				if (be instanceof ColorDisplayBlockEntity provider) {
+					provider.setGraphics(graphics);
 					Objects.requireNonNull(be.getWorld()).updateListeners(pos, be.getCachedState(), be.getCachedState(), 3);
 				}
 			});

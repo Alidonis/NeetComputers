@@ -4,17 +4,16 @@ import com.redtoast.Computer;
 import com.redtoast.graphics.RGBAGraphicsArray;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.APILoader;
-import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.ValueTypes.Table;
 
-public class ScreenAPI extends GraphicalAPI implements API {
-    Runtime runtime;
+public class ScreenAPI extends DrawableGraphicalAPI implements API {
+    Computer computer;
 
     public ScreenAPI(RGBGraphicsArray graphics, Computer computer) {
         super(graphics, computer.getRuntime());
-        runtime = computer.getRuntime();
+        this.computer = computer;
     }
 
     @Override
@@ -23,18 +22,15 @@ public class ScreenAPI extends GraphicalAPI implements API {
     }
 
     @Exposed
-    public void draw()//refreash graphics on screen
-    {
-        for (int x = 0; x < GraphicsBuffer.getSize().x; x++){
-            for (int y = 0; y < GraphicsBuffer.getSize().y; y++){
-                Graphics.set(x, y, GraphicsBuffer.get(x, y));
-            }
-        }
+    @Override
+    public void draw(){
+        super.draw();
+        computer.renderColorGraphics();
     }
 
     @Exposed
     public Table createLayer(int sizex, int sizey, boolean transparent){
-        Layer layer = new Layer(new RGBAGraphicsArray(sizex, sizey, transparent), runtime);
-        return APILoader.TableizeAPI(layer, runtime);
+        Layer layer = new Layer(new RGBAGraphicsArray(sizex, sizey, transparent), computer.getRuntime());
+        return APILoader.TableizeAPI(layer, computer.getRuntime());
     }
 }

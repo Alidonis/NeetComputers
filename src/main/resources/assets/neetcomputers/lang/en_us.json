@@ -5,6 +5,7 @@
   "block.neetcomputers.redstone_controller": "Redstone Controller",
   "block.neetcomputers.dynamic_light": "Dynamic Light",
   "block.neetcomputers.simple_display": "Simple Display",
+  "block.neetcomputers.color_display": "Color Display",
   "block.neetcomputers.keyboard": "Keyboard",
   "menu.neetcomputers.tag_field": "tag...",
   "menu.neetcomputers.tag_field_title": "Custom Peripheral Tag",

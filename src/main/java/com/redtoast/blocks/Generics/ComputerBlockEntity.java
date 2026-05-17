@@ -9,6 +9,7 @@ import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
+import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;

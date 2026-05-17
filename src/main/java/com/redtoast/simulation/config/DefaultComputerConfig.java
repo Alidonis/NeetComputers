@@ -27,8 +27,8 @@ public class DefaultComputerConfig implements ComputerConfig{
 
     @Override
     public Vector2i ColorGraphicsSize() {
-        return new Vector2i(384, 288);
-    }
+        return new Vector2i(800, 600);
+    }//new Vector2i(384, 288);
 
     @Override
     public Vector2i BinaryGraphicsSize() {

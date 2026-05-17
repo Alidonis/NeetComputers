@@ -4,10 +4,8 @@ import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
-import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
-import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
-import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
-import com.redtoast.blocks.Generics.Displays.ConnectionMappingAccess;
+import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
+import com.redtoast.blocks.Generics.Displays.*;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
@@ -42,6 +40,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     private boolean leader = true;
     private Vector2i size = new Vector2i(1,1);
     private BinaryGraphicsArray graphics = new BinaryGraphicsArray(12, 12);
+    private boolean dirtyGraphics = false;
     private Table api;
     private BlockPos masterPos = null;
     private boolean loaded = false;
@@ -97,26 +96,26 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         code |= right ?   0b0100 : 0; //right
         code |= bottom ?  0b1000 : 0; //bottom
         setModel(switch (code) {
-            case 0b1011 -> SimpleDisplayModels.HLEFTTHIN;
-            case 0b1010 -> SimpleDisplayModels.HMIDTHIN;
-            case 0b1110 -> SimpleDisplayModels.HRIGHTTHIN;
-            case 0b1101 -> SimpleDisplayModels.VBOTTOMTHIN;
-            case 0b0101 -> SimpleDisplayModels.VMIDTHIN;
-            case 0b0111 -> SimpleDisplayModels.VTOPTHIN;
-            case 0b1001 -> SimpleDisplayModels.BOTTOMLEFT;
-            case 0b1000 -> SimpleDisplayModels.BOTTOMMID;
-            case 0b1100 -> SimpleDisplayModels.BOTTOMRIGHT;
-            case 0b0100 -> SimpleDisplayModels.MIDRIGHT;
-            case 0b0110 -> SimpleDisplayModels.TOPRIGHT;
-            case 0b0010 -> SimpleDisplayModels.TOPMID;
-            case 0b0011 -> SimpleDisplayModels.TOPLEFT;
-            case 0b0001 -> SimpleDisplayModels.MIDLEFT;
-            case 0b0000 -> SimpleDisplayModels.CENTER;
-            default -> SimpleDisplayModels.BASE;
+            case 0b1011 -> DisplayModelStates.HLEFTTHIN;
+            case 0b1010 -> DisplayModelStates.HMIDTHIN;
+            case 0b1110 -> DisplayModelStates.HRIGHTTHIN;
+            case 0b1101 -> DisplayModelStates.VBOTTOMTHIN;
+            case 0b0101 -> DisplayModelStates.VMIDTHIN;
+            case 0b0111 -> DisplayModelStates.VTOPTHIN;
+            case 0b1001 -> DisplayModelStates.BOTTOMLEFT;
+            case 0b1000 -> DisplayModelStates.BOTTOMMID;
+            case 0b1100 -> DisplayModelStates.BOTTOMRIGHT;
+            case 0b0100 -> DisplayModelStates.MIDRIGHT;
+            case 0b0110 -> DisplayModelStates.TOPRIGHT;
+            case 0b0010 -> DisplayModelStates.TOPMID;
+            case 0b0011 -> DisplayModelStates.TOPLEFT;
+            case 0b0001 -> DisplayModelStates.MIDLEFT;
+            case 0b0000 -> DisplayModelStates.CENTER;
+            default -> DisplayModelStates.BASE;
         });
     }
 
-    public void setModel(SimpleDisplayModels model){
+    public void setModel(DisplayModelStates model){
         assert getWorld()!=null;
         getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.STATE, model.ordinal()), Block.NOTIFY_ALL);
     }
@@ -130,7 +129,10 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
             }else if (!simpleDisplayBlockEntity.leader) {
                 simpleDisplayBlockEntity.masterBlock = world.getBlockEntity(simpleDisplayBlockEntity.masterPos);
             }else {
-                if (simpleDisplayBlockEntity.clock%10==0) simpleDisplayBlockEntity.renderBinaryGraphics(simpleDisplayBlockEntity.graphics);
+                if (simpleDisplayBlockEntity.clock%2==0 && simpleDisplayBlockEntity.dirtyGraphics) {
+                    simpleDisplayBlockEntity.dirtyGraphics = false;
+                    simpleDisplayBlockEntity.renderBinaryGraphics(simpleDisplayBlockEntity.graphics);
+                }
                 simpleDisplayBlockEntity.clock += 1;
                 simpleDisplayBlockEntity.clock %= 100;
             }
@@ -140,12 +142,14 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     private void loadSubordinates(){
         if (world==null) return;
         Direction direction = world.getBlockState(getPos()).get(SimpleDisplayBlock.FACING);
-        new ConnectionMapping(world, pos, direction, (pos2) -> (world.getBlockEntity(pos2) instanceof SimpleDisplayBlockEntity && world.getBlockState(pos2).get(SimpleDisplayBlock.FACING).equals(direction))).start();
+        new ConnectionMapping(world, pos, direction, 10, 8, (pos2) -> (world.getBlockEntity(pos2) instanceof SimpleDisplayBlockEntity && world.getBlockState(pos2).get(SimpleDisplayBlock.FACING).equals(direction) && world.getBlockState(pos2).get(SimpleDisplayBlock.GROUP).equals(world.getBlockState(getPos()).get(SimpleDisplayBlock.GROUP)))).start();
     }
 
     @Override
     public void setSlave(BlockPos masterPos){
         leader = false;
+        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
+        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.SCALE, 1), Block.NOTIFY_ALL);
         assert world != null;
         this.masterPos = masterPos;
         graphics = null;
@@ -161,6 +165,8 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     public void setMaster(Vector2i size){
         if (leader && size.equals(this.size)) return;
         leader = true;
+        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
+        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.SCALE, size.y()), Block.NOTIFY_ALL);
         this.size = size;
         uuid = UUID.randomUUID();
         graphics = new BinaryGraphicsArray(size.x*16-4, size.y*16-4);
@@ -169,6 +175,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         masterBlock = null;
         tag=null;
         markDirty();
+        renderBinaryGraphics(graphics);
     }
 
     @Override
@@ -226,6 +233,7 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new BinaryGraphicsPayload(getPos(), graphics));
 
         if (getWorld() instanceof ServerWorld serverWorld) {
+            if (serverWorld.getPlayers().isEmpty()) dirtyGraphics = true;
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
                 player.networkHandler.sendPacket(packet);
             }
@@ -271,12 +279,12 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
 
     @Override
     public boolean canRender() {
-        return leader;
+        return getWorld()!=null && !getWorld().getBlockState(getPos()).isAir() && getWorld().getBlockState(getPos()).get(SimpleDisplayBlock.LEADER);
     }
 
     @Override
     public void setBinaryGraphics(BinaryGraphicsArray graphicsArray) {
         graphics = graphicsArray;
-        renderBinaryGraphics(graphicsArray);
+        dirtyGraphics = true;
     }
 }

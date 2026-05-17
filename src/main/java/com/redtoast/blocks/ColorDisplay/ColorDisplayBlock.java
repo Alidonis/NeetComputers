@@ -1,11 +1,11 @@
-package com.redtoast.blocks.SimpleDisplay;
+package com.redtoast.blocks.ColorDisplay;
 
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
 import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
 import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.config.ConfigLoader;
+import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
@@ -30,13 +30,13 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 @PeripheralBlock
-public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEntityProvider {
+public class ColorDisplayBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final IntProperty STATE = IntProperty.of("state",0, 15);
     public static final BooleanProperty LEADER = BooleanProperty.of("leader");
     public static final IntProperty SCALE = IntProperty.of("scale",1, 256);
     public static final BooleanProperty GROUP = BooleanProperty.of("group");
 
-    public SimpleDisplayBlock(Settings settings) {
+    public ColorDisplayBlock(Settings settings) {
         super(settings);
         setDefaultState(getDefaultState().with(STATE, 0).with(SCALE, 1).with(FACING, Direction.NORTH).with(LEADER, true).with(GROUP, false));
     }
@@ -49,14 +49,14 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
     @Override
     protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
         Direction direction = state.get(FACING);
-        new ConnectionMapping(world, pos, direction, 10, 8, (pos2) -> (world.getBlockEntity(pos2) instanceof SimpleDisplayBlockEntity && world.getBlockState(pos2).get(SimpleDisplayBlock.FACING).equals(direction) && world.getBlockState(pos2).get(SimpleDisplayBlock.GROUP).equals(state.get(GROUP)))).start();
+        new ConnectionMapping(world, pos, direction, 10, 8, (pos2) -> (world.getBlockEntity(pos2) instanceof ColorDisplayBlockEntity && world.getBlockState(pos2).get(ColorDisplayBlock.FACING).equals(direction) && world.getBlockState(pos2).get(ColorDisplayBlock.GROUP).equals(state.get(GROUP)))).start();
         super.neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
     }
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         //holy run-on sentence
-        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof SimpleDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction(null, "clear").instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction(null, "draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"));
+        if (world!=null && !world.isClient && (boolean) ConfigLoader.getServerConfig("shift-click-to-clear-displays") && player.getActiveItem() == ItemStack.EMPTY && player.isSneaking() && world.getBlockEntity(pos) instanceof ColorDisplayBlockEntity simpleDisplayBlockEntity && !simpleDisplayBlockEntity.callFunction(null, "fill", Value.of(0), Value.of(0), Value.of(0)).instanceOf(VarType.EXCEPTION) && !simpleDisplayBlockEntity.callFunction(null, "draw").instanceOf(VarType.EXCEPTION)) player.sendMessage(Text.of("Screen Cleared!"));
         return ActionResult.PASS;
     }
 
@@ -67,13 +67,13 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistry.fetchBlockEntityType("simple_display") ? SimpleDisplayBlockEntity::tick : null;
+        return type == BulkRegistry.fetchBlockEntityType("color_display") ? ColorDisplayBlockEntity::tick : null;
     }
 
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SimpleDisplayBlockEntity(pos, state);
+        return new ColorDisplayBlockEntity(pos, state);
     }
 
     @Override

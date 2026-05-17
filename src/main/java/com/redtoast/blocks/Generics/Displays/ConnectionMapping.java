@@ -19,16 +19,18 @@ public class ConnectionMapping {
     private final LinkedList<Vector2i> queue = new LinkedList<>();
     private final LinkedList<Vector2i> validPositions = new LinkedList<>();
     private final LinkedList<Selection> selections = new LinkedList<>();
+    private final Vector2i sizeCap;
     private int minX = 0;
     private int minY = 0;
     private int maxX = 0;
     private int maxY = 0;
 
-    public ConnectionMapping(World world, BlockPos startingPos, Direction direction, Function<BlockPos, Boolean> validityFunction) {
+    public ConnectionMapping(World world, BlockPos startingPos, Direction direction, int maxWidth, int maxHeight, Function<BlockPos, Boolean> validityFunction) {
         this.direction = direction;
         this.referencePoint = startingPos;
         this.world = world;
         this.validityFunction = validityFunction;
+        this.sizeCap = new Vector2i(maxWidth, maxHeight);
         queue.add(new Vector2i(0, 0));
     }
 

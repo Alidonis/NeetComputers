@@ -5,6 +5,7 @@ import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
+import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputersServer;
@@ -85,6 +86,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private short clock = 0;
     //object representing colored graphics (gui)
     private final RGBGraphicsArray Graphics;
+    private boolean graphicsDirty = false;
     //specify computer specifications
     private final ComputerConfig computerConfig;
     //value holding last time computer ticked
@@ -264,6 +266,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             return null;
         }
     }
+    public void renderColorGraphics(){graphicsDirty = true;}
 
     //set methods
     public void setBinaryGraphics(BinaryGraphicsArray graphics) {
@@ -310,11 +313,16 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
                 createLibraryAlias("fs", "file system");
             }
             maintainState();
-            if (fs!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON){
+            if (fs!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON)
                 step(delta);
-                for (PlayerEntity p : world.getPlayers()) {
-                    if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) ServerPlayNetworking.send((ServerPlayerEntity) p, new RGBComputerPayload(Graphics));
+            if (graphicsDirty && state == ComputerState.ON && clock%2==0) {
+                ArrayList<PlayerEntity> players = new ArrayList<>();
+                for (PlayerEntity p : world.getPlayers()) if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) players.add(p);
+                if (!players.isEmpty()){
+                    RGBComputerPayload payload = new RGBComputerPayload(getGraphics());
+                    for (PlayerEntity p : players) ServerPlayNetworking.send((ServerPlayerEntity) p, payload);
                 }
+                graphicsDirty = false;
             }
             if (clock%10==0 && doesBinaryGraphics) refreshBinaryGraphics();
             if (clock%30==0) saveNBT();
@@ -361,6 +369,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
         boolean save = false;
+        if (state != ComputerState.ON) graphicsDirty = false;
         if (state != ComputerState.CRASHED && crashMessage != null) {
             crashMessage = null;
             save = true;

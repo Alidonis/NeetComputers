@@ -352,7 +352,7 @@ public class APILoader {
                 try {
                     if (runtime!=null && obj instanceof Exposable exposable){
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
-                        exposable.onCall(runtime.getThread(), method);
+                        exposable.onCall(runtime, method);
                     }
                     long timeStarted = System.currentTimeMillis();
                     Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getThread().getLang())) : null;

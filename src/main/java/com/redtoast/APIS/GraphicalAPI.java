@@ -10,6 +10,7 @@ import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
+import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
@@ -17,6 +18,7 @@ import com.redtoast.simulation.value.VarType;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -82,6 +84,11 @@ public class GraphicalAPI implements Exposable {
         this.runtime = runtime;
 
         this.bufferPixels = GraphicsBuffer.pixels;
+    }
+
+    @Override
+    public void onCall(Runtime runtime, Method method) {
+        this.runtime = runtime;
     }
 
     @Exposed
@@ -226,7 +233,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public void drawLine(@Index int x0, @Index int y0, int x1, int y1,
+    public void drawLine(@Index int x0, @Index int y0, @Index int x1, @Index int y1,
             @Index(strict = true, offset = -1) @Range(range = 256) int R,
             @Index(strict = true, offset = -1) @Range(range = 256) int G,
             @Index(strict = true, offset = -1) @Range(range = 256) int B) {
@@ -784,27 +791,26 @@ public class GraphicalAPI implements Exposable {
 
     public void drawPolygon(BadVector point, int n, int size, BadVector color) {
         startRotationSession(point);
-        double radius = (double) size;
         BadVector[] points = new BadVector[n + 1];
         for (int i = 0; i <= n; i++) {
             int angle = (int) Math.round(360d * (double) i / (double) n);
             angle %= 360;
             if (angle <= 90) {
                 double radian = Math.toRadians(90 - angle);
-                points[i] = new BadVector((int) (Math.cos(radian) * radius),
-                        -(int) (Math.sin(radian) * radius));
+                points[i] = new BadVector((int) (Math.cos(radian) * (double) size),
+                        -(int) (Math.sin(radian) * (double) size));
             } else if (angle <= 180) {
                 double radian = Math.toRadians(angle - 90);
-                points[i] = new BadVector((int) (Math.cos(radian) * radius),
-                        (int) (Math.sin(radian) * radius));
+                points[i] = new BadVector((int) (Math.cos(radian) * (double) size),
+                        (int) (Math.sin(radian) * (double) size));
             } else if (angle <= 270) {
                 double radian = Math.toRadians(angle - 180);
-                points[i] = new BadVector(-(int) (Math.cos(radian) * radius),
-                        (int) (Math.sin(radian) * radius));
+                points[i] = new BadVector(-(int) (Math.cos(radian) * (double) size),
+                        (int) (Math.sin(radian) * (double) size));
             } else {
                 double radian = Math.toRadians(angle - 270);
-                points[i] = new BadVector(-(int) (Math.cos(radian) * radius),
-                        -(int) (Math.sin(radian) * radius));
+                points[i] = new BadVector(-(int) (Math.cos(radian) * (double) size),
+                        -(int) (Math.sin(radian) * (double) size));
             }
         }
         for (int i = 0; i < n; i++) {

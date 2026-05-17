@@ -1,5 +1,6 @@
 package com.redtoast.graphics.screens;
 
+import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.RGBGraphicsArray;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -8,10 +9,9 @@ import net.minecraft.client.util.Window;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import org.joml.Matrix4f;
+import org.joml.Random;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
-
-import static com.mojang.blaze3d.systems.RenderSystem.*;
 
 public class RGBGraphicsScreen extends BoilerplateScreen {
 
@@ -34,9 +34,9 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
 
     public RGBGraphicsScreen(RGBScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
-        Vector2i size = handler.getGraphics().getSize();
+        Vector2i size = handler.getGraphics().size();
         aspectRatio = (double) size.x / size.y;
-        this.size = handler.getGraphics().getSize();
+        this.size = handler.getGraphics().size();
         lastWindowSize = new Vector2i();
         adjustBounding();
     }
@@ -87,9 +87,9 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         double screenWidth = screenPos2.x - screenPos1.x;
         double screenHeight = screenPos2.y - screenPos1.y;
 
-        RGBGraphicsArray graphics = handler.getGraphics();
-        int logicalWidth = graphics.getSize().x;
-        int logicalHeight = graphics.getSize().y;
+        SectoredGraphics graphics = handler.getGraphics();
+        int logicalWidth = graphics.size().x;
+        int logicalHeight = graphics.size().y;
 
         double scaleX = screenWidth / logicalWidth;
         double scaleY = screenHeight / logicalHeight;
@@ -106,9 +106,9 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         double screenWidth = screenPos2.x - screenPos1.x;
         double screenHeight = screenPos2.y - screenPos1.y;
 
-        RGBGraphicsArray graphics = handler.getGraphics();
-        int logicalWidth = graphics.getSize().x;
-        int logicalHeight = graphics.getSize().y;
+        SectoredGraphics graphics = handler.getGraphics();
+        int logicalWidth = graphics.size().x;
+        int logicalHeight = graphics.size().y;
 
         double scaleX = screenWidth / logicalWidth;
         double scaleY = screenHeight / logicalHeight;
@@ -145,38 +145,14 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         renderBackground(context, mouseX, mouseY, delta);
 
         Canvas canvas = Canvas.getCanvas(context);
-        RGBGraphicsArray graphics = handler.getGraphics();
-        Vector2i size = graphics.getSize();
-        int width = size.x;
-        int height = size.y;
+        SectoredGraphics graphics = handler.getGraphics();
 
-        for (int y = 0; y < height; y++) {
-            Integer lastColor = null;
-            Vector2d startPos = null;
-            Vector2d endPos;
-
-            for (int x = 0; x < width; x++) {
-                int currentColor = graphics.get(x, y);
-
-                if (lastColor == null) {
-                    lastColor = currentColor;
-                    startPos = graphicsToScreen(x, y);
-                }
-
-                boolean isLastColumn = (x == width - 1);
-                boolean colorChanged = currentColor != lastColor;
-
-                if (colorChanged || isLastColumn) {
-                    endPos = graphicsToScreen(x + (isLastColumn && !colorChanged ? 1 : 0), y + 1);
-                    canvas.placeRec(startPos.x, startPos.y, endPos.x, endPos.y, lastColor);
-
-                    if (!isLastColumn) {
-                        startPos = graphicsToScreen(x, y);
-                        lastColor = currentColor;
-                    }
-                }
-            }
+        for (SectoredGraphics.Sector sector : graphics) {
+            Vector2d pos1 = graphicsToScreen(sector.x1(), sector.y1());
+            Vector2d pos2 = graphicsToScreen(sector.x2() + 1, sector.y2() + 1);
+            canvas.placeRec(pos1.x, pos1.y, pos2.x, pos2.y, sector.color());
         }
+
         canvas.draw();
     }
 
@@ -189,8 +165,6 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         }
 
         public void placeRec(double x1, double y1, double x2, double y2, int color){
-            color = RGBGraphicsArray.blendPixel(0xFF000000, color | 0xFF000000);
-
             buffer.vertex(matrix, (float) x2, (float) y2, 0).color(color);
             buffer.vertex(matrix, (float) x2, (float) y1, 0).color(color);
             buffer.vertex(matrix, (float) x1, (float) y1, 0).color(color);

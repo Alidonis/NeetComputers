@@ -26,7 +26,7 @@ public class Layer extends GraphicalAPI{
     }
 
     @Override
-    public void onCall(LangThread thread, Method method){
+    public void onCall(Runtime runtime, Method method){
         try{
             if (!memoryTable.containsKey(uuid) && method != getClass().getMethod("isClosed")){
                 throw new ExposedError("Attempted to use closed layer");

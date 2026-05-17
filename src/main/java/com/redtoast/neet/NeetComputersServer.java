@@ -3,6 +3,8 @@ package com.redtoast.neet;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Lua.LuaMaster;
+import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
+import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
@@ -200,6 +202,10 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("simple_display"), group);
 
+		Block colorDisplay = new ColorDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
+		BulkRegistry.register("color_display",colorDisplay, ColorDisplayBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("color_display"), group);
+
 		Block KeyboardBlock = new KeyboardBlock(Block.Settings.create().breakInstantly().sounds(BlockSoundGroup.STONE).pistonBehavior(PistonBehavior.DESTROY).noCollision());
 		BulkRegistry.register("keyboard",KeyboardBlock,KeyboardBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("keyboard"), group);
@@ -221,6 +227,7 @@ public class NeetComputersServer implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(SubmitCommandPayload.ID, SubmitCommandPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ReturnMessagePayload.ID, ReturnMessagePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ColorDisplayGraphicsPayload.ID, ColorDisplayGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RGBComputerPayload.ID, RGBComputerPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PipeBufferPayload.ID, PipeBufferPayload.CODEC);
 

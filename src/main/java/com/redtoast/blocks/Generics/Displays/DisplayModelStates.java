@@ -1,6 +1,6 @@
-package com.redtoast.blocks.SimpleDisplay;
+package com.redtoast.blocks.Generics.Displays;
 
-public enum SimpleDisplayModels {
+public enum DisplayModelStates {
     BASE,
     HLEFTTHIN,
     HRIGHTTHIN,
