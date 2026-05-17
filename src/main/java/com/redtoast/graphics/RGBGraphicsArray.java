@@ -25,6 +25,29 @@ public class RGBGraphicsArray {
         }
     }
 
+    public void substituteColor(int targetColor, int substituteColor, boolean ignoreAlpha, boolean matchAlpha) {
+        int noAlphaMask = 0x00FFFFFF;
+        int onlyAlphaMask = 0xFF000000;
+        for (int y = 0; y < sizey; y++) {
+            for (int x = 0; x < sizex; x++) {
+                int color = pixels[y][x];
+                if (!ignoreAlpha) {
+                    if (color == targetColor) {
+                        pixels[y][x] = substituteColor;
+                    }
+                } else {
+                    if ((color & noAlphaMask) == (targetColor & noAlphaMask)) {
+                        if (matchAlpha) {
+                            pixels[y][x] = (substituteColor&noAlphaMask) | (color & onlyAlphaMask);
+                        } else {
+                            pixels[y][x] = substituteColor;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void makeOpaque() {
         for (int y = 0; y < sizey; y++) {
             for (int x = 0; x < sizex; x++) {
