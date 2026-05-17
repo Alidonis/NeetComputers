@@ -1,5 +1,6 @@
 package com.redtoast;
 
+import com.redtoast.Compat.ComputerWrapper;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
@@ -89,6 +90,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private boolean graphicsDirty = false;
     //specify computer specifications
     private final ComputerConfig computerConfig;
+    //list of cc computer accesses to remove later if needed (computer breaks, etc) (CC COMPAT)
+    public final ArrayList<ComputerWrapper> computerAccesses;
     //value holding last time computer ticked
     private long tickTime;
     //tells the computer to shut down at the end of a tick cycle
@@ -129,6 +132,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         doesBinaryGraphics = computerConfig.doesBinaryGraphics();
         BinGraphics = computerConfig.doesBinaryGraphics() ? new BinaryGraphicsArray(computerConfig.BinaryGraphicsSize().x(), computerConfig.BinaryGraphicsSize().y()) : null;
         tickTime = System.currentTimeMillis();
+        this.computerAccesses = new ArrayList<>();
     }
 
     //Generics load function all other load functions call after implementing data

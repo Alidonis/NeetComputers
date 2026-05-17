@@ -20,6 +20,11 @@ public class ComputerWrapper implements IComputerAccess {
     public ComputerWrapper(Computer computer, IPeripheral peripheral){
         this.computer = computer;
         this.peripheral = peripheral;
+        computer.computerAccesses.add(this); //add to computer's internal list so computers can detach properly
+    }
+
+    public IPeripheral getPeripheral() {
+        return this.peripheral;
     }
 
     @Override

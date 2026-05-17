@@ -1,6 +1,7 @@
 package com.redtoast.blocks.Generics;
 
 import com.redtoast.APIS.ProjectorAPI;
+import com.redtoast.Compat.ComputerWrapper;
 import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
 import com.redtoast.ComputerState;
@@ -20,6 +21,7 @@ import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
+import dan200.computercraft.api.peripheral.IComputerAccess;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -185,6 +187,16 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
                 }
                 world.setBlockState(blockPos, current.with(DesktopBlockComputer.STATE, computerBlock.computer.getStatus().ordinal()), Block.NOTIFY_ALL);
+            }
+        }
+    }
+
+    @Override
+    public void markRemoved() {
+        this.removed = true;
+        if ((boolean) ConfigLoader.getServerConfig("experimental-compatibility")) {
+            for (ComputerWrapper computerAccess : computer.computerAccesses) {
+                computerAccess.getPeripheral().detach(computerAccess); //detach computers from peripherals properly
             }
         }
     }
