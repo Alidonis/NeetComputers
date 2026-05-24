@@ -139,7 +139,7 @@ public class KeyboardBlock extends Block implements BlockEntityProvider {
                 state = state.getWallVariant();
             }
         }
-        if (ctx.getPlayer().isSneaking()) state = state.getDownVariant();
+        if (!ctx.getPlayer().isSneaking()) state = state.getDownVariant();
         return super.getPlacementState(ctx).with(MODEL, state);
     }
 
