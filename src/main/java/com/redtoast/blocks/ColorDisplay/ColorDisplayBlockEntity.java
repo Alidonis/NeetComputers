@@ -117,7 +117,6 @@ public class ColorDisplayBlockEntity extends BlockEntity implements PeripheralPr
     public void setSlave(BlockPos masterPos){
         leader = false;
         getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(ColorDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
-        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(ColorDisplayBlock.SCALE, 1), Block.NOTIFY_ALL);
         assert world != null;
         this.masterPos = masterPos;
         graphics = null;
@@ -134,7 +133,6 @@ public class ColorDisplayBlockEntity extends BlockEntity implements PeripheralPr
         if (leader && size.equals(this.size)) return;
         leader = true;
         getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(ColorDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
-        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(ColorDisplayBlock.SCALE, size.y()), Block.NOTIFY_ALL);
         this.size = size;
         uuid = UUID.randomUUID();
         graphics = new RGBGraphicsArray((size.x * 16 - 4) * pixelDensity, (size.y * 16 - 4) * pixelDensity);

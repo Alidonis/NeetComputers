@@ -149,7 +149,6 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
     public void setSlave(BlockPos masterPos){
         leader = false;
         getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
-        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.SCALE, 1), Block.NOTIFY_ALL);
         assert world != null;
         this.masterPos = masterPos;
         graphics = null;
@@ -166,7 +165,6 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
         if (leader && size.equals(this.size)) return;
         leader = true;
         getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.LEADER, leader), Block.NOTIFY_ALL);
-        getWorld().setBlockState(getPos(), getWorld().getBlockState(getPos()).with(SimpleDisplayBlock.SCALE, size.y()), Block.NOTIFY_ALL);
         this.size = size;
         uuid = UUID.randomUUID();
         graphics = new BinaryGraphicsArray(size.x*16-4, size.y*16-4);

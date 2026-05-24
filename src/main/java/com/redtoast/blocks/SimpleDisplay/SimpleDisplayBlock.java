@@ -33,12 +33,11 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final IntProperty STATE = IntProperty.of("state",0, 15);
     public static final BooleanProperty LEADER = BooleanProperty.of("leader");
-    public static final IntProperty SCALE = IntProperty.of("scale",1, 256);
     public static final BooleanProperty GROUP = BooleanProperty.of("group");
 
     public SimpleDisplayBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(STATE, 0).with(SCALE, 1).with(FACING, Direction.NORTH).with(LEADER, true).with(GROUP, false));
+        setDefaultState(getDefaultState().with(STATE, 0).with(FACING, Direction.NORTH).with(LEADER, true).with(GROUP, false));
     }
 
     @Override
@@ -78,6 +77,6 @@ public class SimpleDisplayBlock extends HorizontalFacingBlock implements BlockEn
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(STATE, Properties.HORIZONTAL_FACING, LEADER, SCALE, GROUP);
+        builder.add(STATE, Properties.HORIZONTAL_FACING, LEADER, GROUP);
     }
 }

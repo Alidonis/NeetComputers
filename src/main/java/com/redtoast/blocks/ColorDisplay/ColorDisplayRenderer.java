@@ -27,7 +27,7 @@ public class ColorDisplayRenderer extends PipeSourceBlockRenderer<ColorDisplayBl
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-facing.asRotation()));
         matrices.translate(-0.5, -0.5, -0.5);
         matrices.scale(1f / 16, 1f / 16, 1f / 16);
-        matrices.translate(2,18 - entity.getWorld().getBlockState(entity.getPos()).get(ColorDisplayBlock.SCALE) * 16,15);
+        matrices.translate(2,2,15);
         matrices.scale(1f / ColorDisplayBlockEntity.pixelDensity, 1f / ColorDisplayBlockEntity.pixelDensity, 1);
 
         RenderLayer layer = RenderLayer.getCutout();

@@ -54,16 +54,16 @@ public class ConnectionMapping {
         return validPositions.contains(position) && !filter.contains(position);
     }
 
-    private record Selection(Vector2i masterPoint, LinkedList<Vector2i> points, Vector2i size){}
+    private record Selection(Vector2i topPoint, Vector2i masterPoint, LinkedList<Vector2i> points, Vector2i size){}
 
-    private void findMesh(Vector2i masterPoint, int YFloor) {
+    private void findMesh(Vector2i topPoint, int YFloor) {
         int sizeX = 0;
         LinkedList<Vector2i> rectangle = new LinkedList<>();
-        for (int x = masterPoint.x; x <= maxX; x++) {
+        for (int x = topPoint.x; x <= maxX; x++) {
             LinkedList<Vector2i> thisPass = new LinkedList<>();
-            for (int y = masterPoint.y; y >= YFloor; y--) {
+            for (int y = topPoint.y; y >= YFloor; y--) {
                 if (!pointValid(new Vector2i(x, y))){
-                    selections.add(new Selection(masterPoint, rectangle, new Vector2i(sizeX, Math.abs(masterPoint.y-YFloor)+1)));
+                    selections.add(new Selection(topPoint, new Vector2i(topPoint.x(), YFloor), rectangle, new Vector2i(sizeX, Math.abs(topPoint.y-YFloor)+1)));
                     return;
                 }
                 thisPass.add(new Vector2i(x, y));
@@ -72,7 +72,7 @@ public class ConnectionMapping {
             rectangle.addAll(thisPass);
             filter.addAll(thisPass);
         }
-        selections.add(new Selection(masterPoint, rectangle, new Vector2i(sizeX, Math.abs(masterPoint.y-YFloor)+1)));
+        selections.add(new Selection(topPoint, new Vector2i(topPoint.x(), YFloor), rectangle, new Vector2i(sizeX, Math.abs(topPoint.y-YFloor)+1)));
     }
 
     public void start() {
@@ -113,7 +113,7 @@ public class ConnectionMapping {
                     }else{
                         access.setSlave(masterPos);
                     }
-                    access.calculateModel(selection.size, point.sub(selection.masterPoint).absolute());
+                    access.calculateModel(selection.size, point.sub(selection.topPoint()).absolute());
                 }
             }
         }
