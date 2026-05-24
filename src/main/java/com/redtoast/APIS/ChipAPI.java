@@ -17,9 +17,15 @@ public class ChipAPI implements API {
     }
 
     @Exposed
-    public int getTime(){
-        return (int) System.currentTimeMillis();
+    public double getUnixTime(){
+        return System.currentTimeMillis() / 1000d;
     }
+
+    @Exposed
+    public double getTime(){return computer.getTimeExecuted() / 1000d;}
+
+    @Exposed
+    public int getLunarTime(){return computer.getLunarTime();}
 
     @Exposed
     public String getUUID(){

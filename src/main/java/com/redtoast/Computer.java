@@ -85,6 +85,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private final boolean doesBinaryGraphics;
     //increments every tick, loops back at 100
     private short clock = 0;
+    private int timeExecuted = 0;
     //object representing colored graphics (gui)
     private final RGBGraphicsArray Graphics;
     private boolean graphicsDirty = false;
@@ -124,6 +125,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
      * @return Object or null
      */
     public abstract @Nullable Object getParentEntity();
+
+    public abstract int getLunarTime();
 
     //constructor
     public Computer(ComputerConfig computerConfig){
@@ -252,6 +255,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     }
     public int getAddress(){return fs.pointer;}
     public UUID getUuid() {return uuid;}
+    public int getTimeExecuted() {return state==ComputerState.ON ? timeExecuted : 0;}
     public ComputerConfig getConfiguration(){
         return computerConfig;
     }
@@ -337,6 +341,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //steps the runtime forward (tick with less protection)
     public void step(short delta){
+        timeExecuted += delta;
         ProcessManager.queComputerTick(this);
     }
 
@@ -373,7 +378,10 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
         boolean save = false;
-        if (state != ComputerState.ON) graphicsDirty = false;
+        if (!(state == ComputerState.ON || state == ComputerState.PAUSED)) {
+            graphicsDirty = false;
+            timeExecuted = 0;
+        }
         if (state != ComputerState.CRASHED && crashMessage != null) {
             crashMessage = null;
             save = true;

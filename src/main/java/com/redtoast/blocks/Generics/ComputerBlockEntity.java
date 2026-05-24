@@ -93,6 +93,11 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             public Object getParentEntity() {
                 return be;
             }
+
+            @Override
+            public int getLunarTime() {
+                return getWorld() == null ? 0 : (int) getWorld().getLunarTime();
+            }
         };
         computer.setLibrary("projector", new ProjectorAPI(computer));
         computer.createLibraryAlias("display", "projector");
