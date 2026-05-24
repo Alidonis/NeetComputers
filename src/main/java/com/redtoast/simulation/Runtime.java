@@ -117,7 +117,6 @@ public abstract class Runtime {
             if (thread.isAlive()) {
                 inTick=true;
                 if (parent.isCrashed()) return;
-                parent.getEventManager().update();
                 thread.tick();
                 inTick=false;
                 if (!thread.isAlive()) {
