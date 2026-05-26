@@ -166,11 +166,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         manager = globalManager;
 
         //remove unwanted base libs
-        Table debug = APILoader.TableizeAPI(new DebugWrapper(LuaDebug, this), globalManager.getParent());
-        Varargs debugArgs = lua52.fromValue(debug.asValue());
-        assert debugArgs instanceof LuaValue;
         super.set("package", LuaValue.NIL);
-        //super.set("debug", (LuaValue) debugArgs);
         super.set("file",LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
         super.set("_VERSION", LuaValue.NIL);
