@@ -13,7 +13,7 @@ public class CryptoAPI implements API {
 
     RSA rsaInstance;
     AES aesInstance;
-
+    LuaCryptoSecureRNG rngInstance;
     LuaCryptoBase64 base64Instance;
 
     public CryptoAPI(Computer parent) {
@@ -36,6 +36,7 @@ public class CryptoAPI implements API {
         } catch (Exception e) {
             aesInstance = null;
         }
+        rngInstance = new LuaCryptoSecureRNG();
         base64Instance = new LuaCryptoBase64();
     }
 
@@ -43,8 +44,8 @@ public class CryptoAPI implements API {
     public Table postProcessing(Table self) {
         self.put("RSA", APILoader.TableizeAPI(rsaInstance, vm).asValue());
         self.put("AES", APILoader.TableizeAPI(aesInstance, vm).asValue());
-        self.put("Hash", "TODO: Hashing instance");
-        self.put("SecureRNG", "TODO: Secure randomisation instance");
+        //self.put("Hash", "TODO: Hashing instance");
+        self.put("SecureRNG", APILoader.TableizeAPI(rngInstance, vm).asValue());
         self.put("Base64", APILoader.TableizeAPI(base64Instance, vm).asValue());
         return self;
     }
