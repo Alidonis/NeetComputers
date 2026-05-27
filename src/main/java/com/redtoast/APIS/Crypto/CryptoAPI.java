@@ -5,12 +5,16 @@ import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.value.ValueTypes.Table;
+import org.luaj.vm2.Lua;
 
 public class CryptoAPI implements API {
     Computer computer;
     Runtime vm;
 
     RSA rsaInstance;
+    AES aesInstance;
+
+    LuaCryptoBase64 base64Instance;
 
     public CryptoAPI(Computer parent) {
         computer = parent;
@@ -27,14 +31,21 @@ public class CryptoAPI implements API {
         } catch (Exception e) {
             rsaInstance = null;
         }
+        try {
+            aesInstance = new AES(computer);
+        } catch (Exception e) {
+            aesInstance = null;
+        }
+        base64Instance = new LuaCryptoBase64();
     }
 
     @Override
     public Table postProcessing(Table self) {
         self.put("RSA", APILoader.TableizeAPI(rsaInstance, vm).asValue());
-        self.put("AES", "TODO: AES instance");
+        self.put("AES", APILoader.TableizeAPI(aesInstance, vm).asValue());
         self.put("Hash", "TODO: Hashing instance");
         self.put("SecureRNG", "TODO: Secure randomisation instance");
+        self.put("Base64", APILoader.TableizeAPI(base64Instance, vm).asValue());
         return self;
     }
 
