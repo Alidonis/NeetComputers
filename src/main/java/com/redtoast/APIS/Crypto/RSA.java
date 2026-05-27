@@ -32,7 +32,7 @@ public class RSA implements Exposable {
 
     @Exposed
     public Tuple GenerateKeyPair() {
-        KeyPairGenerator generator = null;
+        KeyPairGenerator generator;
         try {
             generator = KeyPairGenerator.getInstance("RSA");
         } catch (NoSuchAlgorithmException e) {
@@ -85,7 +85,7 @@ public class RSA implements Exposable {
     }
     @Exposed
     public String Decrypt(String PrivateKey, String data) {
-        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte[] dataBytes = Base64.getDecoder().decode(data);
         byte[] privateKeyBytes = Base64.getDecoder().decode(PrivateKey);
         Cipher rsaCipher;
         try {
@@ -101,7 +101,7 @@ public class RSA implements Exposable {
         }
 
         try {
-            rsaCipher.init(Cipher.ENCRYPT_MODE, privateKeyInstance);
+            rsaCipher.init(Cipher.DECRYPT_MODE, privateKeyInstance);
         } catch (InvalidKeyException e) {
             return null;
         }
@@ -114,5 +114,69 @@ public class RSA implements Exposable {
         }
 
         return Base64.getEncoder().encodeToString(dataDecrypted);
+    }
+    @Exposed
+    public String Sign(String PrivateKey, String data) {
+        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte[] privateKeyBytes = Base64.getDecoder().decode(PrivateKey);
+        Signature rsaSigner;
+        try {
+            rsaSigner = Signature.getInstance("SHA256withRSA");
+        } catch (Exception e) {
+            return null;
+        }
+        PrivateKey privateKeyInstance;
+        try {
+            privateKeyInstance = keyFactoryRSA.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
+        } catch (InvalidKeySpecException e) {
+            return null;
+        }
+        try {
+            rsaSigner.initSign(privateKeyInstance);
+        } catch (InvalidKeyException e) {
+            return null;
+        }
+        try {
+            rsaSigner.update(dataBytes);
+        } catch (SignatureException e) {
+            return null;
+        }
+        try {
+            return Base64.getEncoder().encodeToString(rsaSigner.sign());
+        } catch (SignatureException e) {
+            return null;
+        }
+    }
+    @Exposed
+    public boolean Verify(String PublicKey, String data, String signature) {
+        byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        byte[] publicKeyBytes = Base64.getDecoder().decode(PublicKey);
+        Signature rsaSigner;
+        try {
+            rsaSigner = Signature.getInstance("SHA256withRSA");
+        } catch (Exception e) {
+            return false;
+        }
+        PublicKey publicKeyInstance;
+        try {
+            publicKeyInstance = keyFactoryRSA.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+        } catch (InvalidKeySpecException e) {
+            return false;
+        }
+        try {
+            rsaSigner.initVerify(publicKeyInstance);
+        } catch (InvalidKeyException e) {
+            return false;
+        }
+        try {
+            rsaSigner.update(dataBytes);
+        } catch (SignatureException e) {
+            return false;
+        }
+        try {
+            return rsaSigner.verify(Base64.getDecoder().decode(signature));
+        } catch (SignatureException e) {
+            return false;
+        }
     }
 }

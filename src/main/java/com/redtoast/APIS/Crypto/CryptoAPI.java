@@ -33,6 +33,8 @@ public class CryptoAPI implements API {
     public Table postProcessing(Table self) {
         self.put("RSA", APILoader.TableizeAPI(rsaInstance, vm).asValue());
         self.put("AES", "TODO: AES instance");
+        self.put("Hash", "TODO: Hashing instance");
+        self.put("SecureRNG", "TODO: Secure randomisation instance");
         return self;
     }
 
