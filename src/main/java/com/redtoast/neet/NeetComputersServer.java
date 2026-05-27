@@ -1,5 +1,6 @@
 package com.redtoast.neet;
 
+import com.redtoast.APIS.Crypto.CryptoAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Lua.LuaMaster;
@@ -304,6 +305,10 @@ public class NeetComputersServer implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {return new EventAPI(computer);}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {return new CryptoAPI(computer);}
 		});
     }
 
