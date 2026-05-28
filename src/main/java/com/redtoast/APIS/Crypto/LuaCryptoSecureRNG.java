@@ -2,6 +2,7 @@ package com.redtoast.APIS.Crypto;
 
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
+import com.redtoast.simulation.base.ExposedError;
 
 import java.security.SecureRandom;
 
@@ -24,6 +25,8 @@ public class LuaCryptoSecureRNG implements Exposable {
     public double GetRandomBetween(double min, double max) {
         if (max == Double.MAX_VALUE)
             return new SecureRandom().nextDouble(min, max);
+        if (min > max)
+            throw new ExposedError("Minimum value greater than maximum");
         return new SecureRandom().nextDouble(min, max + 1);
     }
 }
