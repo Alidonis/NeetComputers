@@ -1,29 +1,24 @@
 package com.redtoast.APIS.Crypto;
 
-import com.redtoast.Computer;
-import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
+import com.redtoast.simulation.base.ExposedError;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
 public class AES implements Exposable {
-    Computer computer;
-    Runtime vm;
     static final String algorithm = "AES/GCM/NoPadding";
 
-    public AES(Computer parent) throws NoSuchAlgorithmException {
-        computer = parent;
-        vm = computer.getRuntime();
+    public AES() {
+
     }
     @Exposed
-    public static String generateIv() {
+    public String GenerateIv() {
         byte[] iv = new byte[12];
         new SecureRandom().nextBytes(iv);
         return Base64.getEncoder().encodeToString(iv);
@@ -31,11 +26,11 @@ public class AES implements Exposable {
 
     @Exposed
     public String GenerateKey() {
-        KeyGenerator keyGenerator = null;
+        KeyGenerator keyGenerator;
         try {
             keyGenerator = KeyGenerator.getInstance("AES");
         } catch (NoSuchAlgorithmException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         keyGenerator.init(256);
         SecretKey key = keyGenerator.generateKey();
@@ -45,35 +40,26 @@ public class AES implements Exposable {
     public String Encrypt(String SecretKey, String IV, String data) {
         Cipher cipher;
         SecretKey key;
-        SecretKeyFactory keyFactory;
-        try {
-            keyFactory = SecretKeyFactory.getInstance("AES");
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        }
-        try {
-            key = keyFactory.generateSecret(new SecretKeySpec(Base64.getDecoder().decode(SecretKey), "AES"));
-        } catch (InvalidKeySpecException e) {
-            return null;
-        }
+
+        key = new SecretKeySpec(Base64.getDecoder().decode(SecretKey), "AES");
 
         try {
             cipher = Cipher.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (NoSuchPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         try {
             cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, Base64.getDecoder().decode(IV)));
         } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         byte[] cipherText;
         try {
             cipherText = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         return Base64.getEncoder().encodeToString(cipherText);
     }
@@ -81,35 +67,26 @@ public class AES implements Exposable {
     public String Decrypt(String SecretKey, String IV, String data) {
         Cipher cipher;
         SecretKey key;
-        SecretKeyFactory keyFactory;
-        try {
-            keyFactory = SecretKeyFactory.getInstance("AES");
-        } catch (NoSuchAlgorithmException e) {
-            return null;
-        }
-        try {
-            key = keyFactory.generateSecret(new SecretKeySpec(Base64.getDecoder().decode(SecretKey), "AES"));
-        } catch (InvalidKeySpecException e) {
-            return null;
-        }
+
+        key = new SecretKeySpec(Base64.getDecoder().decode(SecretKey), "AES");
 
         try {
             cipher = Cipher.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (NoSuchPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         try {
             cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, Base64.getDecoder().decode(IV)));
         } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         byte[] cipherText;
         try {
             cipherText = cipher.doFinal(Base64.getDecoder().decode(data));
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         return new String(cipherText, StandardCharsets.UTF_8);
     }

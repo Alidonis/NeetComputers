@@ -1,9 +1,8 @@
 package com.redtoast.APIS.Crypto;
 
-import com.redtoast.Computer;
-import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 
@@ -18,15 +17,9 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class RSA implements Exposable {
-    Computer computer;
-    Runtime vm;
-
     KeyFactory keyFactoryRSA;
 
-    public RSA(Computer parent) throws NoSuchAlgorithmException {
-        computer = parent;
-        vm = computer.getRuntime();
-
+    public RSA() throws NoSuchAlgorithmException {
         keyFactoryRSA = KeyFactory.getInstance("RSA");
     }
 
@@ -36,7 +29,7 @@ public class RSA implements Exposable {
         try {
             generator = KeyPairGenerator.getInstance("RSA");
         } catch (NoSuchAlgorithmException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         generator.initialize(2048);
         KeyPair keyPair = generator.generateKeyPair();
@@ -59,26 +52,26 @@ public class RSA implements Exposable {
         try {
             rsaCipher = Cipher.getInstance("RSA");
         } catch (Exception e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         Key publicKeyInstance;
         try {
             publicKeyInstance = keyFactoryRSA.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
         } catch (InvalidKeySpecException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
 
         try {
             rsaCipher.init(Cipher.ENCRYPT_MODE, publicKeyInstance);
         } catch (InvalidKeyException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         byte[] dataEncrypted;
 
         try {
             dataEncrypted = rsaCipher.doFinal(dataBytes);
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
 
         return Base64.getEncoder().encodeToString(dataEncrypted);
@@ -91,26 +84,26 @@ public class RSA implements Exposable {
         try {
             rsaCipher = Cipher.getInstance("RSA");
         } catch (Exception e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         Key privateKeyInstance;
         try {
             privateKeyInstance = keyFactoryRSA.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
         } catch (InvalidKeySpecException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
 
         try {
             rsaCipher.init(Cipher.DECRYPT_MODE, privateKeyInstance);
         } catch (InvalidKeyException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         byte[] dataDecrypted;
 
         try {
             dataDecrypted = rsaCipher.doFinal(dataBytes);
         } catch (IllegalBlockSizeException | BadPaddingException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
 
         return Base64.getEncoder().encodeToString(dataDecrypted);
@@ -123,28 +116,28 @@ public class RSA implements Exposable {
         try {
             rsaSigner = Signature.getInstance("SHA256withRSA");
         } catch (Exception e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         PrivateKey privateKeyInstance;
         try {
             privateKeyInstance = keyFactoryRSA.generatePrivate(new PKCS8EncodedKeySpec(privateKeyBytes));
         } catch (InvalidKeySpecException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.initSign(privateKeyInstance);
         } catch (InvalidKeyException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.update(dataBytes);
         } catch (SignatureException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         try {
             return Base64.getEncoder().encodeToString(rsaSigner.sign());
         } catch (SignatureException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
     }
     @Exposed
@@ -155,28 +148,28 @@ public class RSA implements Exposable {
         try {
             rsaSigner = Signature.getInstance("SHA256withRSA");
         } catch (Exception e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         PublicKey publicKeyInstance;
         try {
             publicKeyInstance = keyFactoryRSA.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
         } catch (InvalidKeySpecException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.initVerify(publicKeyInstance);
         } catch (InvalidKeyException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.update(dataBytes);
         } catch (SignatureException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             return rsaSigner.verify(Base64.getDecoder().decode(signature));
         } catch (SignatureException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
     }
 }

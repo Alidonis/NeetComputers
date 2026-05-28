@@ -27,15 +27,11 @@ public class CryptoAPI implements API {
         * nonexistent anyway.
         */
         try {
-            rsaInstance = new RSA(computer);
+            rsaInstance = new RSA();
         } catch (Exception e) {
             rsaInstance = null;
         }
-        try {
-            aesInstance = new AES(computer);
-        } catch (Exception e) {
-            aesInstance = null;
-        }
+        aesInstance = new AES();
         hashInstance = new LuaCryptoHashing();
         rngInstance = new LuaCryptoSecureRNG();
         base64Instance = new LuaCryptoBase64();
