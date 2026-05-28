@@ -78,6 +78,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private FileSystem fs = null;
     //object that handles the computers events
     private final EventManager eventManager = new EventManager();
+    //object that handles incoming and outgoing internet traffic
+    private final InternetManager internetManager = new InternetManager(eventManager);
     //object representing the systems build
     private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
@@ -246,6 +248,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public FileSystem getFs() {return fs;}
     public EventManager getEventManager() {return eventManager;}
+    public InternetManager getInternetManager() {return internetManager;}
     public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
@@ -323,6 +326,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             maintainState();
             if (fs!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON)
                 step(delta);
+            if (state == ComputerState.ON)
+                internetManager.progress(delta / 1000d);
             if (graphicsDirty && state == ComputerState.ON && clock%2==0) {
                 ArrayList<PlayerEntity> players = new ArrayList<>();
                 for (PlayerEntity p : world.getPlayers()) if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this) players.add(p);
@@ -396,6 +401,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             }
 
             Graphics.clear();
+            internetManager.reset();
             eventManager.reset();
 
             runtime = new Runtime(this) {
@@ -423,6 +429,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             }
 
             Graphics.clear();
+            internetManager.reset();
             eventManager.reset();
             save = true;
         }
@@ -430,6 +437,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             if (!runtime.isDead() && runtime.isInTick()){
                 killFlag = true;
             }else{
+                internetManager.reset();
                 eventManager.reset();
                 runtime=null;
                 save = true;

@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class APILoader {
     private final Runtime ParentRuntime;
     public static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
-    private static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
+    public static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
     private static final Hashtable<Class<? extends Exposable>, LoaderCache> cache = new Hashtable<>();
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
 

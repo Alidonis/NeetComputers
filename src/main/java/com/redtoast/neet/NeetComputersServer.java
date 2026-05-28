@@ -81,9 +81,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class NeetComputersServer implements ModInitializer {
@@ -309,6 +307,10 @@ public class NeetComputersServer implements ModInitializer {
 		APILoader.register(new APIRegistry() {
 			@Override
 			public @NotNull API Create(Computer computer) {return new CryptoAPI(computer);}
+		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {return new InternetAPI(computer);}
 		});
     }
 

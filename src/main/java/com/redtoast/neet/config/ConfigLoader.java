@@ -12,7 +12,11 @@ public class ConfigLoader {
             new IntegerConfigOption(1, "processing-threads"),
             new BooleanConfigOption(false, "experimental-compatibility"),
             new BooleanConfigOption(false, "print-to-console"),
-            new BooleanConfigOption(true, "shift-click-to-clear-displays")
+            new BooleanConfigOption(true, "shift-click-to-clear-displays"),
+            new BooleanConfigOption(true, "allow-internet-access"),
+            new RateConfigOption(4000, "internet-rate-limit"),
+            new IntegerConfigOption(15, "internet-outgoing-buffer-size"),
+            new IntegerConfigOption(5, "internet-max-sockets")
     });
     private static final ConfigurationTable clientConfigurationTable = new ConfigurationTable(new ConfigOption[]{
             new BooleanConfigOption(true, "computers-emit-light")
@@ -50,6 +54,14 @@ public class ConfigLoader {
                         processing-threads = 1
                         #allows the default core print function to echo to the game console, meant for debugging
                         print-to-console = false
+                        #allows computers to connect to the internet
+                        allow-internet-access = true
+                        #internet rate limit per second, 0 disables the limit (in bytes not bits)
+                        internet-rate-limit = 4kb
+                        #amount of requests a computer can have in buffer at once
+                        internet-outgoing-buffer-size = 15
+                        #amount of sockets that can be live on a computer at once
+                        internet-max-sockets = 5
                         #allows experimental compatibility features
                         experimental-compatibility = false
                         """);
