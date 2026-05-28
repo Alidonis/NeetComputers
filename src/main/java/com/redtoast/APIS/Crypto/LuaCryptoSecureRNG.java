@@ -2,11 +2,8 @@ package com.redtoast.APIS.Crypto;
 
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
-import com.redtoast.simulation.value.ValueTypes.Table;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Base64;
 
 public class LuaCryptoSecureRNG implements Exposable {
     @Exposed
@@ -23,6 +20,6 @@ public class LuaCryptoSecureRNG implements Exposable {
     }
     @Exposed
     public int GetRandomBetween(int min, int max) {
-        return new SecureRandom().nextInt(min, max);
+        return new SecureRandom().nextInt(min, max + 1);
     }
 }
