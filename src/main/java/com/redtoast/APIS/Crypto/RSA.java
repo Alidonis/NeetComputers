@@ -148,28 +148,28 @@ public class RSA implements Exposable {
         try {
             rsaSigner = Signature.getInstance("SHA256withRSA");
         } catch (Exception e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         PublicKey publicKeyInstance;
         try {
             publicKeyInstance = keyFactoryRSA.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
         } catch (InvalidKeySpecException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.initVerify(publicKeyInstance);
         } catch (InvalidKeyException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             rsaSigner.update(dataBytes);
         } catch (SignatureException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
         try {
             return rsaSigner.verify(Base64.getDecoder().decode(signature));
         } catch (SignatureException e) {
-            return false;
+            throw new ExposedError(e.getMessage());
         }
     }
 }
