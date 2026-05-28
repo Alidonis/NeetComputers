@@ -25,8 +25,8 @@ public class LuaCryptoSecureRNG implements Exposable {
     public double GetRandomBetween(double min, double max) {
         if (max == Double.MAX_VALUE)
             return new SecureRandom().nextDouble(min, max);
-        if (min > max)
-            throw new ExposedError("Minimum value greater than maximum");
+        if (min >= max)
+            throw new ExposedError("Minimum value greater or equal to maximum");
         return new SecureRandom().nextDouble(min, max + 1);
     }
 }
