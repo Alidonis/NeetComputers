@@ -10,7 +10,6 @@ import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
@@ -21,7 +20,6 @@ import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
-import dan200.computercraft.api.peripheral.IComputerAccess;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -201,7 +199,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         this.removed = true;
         if ((boolean) ConfigLoader.getServerConfig("experimental-compatibility")) {
             for (ComputerWrapper computerAccess : computer.computerAccesses) {
-                computerAccess.getPeripheral().detach(computerAccess); //detach computers from peripherals properly
+                computerAccess.removeSelf(); //detach computers from peripherals properly
             }
         }
     }

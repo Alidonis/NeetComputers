@@ -72,4 +72,8 @@ public class ComputerWrapper implements IComputerAccess {
     public WorkMonitor getMainThreadMonitor() {
         return null;
     }
+
+    public void removeSelf(){
+        getPeripheral().detach(this);
+    }
 }
