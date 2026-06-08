@@ -45,9 +45,7 @@ public class AES implements Exposable {
 
         try {
             cipher = Cipher.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new ExposedError(e.getMessage());
         }
         try {
@@ -72,9 +70,7 @@ public class AES implements Exposable {
 
         try {
             cipher = Cipher.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new ExposedError(e.getMessage());
         }
         try {

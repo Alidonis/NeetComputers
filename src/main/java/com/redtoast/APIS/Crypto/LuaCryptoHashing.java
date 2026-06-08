@@ -2,6 +2,7 @@ package com.redtoast.APIS.Crypto;
 
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
+import com.redtoast.simulation.base.ExposedError;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,7 +22,7 @@ public class LuaCryptoHashing implements Exposable {
         try {
             digest = MessageDigest.getInstance(digestAlgorithm);
         } catch (NoSuchAlgorithmException e) {
-            return null;
+            throw new ExposedError(e.getMessage());
         }
         byte[] encodedhash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
         return LuaCryptoUtils.bytesToHex(encodedhash);
