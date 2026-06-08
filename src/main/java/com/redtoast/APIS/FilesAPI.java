@@ -249,8 +249,9 @@ public class FilesAPI implements API {
         if (disk==0) {
             return false;
         }
+        boolean buffer = diskSystem.isBootable();
         diskSystem.removeBootability();
-        return true;
+        return buffer;
     }
 
     @Override
