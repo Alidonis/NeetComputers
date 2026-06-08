@@ -1,22 +1,23 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
-import com.redtoast.simulation.FS.FileSystem;
-import com.redtoast.simulation.FS.Filepath;
+import com.redtoast.simulation.FS.DiskSystem;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-public class OverlyingFilepath implements Filepath {
+public class LayeredFilepath implements Filepath {
     private Filepath mainFilepath;
     private Filepath layoverFilepath;
-    private FileSystem fs;
-    public OverlyingFilepath(Filepath mainFilepath, Filepath layoverFilepath, FileSystem fs) {
+    private DiskSystem fs;
+    public LayeredFilepath(Filepath mainFilepath, Filepath layoverFilepath, DiskSystem fs) {
         this.layoverFilepath = layoverFilepath;
         this.mainFilepath = mainFilepath;
         this.fs = fs;
-        if (mainFilepath.exists()) fs.build.blacklist.remove(getPath());
+        if (mainFilepath.exists()) {
+            fs.blacklist.remove(getPath());
+            fs.saveBlacklist();
+        }
     }
 
     @Override
@@ -47,7 +48,7 @@ public class OverlyingFilepath implements Filepath {
     @Override
     public boolean exists() {
         if (isInvalid()) return false;
-        if (fs.build.blacklist.contains(getPath())) return false;
+        if (fs.blacklist.contains(getPath())) return false;
         return layoverFilepath.exists() || mainFilepath.exists();
     }
 
@@ -69,7 +70,8 @@ public class OverlyingFilepath implements Filepath {
     @Override
     public boolean createNewFile() throws IOException {
         if (exists()) return false;
-        fs.build.blacklist.remove(getPath());
+        fs.blacklist.remove(getPath());
+        fs.saveBlacklist();
         return mainFilepath.createNewFile();
     }
 
@@ -128,12 +130,13 @@ public class OverlyingFilepath implements Filepath {
     @Override
     public boolean delete() throws IOException {
         if (isInvalid()) throw new IOException("Invalid file path");
-        if (fs.build.blacklist.contains(getPath())) return false;
+        if (fs.blacklist.contains(getPath())) return false;
         if (mainFilepath.exists()) {
             boolean check = mainFilepath.delete();
             if (!check) return false;
         }
-        fs.build.blacklist.add(getPath());
+        fs.blacklist.add(getPath());
+        fs.saveBlacklist();
         return true;
     }
 
@@ -142,7 +145,7 @@ public class OverlyingFilepath implements Filepath {
         if (!mainFilepath.exists()) return layoverFilepath.listFiles();
         LinkedList<Filepath> files = new LinkedList<>(Arrays.asList(layoverFilepath.listFiles()));
         for (Filepath file : mainFilepath.listFiles()){
-            if (!files.contains(file) && !fs.build.blacklist.contains(file.getPath())) files.add(file);
+            if (!files.contains(file) && !fs.blacklist.contains(file.getPath())) files.add(file);
         }
         return files.toArray(new Filepath[]{});
     }

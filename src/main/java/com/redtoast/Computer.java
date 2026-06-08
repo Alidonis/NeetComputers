@@ -12,9 +12,9 @@ import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.ProcessManager;
 import com.redtoast.simulation.*;
-import com.redtoast.simulation.FS.FileSystem;
-import com.redtoast.simulation.FS.builder.SystemBuild;
-import com.redtoast.simulation.FS.builder.SystemPreset;
+import com.redtoast.simulation.FS.ComputerFileSystem;
+import com.redtoast.simulation.FS.DiskError;
+import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.config.ComputerConfig;
@@ -57,11 +57,9 @@ import java.util.*;
  * @see ComputerConfig
  * @see Runtime
  * @see GlobalManager
- * @see FileSystem
+ * @see DiskSystem
  */
 public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProvider {
-    //logger used for debugging
-    private static final Logger debug = LoggerFactory.getLogger("NeetComputers:debug-computerInst");
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
     //pointer for the folder that contains this computer's files
@@ -74,13 +72,11 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
     //object representing the computers file interpreter
-    private FileSystem fs = null;
+    private ComputerFileSystem fileSystem = null;
     //object that handles the computers events
     private final EventManager eventManager = new EventManager();
     //object that handles incoming and outgoing internet traffic
     private final InternetManager internetManager = new InternetManager(eventManager);
-    //object representing the systems build
-    private SystemBuild build = null;
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
     private final boolean doesBinaryGraphics;
@@ -159,12 +155,6 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             }else{
                 uuid = UUID.randomUUID();
             }
-            if (nbt.contains("build")){
-                build = new SystemBuild(nbt.getCompound("build"));
-            }else{
-                build = new SystemBuild(SystemPreset.NEETOS);
-                debug.warn("Failed to load computer build [address: {}]", pointer);
-            }
             if (nbt.contains("crashMessage") && state == ComputerState.CRASHED) crashMessage = nbt.getString("crashMessage");
             load();
         }
@@ -175,7 +165,6 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             pointer = dataComponent.address();
             state = dataComponent.isOn() ? ComputerState.ON : ComputerState.OFF;
             uuid = dataComponent.id();
-            build = dataComponent.build();
             load();
         }
     }
@@ -187,7 +176,6 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             IDFactory.PointerIteration++;
             pointer = IDFactory.PointerIteration;
             state = ComputerState.OFF;
-            build = new SystemBuild(SystemPreset.NEETOS);
             load();
         }
     }
@@ -196,7 +184,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
      * starts referring to building a new Runtime instance and marking its state as on
      */
     public void start(){
-        if (loaded && fs!=null && (state == ComputerState.OFF || state == ComputerState.PAUSED)){
+        if (loaded && fileSystem!=null && (state == ComputerState.OFF || state == ComputerState.PAUSED)){
             state = ComputerState.ON;
             maintainState();
         }
@@ -204,7 +192,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //marks computer as off and overrides the runtime with null
     public void stop(){
-        if (loaded && fs!=null && state != ComputerState.OFF){
+        if (loaded && state != ComputerState.OFF){
             state = ComputerState.OFF;
             maintainState();
         }
@@ -212,7 +200,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //marks computer as off and overrides the runtime with null
     public void pause(){
-        if (loaded && fs!=null && state != ComputerState.PAUSED){
+        if (loaded && fileSystem!=null && state != ComputerState.PAUSED){
             state = ComputerState.PAUSED;
             maintainState();
         }
@@ -220,7 +208,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
 
     //sets the computer to a crashed state
     public void crash(String message){
-        if (loaded && fs!=null && state != ComputerState.CRASHED){
+        if (loaded && state != ComputerState.CRASHED){
             state = ComputerState.CRASHED;
             if (runtime==null || runtime.isDead()){
                 crashMessage = message;
@@ -245,36 +233,29 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public String getCrashMessage(){return isCrashed() ? crashMessage : null;}
     public boolean isLoaded(){return loaded;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
-    public FileSystem getFs() {return fs;}
+    public DiskSystem getHomeDiskSystem() {return fileSystem.getHomeDisk();}
+    public ComputerFileSystem getFileSystem() {return fileSystem;}
     public EventManager getEventManager() {return eventManager;}
     public InternetManager getInternetManager() {return internetManager;}
-    public SystemBuild getBuild() {return build;}
     public RGBGraphicsArray getGraphics() {
         return Graphics;
     }
     public @Nullable Runtime getRuntime() {
         return runtime;
     }
-    public int getAddress(){return fs.pointer;}
     public UUID getUuid() {return uuid;}
     public int getTimeExecuted() {return state==ComputerState.ON ? timeExecuted : 0;}
     public ComputerConfig getConfiguration(){
         return computerConfig;
     }
-
     public ComputerState getStatus(){
         return state;
     }
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
-        if (!doesBinaryGraphics) return null;
-        return BinGraphics;
+        return !doesBinaryGraphics ? null : BinGraphics;
     }
     public @Nullable GlobalManager getGlobals(){
-        if (runtime!=null && !runtime.isDead()){
-            return runtime.getGlobals();
-        }else{
-            return null;
-        }
+        return runtime != null && !runtime.isDead() ? runtime.getGlobals() : null;
     }
     public void renderColorGraphics(){graphicsDirty = true;}
 
@@ -316,15 +297,18 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         short delta = (short) (System.currentTimeMillis() - tickTime);
         tickTime = System.currentTimeMillis();
         if (loaded){
-            if (NeetComputersServer.worldPath!=null && fs==null && build!=null){
-                fs = new FileSystem(build, pointer, this);
-                setLibrary("file system", fs);
-                createLibraryAlias("filesystem", "file system");
-                createLibraryAlias("fs", "file system");
+            if (NeetComputersServer.worldPath!=null && fileSystem==null){
+                try {
+                    fileSystem = new ComputerFileSystem(pointer, getUuid());
+                }catch (DiskError e) {
+                    crash("Failed to load file system: "+e.getMessage());
+                }
             }
             maintainState();
-            if (fs!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON)
+            if (fileSystem!=null && runtime!=null && !runtime.isDead() && state == ComputerState.ON) {
                 step(delta);
+                fileSystem.update();
+            }
             if (state == ComputerState.ON)
                 internetManager.progress(delta / 1000d);
             if (graphicsDirty && state == ComputerState.ON && clock%2==0) {
@@ -363,7 +347,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putShort("State", (short) state.ordinal());
-        if (build!=null) nbt.put("build", build.save());
+//        if (build!=null) nbt.put("build", build.save());
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         if (isCrashed() && crashMessage!=null) nbt.putString("crashMessage", crashMessage);
         return nbt;
@@ -374,8 +358,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         return new ComputerDataComponent(
                 pointer,
                 isOn(),
-                uuid,
-                build
+                uuid
         );
     }
 
@@ -390,7 +373,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             crashMessage = null;
             save = true;
         }
-        if (state == ComputerState.ON && runtime==null && fs!=null) {
+        if (state == ComputerState.ON && runtime==null && fileSystem!=null) {
             if (doesBinaryGraphics){
                 for (int x = 0; x < BinGraphics.getSize().x; x++){
                     for (int y = 0; y < BinGraphics.getSize().y; y++){
@@ -446,6 +429,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             crashMessage = "Unknown error [No Message Provided]";
             save = true;
         }
+        if (fileSystem!=null) fileSystem.update();
         if (save) saveNBT();
     }
 }

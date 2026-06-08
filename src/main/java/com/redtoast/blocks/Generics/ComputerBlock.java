@@ -65,9 +65,6 @@ public abstract class ComputerBlock extends HorizontalFacingBlock implements Blo
             BlockEntity be = world.getBlockEntity(pos);
             if (be instanceof ComputerBlockEntity computer) {
                 computer.AssignPointers(world, itemStack);
-                if (computer.getComputer().getBuild().entrypoint.isEmpty() || computer.getComputer().getBuild().partitions.isEmpty()){
-
-                }
             }
         }
     }

@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 /**
  * represents the code execution of a computer, and ticks on the computer ticking thread
  */
@@ -19,7 +17,7 @@ public abstract class Runtime {
 
     //resources
     private final GlobalManager globalManager;
-    private final FileSpace fs;
+    private final ComputerFileSystem fs;
     private final Computer parent;
     private LangThread thread = null;
 
@@ -29,7 +27,7 @@ public abstract class Runtime {
 
     public Runtime(Computer Parent){
         globalManager = new GlobalManager(this);
-        fs = Parent.getFs();
+        fs = Parent.getFileSystem();
         parent = Parent;
     }
 
@@ -50,7 +48,7 @@ public abstract class Runtime {
     /**
         Fetch this runtime's file access
      */
-    public FileSpace getFileSpace(){
+    public ComputerFileSystem getFileSpace(){
         return fs;
     }
 
@@ -65,35 +63,23 @@ public abstract class Runtime {
      * Creates the runtimes initial thread, automatically ran by computer parent class
      */
     public void load(){
-        assert fs instanceof BootableFilespace;
-        BootableFilespace bootableFilespace = (BootableFilespace) fs;
-        try {
-            boolean canBoot = bootableFilespace.canBoot();
-            if (!canBoot){
-                debug.warn("Computer refused to boot");
-                kill=true;
+        DiskSystem diskSystem = fs.getHomeDisk();
+        try{
+            thread = diskSystem.getLanguage().createThread(diskSystem.getEntrypoint().readAll(), this, parent, parent.getConfiguration());
+            if (!thread.isAlive()) {
+                if (thread.getErrorMessage()==null) {
+                    parent.stop();
+                }else{
+                    parent.crash(thread.getErrorMessage());
+                }
             }
-            BootableFilespace.BootPath bootPath = bootableFilespace.fetchBootPath();
-            try{
-                if (!NeetComputersServer.hasLanguage(bootPath.language().getVersion())){
-                    return;
-                }
-                LanguageGeneric langObject = NeetComputersServer.getLanguage(bootPath.language().getVersion());
-                assert langObject != null;
-                thread = langObject.createThread(bootPath.entryPoint().readAll(), this, parent, parent.getConfiguration());
-                if (!thread.isAlive()) {
-                    if (thread.getErrorMessage()==null) {
-                        parent.stop();
-                    }else{
-                        parent.crash(thread.getErrorMessage());
-                    }
-                }
-            }catch (Throwable e){
+        }catch (Throwable e){
+            if (e instanceof DiskError){
+                parent.crash(e.getMessage());
+            }else{
                 APILoader.printJavaError(e);
-                kill=true;
+                parent.crash("Unknown failure during boot (check logs)");
             }
-        }catch (IOException ioException){
-            debug.warn("Computer failed to boot ({})", ioException.getMessage());
             kill=true;
         }
     }

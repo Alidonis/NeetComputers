@@ -1,6 +1,5 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
-import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.FS.FileHelper;
 
 import java.io.IOException;
@@ -23,7 +22,7 @@ public class NullFilepath implements Filepath {
 
     @Override
     public boolean isAbsolute() {
-        return FileHelper.isAbsulute(path);
+        return FileHelper.isAbsolute(path);
     }
 
     @Override

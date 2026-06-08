@@ -1,9 +1,9 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
-import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.FS.FileHelper;
-import com.redtoast.simulation.FS.FileSystem;
+import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.FS.Partition;
+import org.apache.commons.io.FileUtils;
 
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -17,13 +17,13 @@ public class RealFilepath implements Filepath {
     private final Path root;
     private final String path;
     private final String relPath;
-    private final FileSystem fs;
+    private final DiskSystem fs;
     private boolean invalid = false;
 
-    public RealFilepath(Path Root, String Path, FileSystem system){
+    public RealFilepath(Path Root, String Path, DiskSystem system){
         root = Root;
         path = FileHelper.normalize(Path);
-        relPath = FileHelper.deAbsulutize(path).replace('\\','/').substring(1);
+        relPath = FileHelper.deAbsolutize(path).replace('\\','/').substring(1);
         invalid = !FileHelper.validatePathStatic(path);
         if (!invalid){
             Path spath = root.resolve(relPath).normalize();
@@ -56,7 +56,7 @@ public class RealFilepath implements Filepath {
 
     @Override
     public boolean isAbsolute() {
-        return FileHelper.isAbsulute(path);
+        return FileHelper.isAbsolute(path);
     }
 
     @Override
@@ -197,7 +197,7 @@ public class RealFilepath implements Filepath {
         if (!exists()) return false;
         if (!canWrite()) return false;
         Path spath = root.resolve(relPath);
-        return Files.deleteIfExists(spath);
+        return FileUtils.deleteQuietly(spath.toFile());
     }
 
     @Override

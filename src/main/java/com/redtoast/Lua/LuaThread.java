@@ -53,7 +53,7 @@ public class LuaThread extends LangThread {
 
     @Override
     public String getLang() {
-        return "Lua 5.2";
+        return "Lua";
     }
 
     @Override
@@ -73,7 +73,7 @@ public class LuaThread extends LangThread {
                 log("LuaThread has ran to completion!");
             } else {
                 kill(result.arg(2).toString());
-                error("Lua 5.2 threw " + result.arg(2).toString());
+                error("Lua threw " + result.arg(2).toString());
             }
             kill();
         }

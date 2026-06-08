@@ -44,7 +44,7 @@ public class ParameterRule {
         if (runtime==null){
             return index;
         }else{
-            return index + (Objects.requireNonNull(runtime.getThread()).getLang().equals("Lua 5.2") ? 1 : 0);
+            return index + (Objects.requireNonNull(runtime.getThread()).getLang().equals("Lua") ? 1 : 0);
         }
     }
 

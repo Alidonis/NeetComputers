@@ -44,7 +44,7 @@ public class ComputerWrapper implements IComputerAccess {
 
     @Override
     public int getID() {
-        return ~computer.getAddress();
+        return computer.getUuid().hashCode();
     }
 
     @Override

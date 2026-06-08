@@ -9,8 +9,8 @@ import com.redtoast.simulation.config.ComputerConfig;
 
 public class LuaMaster implements LanguageGeneric {
     @Override
-    public String getVersion() {
-        return "Lua 5.2";
+    public String getName() {
+        return "Lua";
     }
 
     @Override

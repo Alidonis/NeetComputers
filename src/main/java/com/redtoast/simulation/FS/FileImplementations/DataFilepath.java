@@ -1,9 +1,8 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
 import com.redtoast.neet.NeetComputersServer;
-import com.redtoast.simulation.FS.Filepath;
 import com.redtoast.simulation.FS.FileHelper;
-import com.redtoast.simulation.FS.FileSystem;
+import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.FS.Partition;
 import net.minecraft.util.Identifier;
 
@@ -16,13 +15,13 @@ public class DataFilepath implements Filepath {
     private final int pointer;
     private final String path;
     private String relPath;
-    private final FileSystem fs;
+    private final DiskSystem fs;
     private final boolean invalid;
 
-    public DataFilepath(int Pointer, String Path, FileSystem system) {
+    public DataFilepath(int Pointer, String Path, DiskSystem system) {
         pointer = Pointer;
         path = FileHelper.normalize(Path);
-        relPath = FileHelper.deAbsulutize(path).replace('\\', '/');
+        relPath = FileHelper.deAbsolutize(path).replace('\\', '/');
         if (relPath.endsWith("/")) {
             relPath = relPath.substring(0, relPath.length() - 1);
         }
@@ -43,7 +42,7 @@ public class DataFilepath implements Filepath {
 
     @Override
     public boolean isAbsolute() {
-        return FileHelper.isAbsulute(path);
+        return FileHelper.isAbsolute(path);
     }
 
     @Override
@@ -60,7 +59,7 @@ public class DataFilepath implements Filepath {
     public boolean exists() {
         if (isInvalid())
             return false;
-        if (fs.build.blacklist.contains(getPath()))
+        if (fs.blacklist.contains(getPath()))
             return false;
         return NeetComputersServer.datahandling
                 .getResource(Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).isPresent();
@@ -208,7 +207,7 @@ public class DataFilepath implements Filepath {
         NeetComputersServer.datahandling.findResources("hard_addresses/" + -pointer + relPath, arg -> {
             String gpath = arg.toString().split(spath)[1];
             String name = gpath.split("/")[0];
-            if (!filepaths.contains(finalJpath + name) && !fs.build.blacklist.contains(finalJpath + name)) {
+            if (!filepaths.contains(finalJpath + name) && !fs.blacklist.contains(finalJpath + name)) {
                 filepaths.add(finalJpath + name);
             }
             return true;

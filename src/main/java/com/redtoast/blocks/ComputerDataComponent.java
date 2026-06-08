@@ -2,7 +2,6 @@ package com.redtoast.blocks;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.redtoast.simulation.FS.builder.SystemBuild;
 import net.minecraft.component.ComponentType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
@@ -10,21 +9,19 @@ import net.minecraft.nbt.NbtIo;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.Optional;
 import java.util.UUID;
 
-public record ComputerDataComponent(int address, boolean isOn, UUID id, SystemBuild build) {
+public record ComputerDataComponent(int address, boolean isOn, UUID id) {
     private static final ByteBuffer empty = serialize(new NbtCompound());
     public static final Codec<ComputerDataComponent> CODEC = RecordCodecBuilder.create(builder -> builder.group(
             Codec.INT.fieldOf("address").forGetter(ComputerDataComponent::address),
             Codec.BOOL.fieldOf("isOn").forGetter(ComputerDataComponent::isOn),
-            Codec.STRING.fieldOf("id").forGetter(ComputerDataComponent::getId),
-            Codec.BYTE_BUFFER.fieldOf("build").forGetter(ComputerDataComponent::getBuild)
+            Codec.STRING.fieldOf("id").forGetter(ComputerDataComponent::getId)
     ).apply(builder, ComputerDataComponent::reconstruct));
     public static ComponentType<ComputerDataComponent> TYPE;
 
-    public static ComputerDataComponent reconstruct(int address, boolean isOn, String idSerial, ByteBuffer build){
-        return new ComputerDataComponent(address, isOn, UUID.fromString(idSerial), new SystemBuild(deserialize(build)));
+    public static ComputerDataComponent reconstruct(int address, boolean isOn, String idSerial){
+        return new ComputerDataComponent(address, isOn, UUID.fromString(idSerial));
     }
 
     private String getId(){
@@ -59,9 +56,5 @@ public record ComputerDataComponent(int address, boolean isOn, UUID id, SystemBu
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private ByteBuffer getBuild(){
-        return serialize(build.save());
     }
 }

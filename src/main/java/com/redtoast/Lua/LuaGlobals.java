@@ -5,18 +5,18 @@ import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
-import com.redtoast.simulation.FS.FileSpace;
-import com.redtoast.simulation.FS.Filepath;
+import com.redtoast.simulation.FS.DiskSystem;
+import com.redtoast.simulation.FS.FileImplementations.Filepath;
 import com.redtoast.simulation.GlobalManager;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.GlobalGeneric;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
-import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.compiler.LuaC;
@@ -43,9 +43,9 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     private final Hashtable<Value, Value> queue = new Hashtable<>();
 
     private static class NeoFinder implements ResourceFinder{
-        private final FileSpace fs;
+        private final DiskSystem fs;
         private int cursor = 0;
-        public NeoFinder(FileSpace fs){
+        public NeoFinder(DiskSystem fs){
             this.fs = fs;
         }
         @Override
@@ -76,9 +76,9 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
     private static class LuaRequire extends Function{
         private final LuaFunction require;
-        private final FileSpace fs;
+        private final DiskSystem fs;
         private final Computer computer;
-        public LuaRequire(LuaFunction require, FileSpace fs, Runtime runtime){
+        public LuaRequire(LuaFunction require, DiskSystem fs, Runtime runtime){
             super(runtime, "require", new ParameterRules(VarType.STRING));
             this.computer = runtime.getParent();
             this.require = require;
@@ -86,15 +86,18 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
         @Override
         public Value call(FunctionInput parameters) {
+            ParameterCheckReturn ckrn = ParameterRules.checkParameters(parameters.toArray(), new ParameterRules(VarType.STRING), computer.getRuntime());
+            if (ckrn.isError()) return Value.asError(ckrn.getMessage());
             String path = parameters.get(0).toString();
-            assert path != null;
-            if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
+            if (computer.libraryExists(path.toLowerCase())){
+                return APILoader.TableizeAPI(computer.getLibrary(path.toLowerCase()), computer.getRuntime()).asValue();
+            }else if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
                 Filepath filepath = fs.getFile(path+".lua");
                 if (filepath.isInvalid()) throw new ExposedError("Invalid file path");
                 if (!filepath.exists()) throw new ExposedError("No such file");
                 if (!filepath.isFile()) throw new ExposedError("Not a file");
                 if (!filepath.canRead()) throw new ExposedError("Access denied");
-                LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
+                LanguageTranslater translater = NeetComputersServer.getTranslater("Lua");
                 assert translater != null;
                 try{
                     Varargs args = require.call(LuaValue.valueOf(path));
@@ -102,8 +105,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
                 }catch (Throwable ignored){
                     return Value.asError("Failed to load '"+path+".lua'");
                 }
-            }else if (computer.libraryExists(path.toLowerCase())){
-                return APILoader.TableizeAPI(computer.getLibrary(path.toLowerCase()), computer.getRuntime()).asValue();
             }else{
                 return Value.asError("Invalid asset path");
             }
@@ -161,7 +162,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LuaDebug = super.get("debug");
 
         //get lang
-        LanguageTranslater translater = NeetComputersServer.getTranslater("Lua 5.2");
+        LanguageTranslater translater = NeetComputersServer.getTranslater("Lua");
         if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
         manager = globalManager;
 
@@ -172,10 +173,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("_VERSION", LuaValue.NIL);
 
         //load new luaj resource finder
-        super.finder = new NeoFinder(globalManager.getParent().getFileSpace());
+        super.finder = new NeoFinder(globalManager.getParent().getFileSpace().getHomeDisk());
 
         //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().getFileSpace(), manager.getParent()).asValue());
+        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().getFileSpace().getHomeDisk(), manager.getParent()).asValue());
         Varargs NewPrint = lua52.fromValue(new LuaPrint(manager.getParent(), this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
@@ -214,7 +215,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
     @Override
     public String getLang() {
-        return "Lua 5.2";
+        return "Lua";
     }
 
     @Override

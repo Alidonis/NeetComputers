@@ -312,6 +312,10 @@ public class NeetComputersServer implements ModInitializer {
 			@Override
 			public @NotNull API Create(Computer computer) {return new InternetAPI(computer);}
 		});
+		APILoader.register(new APIRegistry() {
+			@Override
+			public @NotNull API Create(Computer computer) {return new FilesAPI(computer);}
+		});
     }
 
 	public static boolean emitLight(){
@@ -368,7 +372,7 @@ public class NeetComputersServer implements ModInitializer {
 
 	public void registerLanguage(LanguageGeneric language){
 		for (LanguageGeneric lang : languageGenerics){
-			if (lang.getVersion().equals(language.getVersion())){
+			if (lang.getName().equals(language.getName())){
 				return;
 			}
 		}
@@ -415,7 +419,7 @@ public class NeetComputersServer implements ModInitializer {
 
 	public static LanguageTranslater getTranslater(String lang){
 		for (int i = 0; i < LanguageCache.length; i++){
-			if (LanguageCache[i].getVersion().equals(lang)){
+			if (LanguageCache[i].getName().equals(lang)){
 				return translators[i];
 			}
 		}
@@ -429,14 +433,14 @@ public class NeetComputersServer implements ModInitializer {
 	public static String[] getLangs(){
 		String[] output = new String[LanguageCache.length];
 		for (int i = 0; i < LanguageCache.length; i++){
-			output[i] = LanguageCache[i].getVersion();
+			output[i] = LanguageCache[i].getName();
 		}
 		return output;
 	}
 
 	public static LanguageGeneric getLanguage(String lang){
 		for (int i = 0; i < LanguageCache.length; i++){
-			if (LanguageCache[i].getVersion().equals(lang)){
+			if (LanguageCache[i].getName().equals(lang)){
 				return LanguageCache[i];
 			}
 		}
@@ -445,7 +449,7 @@ public class NeetComputersServer implements ModInitializer {
 
 	public static boolean hasLanguage(String lang){
 		for (int i = 0; i < LanguageCache.length; i++){
-			if (LanguageCache[i].getVersion().equals(lang)){
+			if (LanguageCache[i].getName().equals(lang)){
 				return true;
 			}
 		}

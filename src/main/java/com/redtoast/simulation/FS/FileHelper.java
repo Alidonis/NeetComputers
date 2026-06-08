@@ -1,12 +1,9 @@
 package com.redtoast.simulation.FS;
 
-import com.redtoast.simulation.FS.FileImplementations.DataFilepath;
-import com.redtoast.simulation.FS.FileImplementations.OverlyingFilepath;
-import com.redtoast.simulation.FS.FileImplementations.NullFilepath;
-import com.redtoast.simulation.FS.FileImplementations.RealFilepath;
+import com.redtoast.simulation.FS.FileImplementations.*;
 
 public class FileHelper {
-    public static Filepath getFile(FileSystem fs, String path){
+    public static Filepath getFile(DiskSystem fs, String path){
         String normalizedPath = normalize(path);
         if (validatePathStatic(normalizedPath)){
             String[] components = normalizedPath.split(":");
@@ -19,7 +16,7 @@ public class FileHelper {
                             return dataFilepath;
                         }else{
                             RealFilepath realFilepath = new RealFilepath(fs.basePath.resolve(components[0]), normalizedPath, fs);
-                            return new OverlyingFilepath(realFilepath, dataFilepath, fs);
+                            return new LayeredFilepath(realFilepath, dataFilepath, fs);
                         }
                     }else{
                         return new RealFilepath(fs.basePath.resolve(components[0]), normalizedPath, fs);
@@ -51,24 +48,19 @@ public class FileHelper {
         while (buffer.indexOf("\\\\")!=-1){
             buffer.replace(buffer.indexOf("\\\\"), buffer.indexOf("\\\\")+2, "\\");
         }
-        if (secs.length==1){
-            buffer.insert(0,':');
-            return buffer.toString();
-        }else{
-            for (int i = 0; i < secs.length-1; i++){
-                buffer.insert(0,':');
-                buffer.insert(0, secs[i]);
-            }
-            return buffer.toString();
+        for (int i = 0; i < secs.length - 1; i++) {
+            buffer.insert(0, ':');
+            buffer.insert(0, secs[i]);
         }
+        return buffer.toString();
     }
 
-    public static String deAbsulutize(String path){
+    public static String deAbsolutize(String path){
         String[] parts = path.split(":");
         return parts[parts.length-1];
     }
 
-    public static boolean isAbsulute(String path){
+    public static boolean isAbsolute(String path){
         String[] parts = path.split(":");
         if (parts.length<2){
             return false;
@@ -89,7 +81,7 @@ public class FileHelper {
                 return false;
             }
         }
-        parts = deAbsulutize(parts[parts.length-1]).split("\\\\");
+        parts = deAbsolutize(parts[parts.length-1]).split("\\\\");
         for (int i = 0; i < parts.length; i++){
             chars = parts[i].toCharArray();
             if (chars.length==0 && i<parts.length-1){
@@ -107,10 +99,8 @@ public class FileHelper {
         return true;
     }
 
-    public static boolean isSourceHardAddress(String source){
-        if (source==null) return false;
-        if (source.isBlank()) return false;
-        return source.charAt(0) == '-';
+    public static boolean isSourceHardAddress(int source){
+        return source < 0;
     }
 
     public static OpeningMode getMode(String mode){

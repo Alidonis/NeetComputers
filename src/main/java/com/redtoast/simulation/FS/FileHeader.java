@@ -1,5 +1,6 @@
 package com.redtoast.simulation.FS;
 
+import com.redtoast.simulation.FS.FileImplementations.Filepath;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
@@ -8,19 +9,18 @@ import com.redtoast.simulation.value.ValueTypes.Bytes;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class FileHeader implements Exposable {
     public final Filepath internal;
     public final OpeningMode mode;
-    public final FileSystem fs;
+    public final DiskSystem fs;
     public boolean canRead;
     public boolean canWrite;
     public boolean open = true;
     public int cursor = 0;
     private byte[] byteBuffer = new byte[0];
 
-    public FileHeader(Filepath filepath, FileSystem fs, OpeningMode mode) {
+    public FileHeader(Filepath filepath, DiskSystem fs, OpeningMode mode) {
         internal = filepath;
         this.mode = mode;
         this.fs = fs;
