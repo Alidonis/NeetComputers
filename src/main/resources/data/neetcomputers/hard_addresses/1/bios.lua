@@ -5,8 +5,8 @@ local success = true
 local drawChar1
 local didWork
 print("if log suppression wasnt enabled in settings this would be in the game console!")
-if require("fs").exists("bios:/font.lua") then
-	local fontFile = require("fs").open("bios:/font.lua","r")
+if files.exists("bios:/font.lua") then
+	local fontFile = files.open("bios:/font.lua","r")
 	local fontDat = fontFile.read("a")
 	fontFile.close()
 	local fontProg = load(fontDat,"font")
