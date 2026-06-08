@@ -92,8 +92,19 @@ public class APILoader {
             for (APIRegistry registry : APIs){
                 if (registry.predicate(computer)){
                     API api = registry.Create(computer);
-                    Function[] function = translateAPI(api, runtime);
-                    loadIntoGlobals(function, api.getLabel());
+                    Function[] functions = translateAPI(api, runtime);
+                    String label = api.getLabel();
+
+                    Table apiTable = new Table();
+                    for (Function func : functions){
+                        if (func.getName()!=null){
+                            apiTable.put(func.getName(), func.asValue());
+                        } else {
+                            throw new LoaderError("Issue encountered loading api '"+label+"': nameless function (try .setName on runtime implemented functions)");
+                        }
+                    }
+                    api.postProcessing(apiTable);
+                    ParentRuntime.getGlobals().put(label, apiTable.asValue());
                 }
             }
         }catch (LoaderError loaderError){

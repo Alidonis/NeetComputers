@@ -6,17 +6,17 @@ import com.redtoast.simulation.base.ExposedError;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.Base64;
 
 public class AES implements Exposable {
     static final String algorithm = "AES/GCM/NoPadding";
 
-    public AES() {
-
-    }
     @Exposed
     public String GenerateIv() {
         byte[] iv = new byte[12];
@@ -36,6 +36,37 @@ public class AES implements Exposable {
         SecretKey key = keyGenerator.generateKey();
         return Base64.getEncoder().encodeToString(key.getEncoded());
     }
+
+    @Exposed
+    public String GenerateSalt() {
+        byte[] iv = new byte[32];
+        new SecureRandom().nextBytes(iv);
+        return Base64.getEncoder().encodeToString(iv);
+    }
+
+    @Exposed
+    public String GenerateKeyFromPassword(String password, String salt) {
+        byte[] saltOut = Base64.getDecoder().decode(salt);
+
+        SecretKeyFactory factory = null;
+        try {
+            factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new ExposedError(e.getMessage());
+        }
+
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), saltOut, 65536, 256);
+
+        SecretKey pbeKey;
+        try {
+            pbeKey = factory.generateSecret(spec);
+        } catch (InvalidKeySpecException e) {
+            throw new ExposedError(e.getMessage());
+        }
+
+        return Base64.getEncoder().encodeToString(pbeKey.getEncoded());
+    }
+
     @Exposed
     public String Encrypt(String SecretKey, String IV, String data) {
         Cipher cipher;
@@ -45,9 +76,7 @@ public class AES implements Exposable {
 
         try {
             cipher = Cipher.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new ExposedError(e.getMessage());
         }
         try {
@@ -72,9 +101,7 @@ public class AES implements Exposable {
 
         try {
             cipher = Cipher.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchPaddingException e) {
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
             throw new ExposedError(e.getMessage());
         }
         try {
