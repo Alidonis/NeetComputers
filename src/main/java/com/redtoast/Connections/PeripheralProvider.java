@@ -1,7 +1,7 @@
 package com.redtoast.Connections;
 
+import com.redtoast.Computer;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,4 +15,6 @@ public interface PeripheralProvider {
     UUID getUuid();
     @Nullable String getTag();
     void setTag(@NotNull String tag);
+    void computerAttached(Computer computer);
+    void computerDetached(Computer computer);
 }

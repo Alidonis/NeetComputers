@@ -207,6 +207,9 @@ public class FilesAPI implements API {
     }
 
     @Exposed
+    public int[] getDisks(){return diskManager.diskNumbers();}
+
+    @Exposed
     public String getDiskID(int disk) {
         DiskSystem diskSystem = getDisk(disk);
         return diskSystem.uuid.toString();

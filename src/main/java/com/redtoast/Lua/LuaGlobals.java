@@ -32,14 +32,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
-    private final LuaFunction LuaRequire;
     private final Logger logger;
-    private static final ParameterRules requireRuleset = new ParameterRules(VarType.STRING);
     public LuaValue LuaDebug;
     protected static LuaTranslater lua52;
     private final UUID uuid;
-    private final GlobalManager manager;
-    private boolean noForwarding = false;
     private final Hashtable<Value, Value> queue = new Hashtable<>();
 
     private static class NeoFinder implements ResourceFinder{
@@ -158,13 +154,12 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().getParent().getUuid()+']');
 
         //fetch built in require object
-        LuaRequire = super.get("require").checkfunction();
+        LuaFunction luaRequire = super.get("require").checkfunction();
         LuaDebug = super.get("debug");
 
         //get lang
         LanguageTranslater translater = NeetComputersServer.getTranslater("Lua");
         if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
-        manager = globalManager;
 
         //remove unwanted base libs
         super.set("package", LuaValue.NIL);
@@ -176,8 +171,8 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.finder = new NeoFinder(globalManager.getParent().getFileSpace().getHomeDisk());
 
         //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(LuaRequire, manager.getParent().getFileSpace().getHomeDisk(), manager.getParent()).asValue());
-        Varargs NewPrint = lua52.fromValue(new LuaPrint(manager.getParent(), this, logger).asValue());
+        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(luaRequire, globalManager.getParent().getFileSpace().getHomeDisk(), globalManager.getParent()).asValue());
+        Varargs NewPrint = lua52.fromValue(new LuaPrint(globalManager.getParent(), this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
         super.set("print", (LuaValue) NewPrint);
@@ -186,7 +181,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         uuid = UUID.randomUUID();
 
         //enable globals connection to GlobalManager
-        manager.register(this);
+        globalManager.register(this);
         push();
     }
 
@@ -204,12 +199,10 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     }
 
     public void push(){
-        noForwarding = true;
         queue.forEach((key, value) -> {
             LuaValue luaKay = (LuaValue) lua52.fromValue(key.pack());
             super.set(luaKay, (LuaValue) lua52.fromValue(value.pack()));
         });
-        noForwarding = false;
         queue.clear();
     }
 

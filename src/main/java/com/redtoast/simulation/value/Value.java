@@ -44,10 +44,6 @@ public class Value<Type> {
      * static Value representation of false
      */
     public final static Value<Boolean> FALSE = Value.of(false);
-    /**
-     * static Value control for yielding a function
-     */
-    public final static Value<ControlType> YIELD = (Value<ControlType>) Value.of(new ControlType());
 
     private final Type value;
     private VarType type = VarType.NULL;
@@ -107,6 +103,7 @@ public class Value<Type> {
         if (value instanceof Short val) return new Value<>((int) (short) val);
         if (value instanceof Character val) return new Value<>(String.valueOf(val));
         if (value instanceof Bytes val) return of(val);
+        if (value instanceof int[] val) return of(val);
         if (value instanceof byte[] val) return of(val);
         if (value instanceof Value[] val) return of(val);
         if (value instanceof java.util.List<?> val) return of(val);

@@ -45,10 +45,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralProvider, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
     private Computer computer;
@@ -170,11 +167,30 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         return new RGBScreenHandler(syncId,graphics,computer);
     }
 
+    public void handlePeripheralScan() {
+        List<PeripheralProvider> scaned = scanForPeripheralsInternal();
+        List<PeripheralProvider> oldProviders = new ArrayList<>(peripheralProviderCache);
+        List<PeripheralProvider> scanBuffer = new ArrayList<>(scaned);
+        for (int i = 0; i < oldProviders.size(); i++) {
+            for (int j = 0; j < scanBuffer.size(); j++) {
+                if (oldProviders.get(i).getUuid().equals(scanBuffer.get(j).getUuid())) {
+                    scanBuffer.remove(j);
+                    oldProviders.remove(i);
+                    i--;
+                    break;
+                }
+            }
+        }
+        for (PeripheralProvider provider : oldProviders) provider.computerDetached(computer);
+        for (PeripheralProvider provider : scanBuffer) provider.computerAttached(computer);
+        peripheralProviderCache = scaned;
+    }
+
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
-                computerBlock.peripheralProviderCache = computerBlock.scanForPeripheralsInternal();
+                if (computerBlock.computer.getFileSystem()!=null) computerBlock.handlePeripheralScan();
                 if (computerBlock.corrupted){
                     BlockState current = world.getBlockState(blockPos);
                     world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
@@ -394,5 +410,15 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void setTag(@NotNull String tag) {
         this.tag = tag.isBlank() ? null : tag.trim();
+    }
+
+    @Override
+    public void computerAttached(Computer computer) {
+
+    }
+
+    @Override
+    public void computerDetached(Computer computer) {
+
     }
 }

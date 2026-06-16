@@ -1,4 +1,6 @@
 {
   "replace": false,
-  "values": ["neetcomputers:large_computer"]
+  "values": ["neetcomputers:large_computer", 
+"neetcomputers:desktop_computer",
+"neetcomputers:office_computer"]
 }

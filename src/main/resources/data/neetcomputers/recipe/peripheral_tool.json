@@ -3,14 +3,17 @@
   "pattern": [
     " R ",
     "RGR",
-    " R "
+    " C "
   ],
   "key": {
     "G": {
-      "item": "minecraft:gold_ingot"
+      "item": "neetcomputers:micro_chip"
     },
     "R": {
       "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
     }
   },
   "result": {

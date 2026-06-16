@@ -1,23 +1,20 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "IC ",
-    "G G",
-    "ICI"
+    " C ",
+    "BBB",
+    "BBB"
   ],
   "key": {
-    "I": {
-      "item": "minecraft:iron_ingot"
+    "B": {
+      "tag": "minecraft:buttons"
     },
     "C": {
       "item": "neetcomputers:micro_chip"
-    },
-    "G": {
-      "item": "minecraft:glass"
     }
   },
   "result": {
-    "id": "neetcomputers:desktop_computer",
+    "id": "neetcomputers:keyboard",
     "count": 1
   }
 }

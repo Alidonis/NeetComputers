@@ -1,16 +1,16 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "GRG",
+    "IGI",
+    "GCG",
     "IGI"
   ],
   "key": {
     "I": {
-      "item": "minecraft:iron_ingot"
+      "item": "minecraft:copper_ingot"
     },
-    "R": {
-      "item": "minecraft:redstone"
+    "C": {
+      "item": "neetcomputers:micro_chip"
     },
     "G": {
       "item": "minecraft:glass"

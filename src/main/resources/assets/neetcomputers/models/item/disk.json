@@ -1,0 +1,12 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "neetcomputers:item/disk"
+    },
+    "overrides": [
+        {
+            "model": "neetcomputers:item/neetos_disk",
+            "predicate": {"neetcomputers:texture" : 1}
+        }
+    ]
+}

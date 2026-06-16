@@ -100,4 +100,14 @@ public class WrappedPeripheral implements PeripheralProvider {
     public void setTag(@NotNull String tag) {
 
     }
+
+    @Override
+    public void computerAttached(Computer computer) {
+
+    }
+
+    @Override
+    public void computerDetached(Computer computer) {
+
+    }
 }

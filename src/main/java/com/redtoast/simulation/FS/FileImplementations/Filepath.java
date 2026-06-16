@@ -11,7 +11,6 @@ public interface Filepath {
     boolean exists();
     boolean isDirectory();
     boolean isFile();
-    boolean isHidden();
     boolean createNewFile() throws IOException;
     String readAll() throws IOException;
     boolean write(byte[] bytes) throws IOException;

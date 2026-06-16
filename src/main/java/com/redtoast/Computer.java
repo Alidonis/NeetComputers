@@ -432,4 +432,10 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         if (fileSystem!=null) fileSystem.update();
         if (save) saveNBT();
     }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof Computer computer) return computer.getUuid().equals(getUuid());
+        return false;
+    }
 }

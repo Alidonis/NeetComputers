@@ -3,7 +3,6 @@ package com.redtoast.simulation.FS.FileImplementations;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.DiskSystem;
-import com.redtoast.simulation.FS.Partition;
 import net.minecraft.util.Identifier;
 
 import java.io.BufferedReader;
@@ -86,17 +85,6 @@ public class DataFilepath implements Filepath {
         if (!exists())
             return false;
         return !isDirectory();
-    }
-
-    @Override
-    public boolean isHidden() {
-        if (invalid)
-            return false;
-        String[] components = path.split(":");
-        Partition partition = fs.getPartition(components[0]);
-        if (partition == null)
-            return false;
-        return partition.hidden();
     }
 
     @Override

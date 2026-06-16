@@ -6,7 +6,8 @@
   "block.neetcomputers.dynamic_light": "Dynamic Light",
   "block.neetcomputers.simple_display": "Simple Display",
   "block.neetcomputers.color_display": "Color Display",
-  "block.neetcomputers.keyboard": "Key board",
+  "block.neetcomputers.keyboard": "Key Board",
+  "block.neetcomputers.drive_bay": "Drive Bay",
   "menu.neetcomputers.tag_field": "tag...",
   "menu.neetcomputers.tag_field_title": "Custom Peripheral Tag",
   "menu.neetcomputers.function_field_title": "Manual Function Input",
@@ -18,5 +19,8 @@
   "item.neetcomputers.peripheral_tool": "Peripheral Config Tool",
   "item.neetcomputers.peripheral_cable": "Peripheral Cable Tool",
   "item.neetcomputers.networking_cable": "Networking Cable Tool",
+  "item.neetcomputers.disk": "Disk",
+  "item.neetcomputers.neetos_disk": "Neet OS Disk",
+  "item.neetcomputers.micro_chip": "Micro Chip",
   "itemGroup.neetcomputers.main_item_group": "Neet Computers"
 }

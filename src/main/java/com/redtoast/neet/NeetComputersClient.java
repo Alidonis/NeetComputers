@@ -6,6 +6,7 @@ import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
+import com.redtoast.blocks.DiskBay.DriveBayBlockEntity;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.blocks.Generics.Displays.PipeSourceBlockRenderer;
@@ -31,8 +32,13 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class NeetComputersClient implements ClientModInitializer {
@@ -53,6 +59,7 @@ public class NeetComputersClient implements ClientModInitializer {
 		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
 		HandledScreens.register(NeetComputersServer.PERIPHERAL_TOOL_SCREEN_HANDLER, PeripheralToolScreen::new);
 		HandledScreens.register(NeetComputersServer.KEYBOARD_SCREEN_HANDLER, KeyboardScreen::new);
+		HandledScreens.register(NeetComputersServer.DRIVE_BAY_SCREEN_HANDLER, DriveBayScreen::new);
 
 		BlockEntityType<LargeEntityComputer> largeType = (BlockEntityType<LargeEntityComputer>) BulkRegistry.fetchBlockEntityType("large_computer");
 		BulkRegistry.register(largeType, LargeComputerRenderer::new);
@@ -68,6 +75,9 @@ public class NeetComputersClient implements ClientModInitializer {
 
 		BlockEntityType<DynamicLightBlockEntity> dynamicLightType = (BlockEntityType<DynamicLightBlockEntity>) BulkRegistry.fetchBlockEntityType("dynamic_light");
 		BulkRegistry.register(dynamicLightType, PipeSourceBlockRenderer::new);
+
+		BlockEntityType<DriveBayBlockEntity> driveBayType = (BlockEntityType<DriveBayBlockEntity>) BulkRegistry.fetchBlockEntityType("drive_bay");
+		BulkRegistry.register(driveBayType, PipeSourceBlockRenderer::new);
 
 		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("simple_display");
 		BulkRegistry.register(simpleDisplayType, SimpleDisplayRenderer::new);

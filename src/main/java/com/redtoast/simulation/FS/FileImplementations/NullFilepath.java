@@ -51,11 +51,6 @@ public class NullFilepath implements Filepath {
     }
 
     @Override
-    public boolean isHidden() {
-        return false;
-    }
-
-    @Override
     public boolean createNewFile() throws IOException {
         throw new IOException("Invalid file path");
     }

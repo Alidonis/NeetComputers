@@ -94,17 +94,6 @@ public class RealFilepath implements Filepath {
     }
 
     @Override
-    public boolean isHidden() {
-        if (invalid) return false;
-        String[] components = path.split(":");
-        Partition partition = fs.getPartition(components[0]);
-        if (partition==null) return false;
-        if (partition.hidden()) return true;
-        Path spath = root.resolve(relPath);
-        return spath.toFile().isHidden();
-    }
-
-    @Override
     public boolean createNewFile() throws IOException {
         if (invalid) throw new IOException("Invalid file path");
         if (!exists()){

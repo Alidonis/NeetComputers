@@ -1,23 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "RIR",
-    "RCR",
-    " R "
+    "IP",
+    "QC"
   ],
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
     },
-    "R": {
-      "item": "minecraft:redstone"
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "P": {
+      "item": "minecraft:paper"
     },
     "C": {
       "item": "neetcomputers:micro_chip"
     }
   },
   "result": {
-    "id": "neetcomputers:peripheral_cable",
+    "id": "neetcomputers:drive_bay",
     "count": 1
   }
 }

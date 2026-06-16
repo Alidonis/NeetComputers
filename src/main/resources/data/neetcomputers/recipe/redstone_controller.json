@@ -1,16 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "RRR",
-    "RIR",
-    "RRR"
+    "RCR",
+    "CIC",
+    "RCR"
   ],
   "key": {
     "I": {
-      "item": "minecraft:iron_ingot"
+      "item": "neetcomputers:micro_chip"
     },
     "R": {
       "item": "minecraft:redstone"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
     }
   },
   "result": {

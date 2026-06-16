@@ -37,7 +37,7 @@ public class EventQueue {
     }
 
     protected EventManager.EventPackage poll() {
-        return execute(queue::removeFirst);
+        return queue.isEmpty() ? null : execute(queue::removeFirst);
     }
 
     protected void clear() {

@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "neetcomputers:disk", 
+    "neetcomputers:neetos_disk"
+  ]
+}

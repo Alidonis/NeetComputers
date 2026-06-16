@@ -1,5 +1,6 @@
 package com.redtoast.blocks.DynamicLight;
 
+import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
@@ -121,6 +122,16 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     @Override
     public void setTag(@NotNull String tag) {
         this.tag = tag.isBlank() ? null : tag.trim();
+    }
+
+    @Override
+    public void computerAttached(Computer computer) {
+
+    }
+
+    @Override
+    public void computerDetached(Computer computer) {
+
     }
 
     @Override

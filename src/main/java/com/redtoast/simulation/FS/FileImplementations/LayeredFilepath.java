@@ -63,11 +63,6 @@ public class LayeredFilepath implements Filepath {
     }
 
     @Override
-    public boolean isHidden() {
-        return layoverFilepath.isHidden();
-    }
-
-    @Override
     public boolean createNewFile() throws IOException {
         if (exists()) return false;
         fs.blacklist.remove(getPath());

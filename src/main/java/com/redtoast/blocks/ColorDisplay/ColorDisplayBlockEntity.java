@@ -1,6 +1,7 @@
 package com.redtoast.blocks.ColorDisplay;
 
 import com.redtoast.APIS.DrawableGraphicalAPI;
+import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
@@ -236,6 +237,16 @@ public class ColorDisplayBlockEntity extends BlockEntity implements PeripheralPr
             return;
         }
         this.tag = tag.isBlank() ? null : tag.trim();
+    }
+
+    @Override
+    public void computerAttached(Computer computer) {
+
+    }
+
+    @Override
+    public void computerDetached(Computer computer) {
+
     }
 
     @Override

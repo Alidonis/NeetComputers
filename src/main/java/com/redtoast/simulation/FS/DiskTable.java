@@ -9,8 +9,8 @@ import java.util.LinkedList;
 
 public class DiskTable {
     public final LinkedList<Partition> partitions = new LinkedList<>();
-    public String entrypoint;
-    public @Nullable LanguageGeneric language;
+    public String entrypoint = null;
+    public @Nullable LanguageGeneric language = null;
 
     public DiskTable(String json) throws DiskError, JsonSyntaxException{
         JsonElement element = JsonParser.parseString(json);
@@ -77,20 +77,22 @@ public class DiskTable {
 
             partitions.add(new Partition(path, readonly, hidden, source));
         }
-        String path = FileHelper.normalize(entrypoint);
-        if (!FileHelper.isAbsolute(path) || !FileHelper.validatePathStatic(path)){
-            throw new DiskError("Build config expected 'entrypoint' <partition path>:<address path>.<file extension>");
-        }
-
-        boolean check = false;
-        String root = path.split(":")[0];
-        for (Partition partition : partitions){
-            if (partition.path().equals(root)) {
-                check = true;
-                break;
+        if (isBootable()) {
+            String path = FileHelper.normalize(entrypoint);
+            if (!FileHelper.isAbsolute(path) || !FileHelper.validatePathStatic(path)){
+                throw new DiskError("Build config expected 'entrypoint' <partition path>:<address path>.<file extension>");
             }
+
+            boolean check = false;
+            String root = path.split(":")[0];
+            for (Partition partition : partitions){
+                if (partition.path().equals(root)) {
+                    check = true;
+                    break;
+                }
+            }
+            if (!check) throw new DiskError("Build config 'entrypoint' doesn't refer to an assigned partition");
         }
-        if (!check) throw new DiskError("Build config 'entrypoint' doesn't refer to an assigned partition");
     }
 
     public String toJson() {

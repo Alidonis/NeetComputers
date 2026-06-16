@@ -1,5 +1,6 @@
 package com.redtoast.neet;
 
+import com.mojang.serialization.Codec;
 import com.redtoast.APIS.Crypto.CryptoAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PipeType;
@@ -9,9 +10,10 @@ import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
+import com.redtoast.blocks.DiskBay.DriveBayBlock;
+import com.redtoast.blocks.DiskBay.DriveBayBlockEntity;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
-import com.redtoast.blocks.Generics.PeripheralBlockEntity;
 import com.redtoast.blocks.Keyboard.KeyboardBlock;
 import com.redtoast.blocks.Keyboard.KeyboardBlockEntity;
 import com.redtoast.blocks.LargeComputer.LargeBlockComputer;
@@ -23,9 +25,8 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlock;
 import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
-import com.redtoast.graphics.screens.KeyboardScreenHandler;
-import com.redtoast.graphics.screens.PeripheralToolScreenHandler;
-import com.redtoast.graphics.screens.RGBScreenHandler;
+import com.redtoast.graphics.screens.*;
+import com.redtoast.items.Disk;
 import com.redtoast.items.PeripheralTool;
 import com.redtoast.items.generics.DisplayPipes;
 import com.redtoast.items.peripheralCable;
@@ -63,6 +64,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -82,7 +84,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class NeetComputersServer implements ModInitializer {
 
@@ -92,16 +93,19 @@ public class NeetComputersServer implements ModInitializer {
 	private static final ExtendedScreenHandlerType<KeyboardScreenHandler, KeyboardScreenHandler.Payload> HANDLER3 = new ExtendedScreenHandlerType<>(KeyboardScreenHandler::new, KeyboardScreenHandler.Payload.CODEC);
 	public static final ScreenHandlerType<RGBScreenHandler> GRAPHICS_SCREEN_HANDLER = BulkRegistry.register("graphics", Registries.SCREEN_HANDLER, HANDLER);
 	public static final ScreenHandlerType<PeripheralToolScreenHandler> PERIPHERAL_TOOL_SCREEN_HANDLER = BulkRegistry.register("peripheral_tool", Registries.SCREEN_HANDLER, HANDLER2);
+	public static final ScreenHandlerType<DriveBayScreenHandler> DRIVE_BAY_SCREEN_HANDLER = BulkRegistry.register("drive_bay", Registries.SCREEN_HANDLER, new ScreenHandlerType<>(DriveBayScreenHandler::new, FeatureSet.empty()));
 	public static final ScreenHandlerType<KeyboardScreenHandler> KEYBOARD_SCREEN_HANDLER = BulkRegistry.register("keyboard", Registries.SCREEN_HANDLER, HANDLER3);
 	public static CableManager cableManager = null;
 	private static MinecraftServer server = null;
+	public static final ComponentType<String> TEMPLATE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "template"), ComponentType.<String>builder().codec(Codec.string(0,15)).build());
+	public static final ComponentType<Integer> POINTER_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "pointer"), ComponentType.<Integer>builder().codec(Codec.INT).build());
+	public static final ComponentType<Boolean> BOOTABLE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "bootable"), ComponentType.<Boolean>builder().codec(Codec.BOOL).build());
 
 	//internal config
 	public static String version = "NeetComputers ";
 
 	//important resources
 	public static final Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
-	public static final ConcurrentLinkedQueue<PeripheralBlockEntity> peripheralUpdateQueue = new ConcurrentLinkedQueue<>();
 	public static ResourceManager datahandling;
 	public static Path worldPath = null;
 	public static Long timeBenchMark = null;
@@ -114,7 +118,6 @@ public class NeetComputersServer implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		peripheralUpdateQueue.clear();
 		BuildData.updateDat();
 		version += BuildData.VERSION;
 
@@ -127,9 +130,6 @@ public class NeetComputersServer implements ModInitializer {
 			if (timeBenchMark!=null && timeBenchMark + 1000 < System.currentTimeMillis()) {
 				updateClientPipes();
 				timeBenchMark = System.currentTimeMillis();
-			}
-			while (!peripheralUpdateQueue.isEmpty()){
-				peripheralUpdateQueue.poll().processEventQueue();
 			}
 		});
 		ServerLifecycleEvents.AFTER_SAVE.register((server,a,b) -> {
@@ -196,6 +196,22 @@ public class NeetComputersServer implements ModInitializer {
 		Block dynamicLight = new DynamicLightBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(BlockSoundGroup.GLASS).luminance(state -> state.get(DynamicLightBlock.LUMINANCE)));
 		BulkRegistry.register("dynamic_light",dynamicLight, DynamicLightBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("dynamic_light"), group);
+
+		Block diskBay = new DriveBayBlock(Block.Settings.create().strength(1.0f).hardness(0.2f).sounds(BlockSoundGroup.METAL));
+		BulkRegistry.register("drive_bay",diskBay, DriveBayBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("drive_bay"), group);
+
+		Item disk = new Disk(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "blank").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, false), "item.neetcomputers.disk");
+		BulkRegistry.register("disk", disk);
+		BulkRegistry.register(disk, group);
+
+		Item neetosdisk = new Disk(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "neetos").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, true), "item.neetcomputers.neetos_disk");
+		BulkRegistry.register("neetos_disk", neetosdisk);
+		BulkRegistry.register(neetosdisk, group);
+
+		Item microChip = new Item(new Item.Settings().maxCount(64));
+		BulkRegistry.register("micro_chip", microChip);
+		BulkRegistry.register(microChip, group);
 
 		Block simpleDisplay = new SimpleDisplayBlock(Block.Settings.create().strength(1.0f).hardness(0.1f).sounds(computerSound).luminance(state -> emitLight() ? 7 : 0));
 		BulkRegistry.register("simple_display",simpleDisplay, SimpleDisplayBlockEntity::new,true);

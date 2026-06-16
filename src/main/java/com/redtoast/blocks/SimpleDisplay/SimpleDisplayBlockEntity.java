@@ -1,6 +1,7 @@
 package com.redtoast.blocks.SimpleDisplay;
 
 import com.redtoast.APIS.ProjectorAPI;
+import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
@@ -225,6 +226,16 @@ public class SimpleDisplayBlockEntity extends BlockEntity implements PeripheralP
             return;
         }
         this.tag = tag.isBlank() ? null : tag.trim();
+    }
+
+    @Override
+    public void computerAttached(Computer computer) {
+
+    }
+
+    @Override
+    public void computerDetached(Computer computer) {
+
     }
 
     public void renderBinaryGraphics(BinaryGraphicsArray graphics){

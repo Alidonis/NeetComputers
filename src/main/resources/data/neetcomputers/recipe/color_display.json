@@ -1,23 +1,23 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "III",
-    "GRG",
+    "IGI",
+    "GCG",
     "IGI"
   ],
   "key": {
     "I": {
       "item": "minecraft:iron_ingot"
     },
-    "R": {
-      "item": "minecraft:glowstone_dust"
+    "C": {
+      "item": "neetcomputers:micro_chip"
     },
     "G": {
       "item": "minecraft:glass"
     }
   },
   "result": {
-    "id": "neetcomputers:simple_display",
+    "id": "neetcomputers:color_display",
     "count": 6
   }
 }

@@ -1,20 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " R ",
-    "RLR",
-    " R "
+    "QR",
+    "R "
   ],
   "key": {
-    "L": {
-      "item": "minecraft:redstone_lamp"
-    },
     "R": {
       "item": "minecraft:redstone"
+    },
+    "Q": {
+      "item": "minecraft:quartz"
     }
   },
   "result": {
-    "id": "neetcomputers:dynamic_light",
-    "count": 3
+    "id": "neetcomputers:disk",
+    "count": 1
   }
 }
