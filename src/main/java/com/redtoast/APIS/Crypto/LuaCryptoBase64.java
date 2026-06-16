@@ -8,11 +8,11 @@ import java.util.Base64;
 
 public class LuaCryptoBase64 implements Exposable {
     @Exposed
-    public String Decode(String data) {
+    public String Encode(String data) {
         return Base64.getEncoder().encodeToString(data.getBytes(StandardCharsets.UTF_8));
     }
     @Exposed
-    public String Encode(String data) {
+    public String Decode(String data) {
         return new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8);
     }
 }

@@ -106,7 +106,7 @@ public class RSA implements Exposable {
             throw new ExposedError(e.getMessage());
         }
 
-        return Base64.getEncoder().encodeToString(dataDecrypted);
+        return new String(dataDecrypted, StandardCharsets.UTF_8);
     }
     @Exposed
     public String Sign(String PrivateKey, String data) {
