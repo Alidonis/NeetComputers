@@ -2,7 +2,7 @@ package com.redtoast.blocks.ColorDisplay;
 
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
-import com.redtoast.blocks.Generics.Displays.ConnectionMapping;
+import com.redtoast.blocks.Generics.Displays.MultiblockDisplayEntity;
 import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.value.Value;
@@ -18,8 +18,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -31,13 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 @PeripheralBlock
 public class ColorDisplayBlock extends HorizontalFacingBlock implements BlockEntityProvider {
-    public static final IntProperty STATE = IntProperty.of("state",0, 15);
-    public static final BooleanProperty LEADER = BooleanProperty.of("leader");
-    public static final BooleanProperty GROUP = BooleanProperty.of("group");
-
     public ColorDisplayBlock(Settings settings) {
         super(settings);
-        setDefaultState(getDefaultState().with(STATE, 0).with(FACING, Direction.NORTH).with(LEADER, true).with(GROUP, false));
+        setDefaultState(getDefaultState().with(MultiblockDisplayEntity.STATE, 0).with(FACING, Direction.NORTH).with(MultiblockDisplayEntity.LEADER, true).with(MultiblockDisplayEntity.GROUP, false));
     }
 
     @Override
@@ -47,8 +41,7 @@ public class ColorDisplayBlock extends HorizontalFacingBlock implements BlockEnt
 
     @Override
     protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        Direction direction = state.get(FACING);
-        new ConnectionMapping(world, pos, direction, 10, 8, (pos2) -> (world.getBlockEntity(pos2) instanceof ColorDisplayBlockEntity && world.getBlockState(pos2).get(ColorDisplayBlock.FACING).equals(direction) && world.getBlockState(pos2).get(ColorDisplayBlock.GROUP).equals(state.get(GROUP)))).start();
+        if (world.getBlockEntity(pos) instanceof MultiblockDisplayEntity multiblockDisplayEntity) multiblockDisplayEntity.reconnect();
         super.neighborUpdate(state, world, pos, sourceBlock, sourcePos, notify);
     }
 
@@ -61,12 +54,12 @@ public class ColorDisplayBlock extends HorizontalFacingBlock implements BlockEnt
 
     @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return super.getPlacementState(ctx).with(Properties.HORIZONTAL_FACING, ctx.getHorizontalPlayerFacing().getOpposite()).with(GROUP, ctx.getPlayer()!=null & ctx.getPlayer().isSneaking());
+        return super.getPlacementState(ctx).with(Properties.HORIZONTAL_FACING, ctx.getHorizontalPlayerFacing().getOpposite()).with(MultiblockDisplayEntity.GROUP, ctx.getPlayer()!=null & ctx.getPlayer().isSneaking());
     }
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
-        return type == BulkRegistry.fetchBlockEntityType("color_display") ? ColorDisplayBlockEntity::tick : null;
+        return type == BulkRegistry.fetchBlockEntityType("color_display") ? MultiblockDisplayEntity::tick : null;
     }
 
     @Nullable
@@ -77,6 +70,6 @@ public class ColorDisplayBlock extends HorizontalFacingBlock implements BlockEnt
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(STATE, Properties.HORIZONTAL_FACING, LEADER, GROUP);
+        builder.add(MultiblockDisplayEntity.STATE, Properties.HORIZONTAL_FACING, MultiblockDisplayEntity.LEADER, MultiblockDisplayEntity.GROUP);
     }
 }
