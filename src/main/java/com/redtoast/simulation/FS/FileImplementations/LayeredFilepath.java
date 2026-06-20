@@ -31,11 +31,6 @@ public class LayeredFilepath implements Filepath {
     }
 
     @Override
-    public boolean isAbsolute() {
-        return layoverFilepath.isAbsolute();
-    }
-
-    @Override
     public boolean canRead() {
         return mainFilepath.exists() ? mainFilepath.canRead() : layoverFilepath.canRead();
     }
@@ -136,24 +131,18 @@ public class LayeredFilepath implements Filepath {
     }
 
     @Override
-    public Filepath[] listFiles() throws IOException {
+    public String[] listFiles() throws IOException {
         if (!mainFilepath.exists()) return layoverFilepath.listFiles();
-        LinkedList<Filepath> files = new LinkedList<>(Arrays.asList(layoverFilepath.listFiles()));
-        for (Filepath file : mainFilepath.listFiles()){
-            if (!files.contains(file) && !fs.blacklist.contains(file.getPath())) files.add(file);
+        LinkedList<String> files = new LinkedList<>(Arrays.asList(layoverFilepath.listFiles()));
+        for (String file : mainFilepath.listFiles()){
+            if (!files.contains(file) && !fs.blacklist.contains(file)) files.add(file);
         }
-        return files.toArray(new Filepath[]{});
+        return files.toArray(new String[]{});
     }
 
     @Override
     public boolean mkdirs() throws IOException {
         return mainFilepath.mkdirs();
-    }
-
-    @Override
-    public boolean renameTo(Filepath dest) throws IOException {
-        if (isInvalid()) throw new IOException("Invalid file path");
-        throw new IOException("Dual File paths (write mode preset partitions) don't support .rename(String dest)");
     }
 
     @Override

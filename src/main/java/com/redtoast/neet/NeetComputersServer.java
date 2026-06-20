@@ -34,6 +34,7 @@ import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
 import com.redtoast.neet.config.ConfigLoader;
+import com.redtoast.simulation.FS.DataNode;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.APIRegistry;
@@ -154,6 +155,7 @@ public class NeetComputersServer implements ModInitializer {
 			@Override
 			public void reload(ResourceManager manager) {
 				datahandling = manager;
+				DataNode.loadData();
 			}
 		});
 

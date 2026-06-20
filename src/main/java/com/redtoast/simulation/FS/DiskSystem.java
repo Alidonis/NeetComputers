@@ -37,7 +37,7 @@ public class DiskSystem {
         if (!buildFile.exists()){
             try {
                 FileWriter writer = new FileWriter(buildFile);
-                BufferedReader reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers", "builds/"+template+".json")).get().getReader();
+                BufferedReader reader = NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers", "neet/builds/"+template+".json")).get().getReader();
                 reader.lines().forEach(str -> {
                     try {
                         writer.write(str);
@@ -214,11 +214,7 @@ public class DiskSystem {
         if (!file.exists()) throw new ExposedError("File does not exist");
         if (!file.isDirectory()) throw new ExposedError("Not a directory");
         try{
-            Filepath[] files = file.listFiles();
-            String[] paths = new String[files.length];
-            for (int i = 0; i < files.length; i++){
-                paths[i] = files[i].getName();
-            }
+            String[] paths = file.listFiles();
             Arrays.sort(paths);
             return new List((Object[]) paths);
         }catch (Exception exception){

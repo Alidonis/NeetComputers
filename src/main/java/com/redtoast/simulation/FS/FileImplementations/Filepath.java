@@ -5,7 +5,6 @@ import java.io.IOException;
 public interface Filepath {
     boolean isInvalid();
     String getName();
-    boolean isAbsolute();
     boolean canRead();
     boolean canWrite();
     boolean exists();
@@ -19,9 +18,8 @@ public interface Filepath {
     boolean writeBinary(byte[] bytes) throws IOException;
     boolean appendBinary(byte[] bytes) throws IOException;
     boolean delete() throws IOException;
-    Filepath[] listFiles() throws IOException;
+    String[] listFiles() throws IOException;
     boolean mkdirs()  throws IOException;
     default boolean mkdir() throws IOException {return mkdirs();}
-    boolean renameTo(Filepath dest)  throws IOException;
     String getPath();
 }

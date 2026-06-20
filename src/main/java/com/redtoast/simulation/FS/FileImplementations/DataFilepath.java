@@ -1,6 +1,7 @@
 package com.redtoast.simulation.FS.FileImplementations;
 
 import com.redtoast.neet.NeetComputersServer;
+import com.redtoast.simulation.FS.DataNode;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.DiskSystem;
 import net.minecraft.util.Identifier;
@@ -16,16 +17,18 @@ public class DataFilepath implements Filepath {
     private String relPath;
     private final DiskSystem fs;
     private final boolean invalid;
+    private final DataNode node;
 
-    public DataFilepath(int Pointer, String Path, DiskSystem system) {
-        pointer = Pointer;
-        path = FileHelper.normalize(Path);
-        relPath = FileHelper.deAbsolutize(path).replace('\\', '/');
+    public DataFilepath(int pointer, String path, DiskSystem system) {
+        this.pointer = pointer;
+        this.path = FileHelper.normalize(path);
+        relPath = FileHelper.deAbsolutize(this.path).replace('\\', '/');
         if (relPath.endsWith("/")) {
             relPath = relPath.substring(0, relPath.length() - 1);
         }
-        invalid = !FileHelper.validatePathStatic(path);
+        invalid = !FileHelper.validatePathStatic(this.path);
         fs = system;
+        node = DataNode.getNode(pointer, relPath);
     }
 
     @Override
@@ -37,11 +40,6 @@ public class DataFilepath implements Filepath {
     public String getName() {
         String[] parts = path.split("\\\\");
         return parts[parts.length - 1];
-    }
-
-    @Override
-    public boolean isAbsolute() {
-        return FileHelper.isAbsolute(path);
     }
 
     @Override
@@ -60,31 +58,21 @@ public class DataFilepath implements Filepath {
             return false;
         if (fs.blacklist.contains(getPath()))
             return false;
-        return NeetComputersServer.datahandling
-                .getResource(Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).isPresent();
+        return node != null;
     }
 
     @Override
     public boolean isDirectory() {
         if (!exists())
             return false;
-        String Spath = "hard_addresses/" + -pointer + relPath;
-        if (!Spath.endsWith("/")) {
-            Spath += "/";
-        }
-        try {
-            NeetComputersServer.datahandling.getResource(Identifier.of("neetcomputers", Spath)).get().getReader();
-            return false;
-        } catch (IOException e) {
-            return true;
-        }
+        return node.isDirectory();
     }
 
     @Override
     public boolean isFile() {
         if (!exists())
             return false;
-        return !isDirectory();
+        return !node.isDirectory();
     }
 
     @Override
@@ -98,27 +86,23 @@ public class DataFilepath implements Filepath {
     public String readAll() throws IOException {
         if (invalid)
             throw new IOException("Invalid file path");
-        if (!isFile())
+        if (!exists() || node.isDirectory())
             return null;
-        if (exists()) {
-            BufferedReader reader = NeetComputersServer.datahandling.getResource(
-                    Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).get().getReader();
+        BufferedReader reader = NeetComputersServer.datahandling.getResource(
+                Identifier.of("neetcomputers", "neet/hard_addresses/" + -pointer + relPath)).get().getReader();
 
-            StringBuilder buffer = new StringBuilder();
-            String line;
-            boolean first = true;
-            while ((line = reader.readLine()) != null) {
-                if (!first) {
-                    buffer.append('\n');
-                }
-                buffer.append(line);
-                first = false;
+        StringBuilder buffer = new StringBuilder();
+        String line;
+        boolean first = true;
+        while ((line = reader.readLine()) != null) {
+            if (!first) {
+                buffer.append('\n');
             }
-            reader.close();
-            return buffer.toString();
-        } else {
-            return null;
+            buffer.append(line);
+            first = false;
         }
+        reader.close();
+        return buffer.toString();
     }
 
     @Override
@@ -139,16 +123,12 @@ public class DataFilepath implements Filepath {
     public byte[] readAllBinary() throws IOException {
         if (invalid)
             throw new IOException("Invalid file path");
-        if (!isFile())
+        if (!exists() || node.isDirectory())
             return null;
-        if (exists()) {
-            InputStream reader = NeetComputersServer.datahandling
-                    .getResource(Identifier.of("neetcomputers", "hard_addresses/" + -pointer + relPath)).get()
-                    .getInputStream();
-            return reader.readAllBytes();
-        } else {
-            return null;
-        }
+        InputStream reader = NeetComputersServer.datahandling
+                .getResource(Identifier.of("neetcomputers", "neet/hard_addresses/" + -pointer + relPath)).get()
+                .getInputStream();
+        return reader.readAllBytes();
     }
 
     @Override
@@ -173,49 +153,16 @@ public class DataFilepath implements Filepath {
     }
 
     @Override
-    public Filepath[] listFiles() throws IOException {
+    public String[] listFiles() throws IOException {
         if (invalid)
             throw new IOException("Invalid file path");
         if (!isDirectory())
             return null;
-        String spath;
-        if (("hard_addresses/" + -pointer + relPath).endsWith("/")) {
-            spath = "hard_addresses/" + -pointer + relPath;
-        } else {
-            spath = "hard_addresses/" + -pointer + relPath + "/";
-        }
-        String jpath = getPath();
-        String[] parts = jpath.split("\\\\");
-        jpath = "";
-        for (String part : parts) {
-            jpath += part + '\\';
-        }
-        LinkedList<String> filepaths = new LinkedList<>();
-        String finalJpath = jpath;
-        NeetComputersServer.datahandling.findResources("hard_addresses/" + -pointer + relPath, arg -> {
-            String gpath = arg.toString().split(spath)[1];
-            String name = gpath.split("/")[0];
-            if (!filepaths.contains(finalJpath + name) && !fs.blacklist.contains(finalJpath + name)) {
-                filepaths.add(finalJpath + name);
-            }
-            return true;
-        });
-        Filepath[] files = new Filepath[filepaths.size()];
-        for (int i = 0; i < files.length; i++) {
-            files[i] = fs.getFile(filepaths.get(i));
-        }
-        return files;
+        return node.getChildren(fs.blacklist);
     }
 
     @Override
     public boolean mkdirs() throws IOException {
-        if (invalid)
-            throw new IOException("Invalid file path");
-        return false;
-    }
-
-    @Override
-    public boolean renameTo(Filepath dest) throws IOException {
         if (invalid)
             throw new IOException("Invalid file path");
         return false;

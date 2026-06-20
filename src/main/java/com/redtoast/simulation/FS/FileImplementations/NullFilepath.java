@@ -21,11 +21,6 @@ public class NullFilepath implements Filepath {
     }
 
     @Override
-    public boolean isAbsolute() {
-        return FileHelper.isAbsolute(path);
-    }
-
-    @Override
     public boolean canRead() {
         return false;
     }
@@ -91,17 +86,12 @@ public class NullFilepath implements Filepath {
     }
 
     @Override
-    public Filepath[] listFiles() throws IOException {
+    public String[] listFiles() throws IOException {
         throw new IOException("Invalid file path");
     }
 
     @Override
     public boolean mkdirs() throws IOException {
-        throw new IOException("Invalid file path");
-    }
-
-    @Override
-    public boolean renameTo(Filepath dest) throws IOException {
         throw new IOException("Invalid file path");
     }
 

@@ -55,11 +55,6 @@ public class RealFilepath implements Filepath {
     }
 
     @Override
-    public boolean isAbsolute() {
-        return FileHelper.isAbsolute(path);
-    }
-
-    @Override
     public boolean canRead() {
         return isFile();
     }
@@ -190,20 +185,14 @@ public class RealFilepath implements Filepath {
     }
 
     @Override
-    public Filepath[] listFiles() throws IOException {
+    public String[] listFiles() throws IOException {
         if (invalid) throw new IOException("Invalid file path");
         if (!isDirectory()) return null;
         java.io.File[] files = root.resolve(relPath).toFile().listFiles();
         if (files==null) return null;
-        Filepath[] files2 = new Filepath[files.length];
+        String[] files2 = new String[files.length];
         for (int i = 0; i < files.length; i++){
-            String spath;
-            if (path.endsWith("\\")){
-                spath=path;
-            }else{
-                spath=path+'\\';
-            }
-            files2[i] = fs.getFile(spath+files[i].getName());
+            files2[i] = files[i].getName();
         }
         return files2;
     }
@@ -224,14 +213,6 @@ public class RealFilepath implements Filepath {
     @Override
     public boolean mkdirs() throws IOException {
         return mkdirs(0);
-    }
-
-    @Override
-    public boolean renameTo(Filepath dest) throws IOException {
-        if (invalid) throw new IOException("Invalid file path");
-        if (!exists()) return false;
-        Path spath = root.resolve(relPath);
-        return spath.toFile().renameTo(Path.of(dest.getPath()).toFile());
     }
 
     @Override
