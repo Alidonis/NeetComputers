@@ -5,9 +5,9 @@ import java.util.UUID;
 public class ComputerFileSystem extends DiskManager{
     private final DiskSystem homedisk;
 
-    public ComputerFileSystem(int homePointer, UUID computerID) throws DiskError {
+    public ComputerFileSystem(int homePointer, String template, UUID computerID) throws DiskError {
         super();
-        homedisk = createDisk(homePointer, "neetos", computerID);
+        homedisk = createDisk(homePointer, template, computerID);
         if (!homedisk.isBootable()) throw new DiskError("System not bootable");
     }
 

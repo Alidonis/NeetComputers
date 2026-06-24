@@ -71,6 +71,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     private String crashMessage = null;
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
+    //stores the default configuration for the file system
+    private String template = "neetos";
     //object representing the computers file interpreter
     private ComputerFileSystem fileSystem = null;
     //object that handles the computers events
@@ -155,6 +157,9 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             }else{
                 uuid = UUID.randomUUID();
             }
+            if (nbt.contains("Template")) {
+                template = nbt.getString("Template");
+            }
             if (nbt.contains("crashMessage") && state == ComputerState.CRASHED) crashMessage = nbt.getString("crashMessage");
             load();
         }
@@ -165,6 +170,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
             pointer = dataComponent.address();
             state = dataComponent.isOn() ? ComputerState.ON : ComputerState.OFF;
             uuid = dataComponent.id();
+            template = dataComponent.template();
             load();
         }
     }
@@ -299,7 +305,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         if (loaded){
             if (NeetComputersServer.worldPath!=null && fileSystem==null){
                 try {
-                    fileSystem = new ComputerFileSystem(pointer, getUuid());
+                    fileSystem = new ComputerFileSystem(pointer, template, getUuid());
                 }catch (DiskError e) {
                     crash("Failed to load file system: "+e.getMessage());
                 }
@@ -347,7 +353,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public NbtCompound saveNBT(NbtCompound nbt){
         nbt.putInt("Address", pointer);
         nbt.putShort("State", (short) state.ordinal());
-//        if (build!=null) nbt.put("build", build.save());
+        nbt.putString("Template", template);
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         if (isCrashed() && crashMessage!=null) nbt.putString("crashMessage", crashMessage);
         return nbt;
@@ -358,7 +364,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
         return new ComputerDataComponent(
                 pointer,
                 isOn(),
-                uuid
+                uuid,
+                template
         );
     }
 

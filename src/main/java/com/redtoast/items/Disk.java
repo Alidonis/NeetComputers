@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.UUID;
@@ -29,9 +30,9 @@ public class Disk extends Item implements DiskItem {
     }
 
     @Override
-    public int getAddress(ItemStack stack, BlockEntity caller) {
+    public int getAddress(ItemStack stack, World world) {
         if (stack.get(NeetComputersServer.POINTER_COMPONENT)==null || stack.get(NeetComputersServer.POINTER_COMPONENT)==0){
-            IDFactory.getServerState(caller.getWorld().getServer());
+            IDFactory.getServerState(NeetComputersServer.server);
             IDFactory.PointerIteration++;
             stack.set(NeetComputersServer.POINTER_COMPONENT, IDFactory.PointerIteration);
             return IDFactory.PointerIteration;
@@ -41,12 +42,17 @@ public class Disk extends Item implements DiskItem {
 
     @Override
     public DiskSystem generateSystem(ItemStack stack, UUID uuid, BlockEntity caller) throws DiskError {
-        return new DiskSystem(getAddress(stack, caller), stack.get(NeetComputersServer.TEMPLATE_COMPONENT), uuid);
+        return new DiskSystem(getAddress(stack, caller.getWorld()), stack.get(NeetComputersServer.TEMPLATE_COMPONENT), uuid);
     }
 
     @Override
     public void markBootable(ItemStack stack, boolean state, BlockEntity caller) {
         stack.set(NeetComputersServer.BOOTABLE_COMPONENT, state);
+    }
+
+    @Override
+    public boolean isBootable(ItemStack stack, World world) {
+        return Boolean.TRUE.equals(stack.get(NeetComputersServer.BOOTABLE_COMPONENT));
     }
 
     @Override
