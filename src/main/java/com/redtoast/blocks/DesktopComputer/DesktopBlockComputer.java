@@ -24,7 +24,7 @@ public class DesktopBlockComputer extends ComputerBlock {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView view, BlockPos pos, ShapeContext context){
-        return VoxelShapes.cuboid(1f / 16f, 0f, 2f / 16f, 15f / 16f, 13f / 16f, 15f / 16f);
+        return VoxelShapes.cuboid(1f / 16f, 0f, 1f / 16f, 15f / 16f, 13f / 16f, 15f / 16f);
     }
 
     @Override
