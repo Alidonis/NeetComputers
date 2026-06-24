@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {"tag": "c:gems"}, 
+    {"item": "minecraft:redstone"}, 
+    {"item": "minecraft:redstone"},
+    {"item": "minecraft:cobblestone"}
+],
+  "result": {
+    "count": 1,
+    "id": "neetcomputers:neetos_disk"
+  }
+}

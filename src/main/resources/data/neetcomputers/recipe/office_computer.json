@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "neetcomputers:optional_disk",
   "pattern": [
     " CI",
     "G G",

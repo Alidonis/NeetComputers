@@ -1,19 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    "QR",
-    "R "
-  ],
-  "key": {
-    "R": {
-      "item": "minecraft:redstone"
-    },
-    "Q": {
-      "item": "minecraft:quartz"
-    }
-  },
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [{"tag": "c:gems"}, {"item": "minecraft:redstone"}, {"item": "minecraft:redstone"}],
   "result": {
-    "id": "neetcomputers:disk",
-    "count": 1
+    "count": 1,
+    "id": "neetcomputers:disk"
   }
 }

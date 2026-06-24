@@ -1,20 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " R ",
-    "RCR",
-    " R "
-  ],
-  "key": {
-    "C": {
-      "item": "minecraft:copper_ingot"
-    },
-    "R": {
-      "item": "minecraft:redstone"
-    }
-  },
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [{"item": "minecraft:copper_ingot"}, {"item": "minecraft:redstone"}, {"item": "minecraft:redstone"}, {"item": "minecraft:redstone"}],
   "result": {
-    "id": "neetcomputers:micro_chip",
-    "count": 1
+    "count": 1,
+    "id": "neetcomputers:micro_chip"
   }
 }

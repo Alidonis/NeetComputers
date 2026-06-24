@@ -34,6 +34,8 @@ import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
 import com.redtoast.neet.config.ConfigLoader;
+import com.redtoast.recipes.OptionalDiskRecipe;
+import com.redtoast.recipes.TransitiveSingleRecipe;
 import com.redtoast.simulation.FS.DataNode;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
@@ -58,6 +60,7 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -97,10 +100,14 @@ public class NeetComputersServer implements ModInitializer {
 	public static final ScreenHandlerType<DriveBayScreenHandler> DRIVE_BAY_SCREEN_HANDLER = BulkRegistry.register("drive_bay", Registries.SCREEN_HANDLER, new ScreenHandlerType<>(DriveBayScreenHandler::new, FeatureSet.empty()));
 	public static final ScreenHandlerType<KeyboardScreenHandler> KEYBOARD_SCREEN_HANDLER = BulkRegistry.register("keyboard", Registries.SCREEN_HANDLER, HANDLER3);
 	public static CableManager cableManager = null;
-	private static MinecraftServer server = null;
+	public static MinecraftServer server = null;
 	public static final ComponentType<String> TEMPLATE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "template"), ComponentType.<String>builder().codec(Codec.string(0,15)).build());
 	public static final ComponentType<Integer> POINTER_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "pointer"), ComponentType.<Integer>builder().codec(Codec.INT).build());
 	public static final ComponentType<Boolean> BOOTABLE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "bootable"), ComponentType.<Boolean>builder().codec(Codec.BOOL).build());
+	public static final TransitiveSingleRecipe.Serializer TRANSITIVE_SINGLE_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transitive_single"), new TransitiveSingleRecipe.Serializer());
+	public static final RecipeType<TransitiveSingleRecipe> TRANSITIVE_SINGLE_RECIPE = Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
+	public static final OptionalDiskRecipe.Serializer OPTIONAL_DISK_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "optional_disk"), new OptionalDiskRecipe.Serializer());
+	public static final RecipeType<OptionalDiskRecipe> OPTIONAL_DISK_RECIPE = Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "optional_disk"), new RecipeType<OptionalDiskRecipe>(){});
 
 	//internal config
 	public static String version = "NeetComputers ";

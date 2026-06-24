@@ -1,0 +1,5 @@
+{
+  "type": "neetcomputers:transitive_single",
+  "ingredient": {"id": "neetcomputers:office_computer"},
+  "result": {"id": "neetcomputers:desktop_computer"}
+}
