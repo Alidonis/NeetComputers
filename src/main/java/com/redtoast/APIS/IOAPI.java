@@ -42,7 +42,7 @@ public class IOAPI implements API {
 
     @Override
     public String getLabel() {
-        return "IO";
+        return "io";
     }
 
     public IOAPI(Computer computer){
@@ -97,7 +97,23 @@ public class IOAPI implements API {
             throw new ExposedError("UUID invalidly formatted");
         }
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
-            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) peripheralProvider.setTag(tag);
+            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) {
+                peripheralProvider.setTag(tag);
+                return;
+            }
+        }
+        throw new ExposedError("Peripheral not found");
+    }
+
+    @Exposed
+    public boolean isCompatibility(String uuidString){
+        try {
+            UUID.fromString(uuidString);
+        }catch (IllegalArgumentException illegalArgumentException){
+            throw new ExposedError("UUID invalidly formatted");
+        }
+        for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
+            if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) return peripheralProvider.isCompatibility();
         }
         throw new ExposedError("Peripheral not found");
     }
@@ -116,6 +132,7 @@ public class IOAPI implements API {
     @Exposed
     public List queryType(String type){
         List buffer = new List();
+        if (type.contains(":")) type = "neetcomputers:" + type;
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
             if (Objects.equals(peripheralProvider.getTypeName(), type)) buffer.add(Value.of(peripheralProvider.getUuid().toString()));
         }

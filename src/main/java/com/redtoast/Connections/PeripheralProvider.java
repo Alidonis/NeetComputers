@@ -17,4 +17,5 @@ public interface PeripheralProvider {
     void setTag(@NotNull String tag);
     void computerAttached(Computer computer);
     void computerDetached(Computer computer);
+    default boolean isCompatibility() {return false;}
 }

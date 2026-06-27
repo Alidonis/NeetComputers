@@ -17,6 +17,8 @@ import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.config.ComputerConfig;
+import com.redtoast.simulation.events.EventGeneric;
+import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
@@ -51,6 +53,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     private final Computer computer;
     private final RGBGraphicsArray graphics;
     private String tag = null;
+    private boolean loaded = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, ComputerConfig specifications) {
@@ -159,9 +162,9 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     }
 
     public void handlePeripheralScan() {
-        List<PeripheralProvider> scaned = scanForPeripheralsInternal();
+        List<PeripheralProvider> scanned = scanForPeripheralsInternal();
         List<PeripheralProvider> oldProviders = new ArrayList<>(peripheralProviderCache);
-        List<PeripheralProvider> scanBuffer = new ArrayList<>(scaned);
+        List<PeripheralProvider> scanBuffer = new ArrayList<>(scanned);
         for (int i = 0; i < oldProviders.size(); i++) {
             for (int j = 0; j < scanBuffer.size(); j++) {
                 if (oldProviders.get(i).getUuid().equals(scanBuffer.get(j).getUuid())) {
@@ -172,9 +175,18 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 }
             }
         }
-        for (PeripheralProvider provider : oldProviders) provider.computerDetached(computer);
-        for (PeripheralProvider provider : scanBuffer) provider.computerAttached(computer);
-        peripheralProviderCache = scaned;
+        for (PeripheralProvider provider : oldProviders) {
+            provider.computerDetached(computer);
+            computer.queueEvent(new EventGeneric("peripheralDetached", Value.of(provider.getTypeName()), Value.of(provider.getUuid().toString())), EventLabel.SYSTEM);
+        }
+        for (PeripheralProvider provider : scanBuffer) {
+            provider.computerAttached(computer);
+            if (loaded) {
+                computer.queueEvent(new EventGeneric("peripheralAttached", Value.of(provider.getTypeName()), Value.of(provider.getUuid().toString())), EventLabel.SYSTEM);
+            }
+        }
+        peripheralProviderCache = scanned;
+        loaded = true;
     }
 
     public static <T extends BlockEntity> void tick(World world, BlockPos blockPos, BlockState blockState, T t) {
