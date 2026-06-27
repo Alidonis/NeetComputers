@@ -1,4 +1,4 @@
-package com.redtoast.blocks.DiskBay;
+package com.redtoast.blocks.DriveBay;
 
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;

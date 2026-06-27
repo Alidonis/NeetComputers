@@ -1,4 +1,4 @@
-package com.redtoast.blocks.DiskBay;
+package com.redtoast.blocks.DriveBay;
 
 import com.mojang.serialization.MapCodec;
 import com.redtoast.Connections.PeripheralBlock;
@@ -55,6 +55,17 @@ public class DriveBayBlock extends HorizontalFacingBlock implements BlockEntityP
                 driveBayBlockEntity.tick(world1);
             }
         };
+    }
+
+    @Override
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        if (!world.isClient()) {
+            BlockEntity be = world.getBlockEntity(pos);
+            if (be instanceof DriveBayBlockEntity driveBayBlockEntity) {
+                if (!driveBayBlockEntity.getStack(0).isEmpty()) Block.dropStack(world, pos, driveBayBlockEntity.getStack(0));
+            }
+        }
+        return super.onBreak(world, pos, state, player);
     }
 
     @Override
