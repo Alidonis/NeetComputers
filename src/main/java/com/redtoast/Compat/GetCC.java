@@ -10,14 +10,8 @@ import org.slf4j.LoggerFactory;
 public class GetCC {
     public static PeripheralProvider getPeripheral(BlockPos pos, World world, Computer computer){
         try {
-            //Class.forName("dan200.computercraft.api.peripheral.IPeripheral;");
-            return CCT.searchForCCT(pos, world, computer);
-        }// catch (ClassNotFoundException e) {
-            // LOGGER = LoggerFactory.getLogger("NeetComputers");
-           // LOGGER.warn("Computer Craft not installed");
-            //return null;
-        //}
-        catch (Throwable t) {
+            return computer == null ? CCT.searchForCCT(pos, world) : CCT.searchForCCT(pos, world, computer);
+        } catch (Throwable t) {
             t.printStackTrace();
             return null;
         }

@@ -10,6 +10,7 @@ import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.lua.MethodResult;
+import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.util.math.BlockPos;
 import org.checkerframework.checker.units.qual.A;
@@ -28,9 +29,8 @@ public class WrappedPeripheral implements PeripheralProvider {
     private final Hashtable<Method, Function> functionLookup = new Hashtable<>();
     private final BlockPos pos;
 
-    public WrappedPeripheral(IPeripheral peripheral, BlockPos pos, Computer computer){
+    public WrappedPeripheral(IPeripheral peripheral, BlockPos pos, Runtime runtime, java.util.function.Function<IPeripheral, IComputerAccess> computer){
         this.peripheral = peripheral;
-        Runtime runtime = computer.getRuntime();
         Class<?> clazz = peripheral.getClass();
         Method[] functions = clazz.getMethods();
         LinkedList<String> names = new LinkedList<>();
@@ -50,7 +50,7 @@ public class WrappedPeripheral implements PeripheralProvider {
         functionNames = names.toArray(new String[0]);
         this.pos = pos;
 
-        peripheral.attach(new ComputerWrapper(computer, peripheral));
+        peripheral.attach(computer.apply(peripheral));
     }
 
     @Override
@@ -110,4 +110,7 @@ public class WrappedPeripheral implements PeripheralProvider {
     public void computerDetached(Computer computer) {
 
     }
+
+    @Override
+    public boolean isCompatibility() {return true;}
 }

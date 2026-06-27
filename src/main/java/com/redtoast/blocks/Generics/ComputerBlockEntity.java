@@ -48,10 +48,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralProvider, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
-    private Computer computer;
-    private boolean collectedComputer = false;
-    private RGBGraphicsArray graphics;
-    private boolean corrupted = false;
+    private final Computer computer;
+    private final RGBGraphicsArray graphics;
     private String tag = null;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
 
@@ -130,17 +128,10 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
         super.readNbt(nbt, registryLookup);
         if (nbt.contains("peripheralTag")) tag = nbt.getString("peripheralTag");
-        if (nbt.contains("uuid") && !collectedComputer){
-            collectedComputer=true;
-        }
         computer.load(nbt);
     }
 
     public ActionResult onUse(PlayerEntity player, BlockState state){
-        if (corrupted) {
-            player.sendMessage(Text.literal("NBT DATA CORRUPTED, the files are still being stored server-side"));
-            return ActionResult.SUCCESS;
-        }
         if (!player.isSneaking() && !player.isUsingItem() && computer.isOn()){
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
             if (screenHandlerFactory != null) {
@@ -191,11 +182,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
                 if (computerBlock.computer.getFileSystem()!=null) computerBlock.handlePeripheralScan();
-                if (computerBlock.corrupted){
-                    BlockState current = world.getBlockState(blockPos);
-                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
-                    return;
-                }
                 if (!computerBlock.computer.isLoaded()) return;
                 computerBlock.computer.tick(world);
                 BlockState current = world.getBlockState(blockPos);
@@ -213,7 +199,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void markRemoved() {
         this.removed = true;
-        if ((boolean) ConfigLoader.getServerConfig("experimental-compatibility")) {
+        if ((boolean) ConfigLoader.getServerConfig("CCT-compatibility")) {
             for (ComputerWrapper computerAccess : computer.computerAccesses) {
                 computerAccess.removeSelf(); //detach computers from peripherals properly
             }
@@ -236,7 +222,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         LinkedList<BlockPos> todoList = new LinkedList<>();
         LinkedList<BlockPos> investigated = new LinkedList<>();
         LinkedList<PeripheralProvider> peripherals = new LinkedList<>();
-        boolean ec = (boolean) ConfigLoader.getServerConfig("experimental-compatibility");
         todoList.add(getPos());
 
         World world = getWorld();
@@ -249,31 +234,16 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 if (investigated.contains(investigating)) {
                     continue;
                 }
-                if (ec) {
-                    PeripheralProvider CCprovider = GetCC.getPeripheral(investigating, world, getComputer());
-                    if (CCprovider!=null && isntDuplicate(peripherals, CCprovider)){
-                        peripherals.add(CCprovider);
-                    }
-                }
-                BlockState block = world.getBlockState(investigating);
-                if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)){
-                    BlockEntity blockEntity = world.getBlockEntity(investigating);
-                    if (blockEntity instanceof PeripheralProvider provider && isntDuplicate(peripherals, provider)){
-                        peripherals.add(provider);
-                    }
+                PeripheralProvider provider = Connections.getPeripheral(investigating, world, computer);
+                if (provider!=null && isntDuplicate(peripherals, provider)){
+                    peripherals.add(provider);
                 }
                 if (CableManager.getInstance().pipeExists(world.getDimension(), investigating, PipeType.PERIPHERAL)) {
                     todoList.add(investigating);
-                }
-                else if (block.getBlock().getClass().isAnnotationPresent(PeripheralBlock.class)) {
-                    BlockEntity blockEntity = world.getBlockEntity(investigating);
-                    if (blockEntity instanceof PeripheralProvider provider && isntDuplicate(peripherals, provider)) {
-                        peripherals.add(provider);
-                    }
-                }else if (ec){
-                    PeripheralProvider provider = GetCC.getPeripheral(investigating, world, getComputer());
-                    if (provider!=null && isntDuplicate(peripherals, provider)){
-                        peripherals.add(provider);
+                }else{
+                    PeripheralProvider provider2 = Connections.getPeripheral(investigating, world, computer);
+                    if (provider2!=null && isntDuplicate(peripherals, provider2)){
+                        peripherals.add(provider2);
                     }
                 }
                 investigated.add(investigating);

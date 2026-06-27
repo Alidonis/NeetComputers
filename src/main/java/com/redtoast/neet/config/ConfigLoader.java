@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class ConfigLoader {
     private static final ConfigurationTable serverConfigurationTable = new ConfigurationTable(new ConfigOption[]{
             new IntegerConfigOption(1, "processing-threads"),
-            new CompatibilityConfigOption(false, "experimental-compatibility"),
+            new CompatibilityConfigOption(trueup, "CCT-compatibility"),
             new BooleanConfigOption(false, "print-to-console"),
             new BooleanConfigOption(true, "shift-click-to-clear-displays"),
             new BooleanConfigOption(true, "allow-internet-access"),
@@ -63,7 +63,7 @@ public class ConfigLoader {
                         #amount of sockets that can be live on a computer at once
                         internet-max-sockets = 5
                         #allows experimental compatibility features
-                        experimental-compatibility = false
+                        CCT-compatibility = true
                         """);
                 writer.close();
             }catch (Exception ignored){}
