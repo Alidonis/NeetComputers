@@ -31,38 +31,27 @@ public class EventAPI implements API {
 
     @Exposed
     public Value<List> getQueue(String category){
-        if (category.equalsIgnoreCase("all")){
-            return Value.of(eventManager.getAllQueue());
-        }else{
-            return Value.of(eventManager.getQueue(decodeEventLabel(category)));
-        }
+        return Value.of(eventManager.getQueue(decodeEventLabel(category)));
     }
 
     @Exposed
     public Value<List> getQueue(String category, String filter) {
-        if (category.equalsIgnoreCase("all")){
-            return Value.of(eventManager.getAllQueue(filter));
-        }else{
-            return Value.of(eventManager.getQueue(decodeEventLabel(category), filter));
-        }
+        return Value.of(eventManager.getQueue(decodeEventLabel(category), filter));
     }
 
     @Exposed
     public Value<?> getFirst(String category){
-        if (category.equalsIgnoreCase("all")){
-            return Value.of(eventManager.getAllFirst());
-        }else{
-            return Value.of(eventManager.getFirst(decodeEventLabel(category)));
-        }
+        return Value.of(eventManager.getFirst(decodeEventLabel(category)));
     }
 
     @Exposed
     public Value<?> getFirst(String category, String filter) {
-        if (category.equalsIgnoreCase("all")){
-            return Value.of(eventManager.getAllFirst(filter));
-        }else{
-            return Value.of(eventManager.getFirst(decodeEventLabel(category), filter));
-        }
+        return Value.of(eventManager.getFirst(decodeEventLabel(category), filter));
+    }
+
+    @Exposed
+    public void clear(String category){
+        eventManager.clear(decodeEventLabel(category));
     }
 
     @Exposed

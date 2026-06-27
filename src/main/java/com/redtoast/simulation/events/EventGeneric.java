@@ -1,6 +1,5 @@
 package com.redtoast.simulation.events;
 
-import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.neet.Networking.EventUploadPayload;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueConvertible;
@@ -10,8 +9,6 @@ import com.redtoast.simulation.value.VarType;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
-
-import java.util.LinkedList;
 
 public class EventGeneric implements ValueConvertible<List> {
     private final String Name;
@@ -35,7 +32,7 @@ public class EventGeneric implements ValueConvertible<List> {
     }
 
     //writes the event into a packet, voids complex values
-    public PacketByteBuf writeToPacket(PacketByteBuf packet){
+    public void writeToPacket(PacketByteBuf packet){
         packet.writeString(Name);
 
         packet.writeShort(args.size());
@@ -64,7 +61,6 @@ public class EventGeneric implements ValueConvertible<List> {
                 default -> packet.writeShort(5);
             }
         }
-        return packet;
     }
 
     private static VarType[] codex = new VarType[]{VarType.INT, VarType.DOUBLE, VarType.FLOAT, VarType.STRING, VarType.BOOLEAN, VarType.NULL};
@@ -104,10 +100,5 @@ public class EventGeneric implements ValueConvertible<List> {
     @Override
     public String toString(){
         return "event<"+getName()+"> "+args.toString();
-    }
-
-    @FunctionalInterface
-    public interface eventCallback{
-        void onEvent(EventGeneric eventGeneric);
     }
 }

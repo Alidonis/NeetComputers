@@ -96,31 +96,19 @@ public class EventQueue {
         execute(() -> queue.remove(eventPackage));
     }
 
-    protected List<EventGeneric> getAndRetract(String filter, EventQueue allQueue) {
+    protected List<EventGeneric> getAndRetract(String filter) {
         return execute(() -> {
             LinkedList<EventGeneric> buffer = new LinkedList<>();
-            LinkedList<Integer> idSweep = new LinkedList<>();
             LinkedList<Integer> hitlist = new LinkedList<>();
             for (int i = 0; i < queue.size(); i++){
                 EventManager.EventPackage ePackage = queue.get(i);
                 if (ePackage.getEvent().getName().equals(filter)) {
                     buffer.add(ePackage.getEvent());
-                    idSweep.add(ePackage.id());
                     hitlist.add(i);
                 }
             }
             for (int i = hitlist.size()-1; i > 0; i--) queue.remove(hitlist.get(i));
-            return allQueue.execute(() -> {
-                int progress = 0;
-                for (int i = allQueue.queue.size()-1; i > 0; i--){
-                    if (allQueue.queue.get(i).hasID(idSweep)) {
-                        allQueue.queue.remove(i);
-                        progress++;
-                    }
-                    if (progress==idSweep.size()) return buffer;
-                }
-                return buffer;
-            });
+            return buffer;
         });
     }
 }
