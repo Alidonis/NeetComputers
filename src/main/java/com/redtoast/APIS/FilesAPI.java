@@ -22,16 +22,16 @@ public class FilesAPI implements API {
         parent = computer;
     }
 
-    public DiskSystem getDisk(int disk) {
+    public GenericSystem getDisk(int disk) {
         if (disk < 0 || disk >= diskManager.size()) throw new ExposedError("Disk not found");
         return diskManager.getDisk(disk);
     }
 
     @Exposed
     public List getPartitions(int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         LinkedList<Value<Table>> partitionsStrings = new LinkedList<>();
-        for (Partition partition : diskSystem.build.partitions){
+        for (Partition partition : diskSystem.getPartitions()){
             Table table = new Table();
             table.put("name", partition.path());
             table.put("readonly", Value.of(partition.readOnly()));
@@ -48,7 +48,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public Table getPartition(String name, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         Partition partition = diskSystem.getPartition(name);
         if (partition==null) return null;
         Table table = new Table();
@@ -65,7 +65,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean createPartition(String name, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.createPartition(name);
     }
 
@@ -76,7 +76,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean setPartitionHidden(String name, boolean state, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.setPartitionHidden(name, state);
     }
 
@@ -87,7 +87,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean setPartitionReadOnly(String name, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.setPartitionReadOnly(name, true);
     }
 
@@ -98,7 +98,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean deletePartition(String name, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.deletePartition(name);
     }
 
@@ -124,7 +124,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public Table open(String path, String mode, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         OpeningMode openingMode = FileHelper.getMode(mode);
         Filepath filepath = diskSystem.getFile(path);
         if (filepath.isDirectory()) throw new ExposedError("Not a file");
@@ -137,7 +137,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public List getChildren(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.getChildren(path);
     }
 
@@ -148,7 +148,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean makeDir(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.makeDir(path);
     }
 
@@ -159,7 +159,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean exists(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.exists(path);
     }
 
@@ -170,7 +170,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean isFile(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.isFile(path);
     }
 
@@ -181,7 +181,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean isDir(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.isDir(path);
     }
 
@@ -192,7 +192,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean delete(String path, int disk){
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskSystem.delete(path);
     }
 
@@ -211,25 +211,25 @@ public class FilesAPI implements API {
 
     @Exposed
     public String getDiskID(int disk) {
-        DiskSystem diskSystem = getDisk(disk);
-        return diskSystem.uuid.toString();
+        GenericSystem diskSystem = getDisk(disk);
+        return diskSystem.getUuid().toString();
     }
 
     @Exposed
     public boolean removeDisk(int disk) {
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         return diskManager.removeDisk(diskSystem);
     }
 
     @Exposed
     public String getBootPath(int disk) {
-        DiskSystem diskSystem = getDisk(disk);
-        return diskSystem.isBootable() ? FileHelper.normalize(diskSystem.build.entrypoint) : null;
+        GenericSystem diskSystem = getDisk(disk);
+        return diskSystem.isBootable() ? FileHelper.normalize(diskSystem.getEntrypointPath()) : null;
     }
 
     @Exposed
     public boolean setBoot(String entrypoint, int disk) {
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         if (disk==0 && !exists(entrypoint)) {
             return false;
         }
@@ -248,7 +248,7 @@ public class FilesAPI implements API {
 
     @Exposed
     public boolean setBoot(int disk) {
-        DiskSystem diskSystem = getDisk(disk);
+        GenericSystem diskSystem = getDisk(disk);
         if (disk==0) {
             return false;
         }

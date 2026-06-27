@@ -14,7 +14,7 @@ public class ComputerFileSystem extends DiskManager{
     public DiskSystem getHomeDisk() {return homedisk;}
 
     @Override
-    public boolean removeDisk(DiskSystem disk) {
+    public boolean removeDisk(GenericSystem disk) {
         if (disk.equals(homedisk)) return false;
         return super.removeDisk(disk);
     }

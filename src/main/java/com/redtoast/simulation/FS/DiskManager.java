@@ -8,14 +8,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DiskManager {
-    private final Map<Integer, DiskSystem> disks = new ConcurrentHashMap<>();
+    private final Map<Integer, GenericSystem> disks = new ConcurrentHashMap<>();
 
-    public DiskSystem getDisk(int disk) {
+    public GenericSystem getDisk(int disk) {
         return disks.get(disk);
     }
 
-    public boolean removeDisk(DiskSystem disk) {
-        for (Map.Entry<Integer, DiskSystem> entry : disks.entrySet()) {
+    public boolean removeDisk(GenericSystem disk) {
+        for (Map.Entry<Integer, GenericSystem> entry : disks.entrySet()) {
             if (entry.getValue().equals(disk)) {
                 disks.remove(entry.getKey());
                 return true;
@@ -24,11 +24,12 @@ public class DiskManager {
         return false;
     }
 
-    public boolean addDisk(DiskSystem disk) {
+    public boolean addDisk(GenericSystem disk) {
         boolean check = false;
-        for (Map.Entry<Integer, DiskSystem> entry : disks.entrySet()) {
+        for (Map.Entry<Integer, GenericSystem> entry : disks.entrySet()) {
             if (entry.getValue().equals(disk)) {
                 check = true;
+                break;
             }
         }
         if (check){
@@ -45,8 +46,8 @@ public class DiskManager {
 
     public DiskSystem createDisk(int pointer, String template, UUID uuid) throws DiskError {
         Path path = NeetComputersServer.worldPath.resolve("neetcomputers").resolve(String.valueOf(pointer)).normalize();
-        for (Map.Entry<Integer, DiskSystem> entry : disks.entrySet()) {
-            if (entry.getValue().basePath.equals(path)) throw new DiskError("Disk already exists in system");
+        for (Map.Entry<Integer, GenericSystem> entry : disks.entrySet()) {
+            if (entry.getValue().equals(path)) throw new DiskError("Disk already exists in system");
         }
         DiskSystem disk = new DiskSystem(pointer, template, uuid);
         addDisk(disk);
@@ -60,7 +61,7 @@ public class DiskManager {
     public int[] diskNumbers(){
         int[] arr = new int[size()];
         int place = 0;
-        for (Map.Entry<Integer, DiskSystem> entry : disks.entrySet()) {
+        for (Map.Entry<Integer, GenericSystem> entry : disks.entrySet()) {
             arr[place] = entry.getKey();
             place++;
         }
@@ -68,6 +69,6 @@ public class DiskManager {
     }
 
     public void update(){
-        for (Map.Entry<Integer, DiskSystem> entry : disks.entrySet()) entry.getValue().update();
+        for (Map.Entry<Integer, GenericSystem> entry : disks.entrySet()) entry.getValue().update();
     }
 }

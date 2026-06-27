@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class DiskSystem {
+public class DiskSystem implements GenericSystem {
     public final DiskTable build;
     public final Path basePath;
     public final LinkedList<String> blacklist = new LinkedList<>();
@@ -78,6 +78,7 @@ public class DiskSystem {
     public void saveBuild() {saveBuild = true;}
     public void saveBlacklist() {saveBlacklist = true;}
 
+    @Override
     public void update() {
         if (saveBuild) {
             try (FileWriter writer = new FileWriter(basePath.resolve("build.json").toFile())){
@@ -106,10 +107,17 @@ public class DiskSystem {
         }
     }
 
+    @Override
     public Filepath getFile(String path){
         return FileHelper.getFile(this, path);
     }
 
+    @Override
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    @Override
     public boolean partitionExists(String path){
         for (Partition partition : build.partitions){
             if (partition.path().equals(path)){
@@ -119,6 +127,7 @@ public class DiskSystem {
         return false;
     }
 
+    @Override
     public @Nullable Partition getPartition(String path){
         for (Partition partition : build.partitions){
             if (partition.path().equals(path)){
@@ -128,6 +137,7 @@ public class DiskSystem {
         return null;
     }
 
+    @Override
     public boolean createPartition(String name){
         boolean marker = FileHelper.validatePathStatic(name+":\\");
         if (!marker) return false;
@@ -138,6 +148,7 @@ public class DiskSystem {
         return true;
     }
 
+    @Override
     public boolean setPartitionHidden(String name, boolean state){
         for (int i = 0; i < build.partitions.size(); i++){
             if (build.partitions.get(i).path().equals(name)){
@@ -149,6 +160,7 @@ public class DiskSystem {
         return false;
     }
 
+    @Override
     public boolean setPartitionReadOnly(String name, boolean state){
         for (int i = 0; i < build.partitions.size(); i++){
             if (build.partitions.get(i).path().equals(name)){
@@ -160,6 +172,7 @@ public class DiskSystem {
         return false;
     }
 
+    @Override
     public boolean deletePartition(String name){
         for (int i = 0; i < build.partitions.size(); i++){
             if (build.partitions.get(i).path().equals(name)){
@@ -179,11 +192,18 @@ public class DiskSystem {
         return false;
     }
 
+    @Override
+    public java.util.List<Partition> getPartitions() {
+        return build.partitions;
+    }
+
+    @Override
     public boolean exists(String path){
         Filepath file = getFile(path);
         return file.exists();
     }
 
+    @Override
     public boolean makeDir(String path){
         Filepath file = getFile(path);
         if (!file.canWrite()) throw new ExposedError("Access denied");
@@ -198,16 +218,19 @@ public class DiskSystem {
         }
     }
 
+    @Override
     public boolean isDir(String path){
         Filepath file = getFile(path);
         return file.isDirectory();
     }
 
+    @Override
     public boolean isFile(String path){
         Filepath file = getFile(path);
         return file.isDirectory();
     }
 
+    @Override
     public List getChildren(String path){
         Filepath file = getFile(path);
         if (file.isInvalid()) throw new ExposedError("Invalid file path");
@@ -226,6 +249,7 @@ public class DiskSystem {
         }
     }
 
+    @Override
     public boolean delete(String path){
         if (FileHelper.normalize(path).equals(FileHelper.normalize(build.entrypoint))) throw new ExposedError("Access denied");
         Filepath file = getFile(path);
@@ -243,10 +267,12 @@ public class DiskSystem {
         }
     }
 
+    @Override
     public boolean isBootable() {
         return build.isBootable();
     }
 
+    @Override
     public void makeBootable(String entrypoint, LanguageGeneric language) throws DiskError {
         String path = FileHelper.normalize(entrypoint);
         if (!FileHelper.isAbsolute(path) || !FileHelper.validatePathStatic(path)){
@@ -267,6 +293,13 @@ public class DiskSystem {
         saveBuild();
     }
 
+    @Override
+    public String getEntrypointPath() {
+        if (!isBootable()) throw new ExposedError("Disk not bootable");
+        return build.entrypoint;
+    }
+
+    @Override
     public Filepath getEntrypoint() throws DiskError{
         if (!isBootable()) throw new DiskError("Disk not bootable");
         Filepath file = getFile(build.entrypoint);
@@ -274,11 +307,13 @@ public class DiskSystem {
         return file;
     }
 
+    @Override
     public LanguageGeneric getLanguage() throws DiskError{
         if (!isBootable()) throw new DiskError("Disk not bootable");
         return build.language;
     }
 
+    @Override
     public void removeBootability() {
         build.entrypoint = null;
         build.language = null;
@@ -289,6 +324,9 @@ public class DiskSystem {
     public boolean equals(Object object) {
         if (object instanceof DiskSystem disk) {
             return basePath.equals(disk.basePath);
+        }
+        if (object instanceof Path path) {
+            return path.equals(basePath);
         }
         return false;
     }

@@ -13,14 +13,14 @@ import java.nio.charset.StandardCharsets;
 public class FileHeader implements Exposable {
     public final Filepath internal;
     public final OpeningMode mode;
-    public final DiskSystem fs;
+    public final GenericSystem fs;
     public boolean canRead;
     public boolean canWrite;
     public boolean open = true;
     public int cursor = 0;
     private byte[] byteBuffer = new byte[0];
 
-    public FileHeader(Filepath filepath, DiskSystem fs, OpeningMode mode) {
+    public FileHeader(Filepath filepath, GenericSystem fs, OpeningMode mode) {
         internal = filepath;
         this.mode = mode;
         this.fs = fs;
