@@ -1,13 +1,10 @@
 package com.redtoast.simulation.value.ValueTypes;
 
-import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 /**
  * represents an N.E.E.T. computers callable function, call implementation, parameter handling, and error handling not included
@@ -19,35 +16,33 @@ import java.util.Objects;
  * @see java.lang.reflect.Method
  */
 public abstract class Function{
-    private ParameterRules ruleset;
+    private final ParameterRules ruleset;
     private String name;
-    private final Runtime runtime;
-    private boolean mainThread = false;
+    private final boolean userGenerated;
 
     private static final Logger error = LoggerFactory.getLogger("Neetcomputer: java function");
     public static void logError(String e){
         error.warn(e);
     }
 
-    public Function(Runtime runtime){
+    public Function(boolean userGenerated){
         ruleset = new ParameterRules();
-        this.runtime = runtime;
+        this.userGenerated = userGenerated;
     }
-    public Function(Runtime runtime, String Name){
+    public Function(boolean userGenerated, String Name){
         name = Name;
         ruleset = new ParameterRules();
-        this.runtime = runtime;
+        this.userGenerated = userGenerated;
     }
-    public Function(Runtime runtime, ParameterRules rules){
+    public Function(boolean userGenerated, ParameterRules rules){
         ruleset = rules;
-        this.runtime = runtime;
+        this.userGenerated = userGenerated;
     }
-    public Function(Runtime runtime, String Name, ParameterRules rules){
+    public Function(boolean userGenerated, String Name, ParameterRules rules){
         ruleset=rules;
         name=Name;
-        this.runtime = runtime;
+        this.userGenerated = userGenerated;
     }
-    public void makeMain() {mainThread = true;}
     public abstract Value call(FunctionInput parameters);
     public Value invoke(FunctionInput parameters){
         return call(parameters);
@@ -57,7 +52,7 @@ public abstract class Function{
     }
     public void setName(String Name){name = Name;}
     public String getName(){return name;}
-
+    public boolean isUserGenerated() {return userGenerated;}
     public Value<Function> asValue(){
         return Value.of(this);
     }

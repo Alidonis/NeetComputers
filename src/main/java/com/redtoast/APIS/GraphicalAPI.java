@@ -11,6 +11,9 @@ import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
@@ -19,6 +22,7 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,8 +42,6 @@ public class GraphicalAPI implements Exposable {
     private double cachedCos = 1.0;
     private double cachedSin = 0.0;
     private double lastAngle = 0.0;
-
-    private final int[][] bufferPixels;
 
     public static class BadVector {
         public int x, y, z;
@@ -82,8 +84,6 @@ public class GraphicalAPI implements Exposable {
         GraphicsBuffer.makeOpaque();
         setColor(255, 255, 255);
         this.runtime = runtime;
-
-        this.bufferPixels = GraphicsBuffer.pixels;
     }
 
     @Override
@@ -308,53 +308,57 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawLayer(@Index int x, @Index int y, Table layer) {
-        AtomicReference<String> rasterizedUUID = new AtomicReference<>();
+        AtomicReference<Function> function = new AtomicReference<>();
         layer.foreach((key, value) -> {
-            if (key.toString() != null && key.toString().equals("_uuid")) {
-                if (value.instanceOf(VarType.STRING)) {
-                    rasterizedUUID.set(value.toString());
+            if (key.toString() != null && key.toString().equals("getAsArray")) {
+                if (value.instanceOf(VarType.FUNCTION)) {
+                    function.set(value.toFunction());
                 } else {
-                    throw new ExposedError("Table provided not valid layer2");
+                    throw new ExposedError("Table provided not valid layer");
                 }
             }
         });
-        if (rasterizedUUID.get() == null)
-            throw new ExposedError("Table provided not valid layer1");
-        UUID uuid = UUID.fromString(rasterizedUUID.get());
-        Layer finalisedLayer = Layer.memoryTable.get(uuid);
-        Vector2i size = finalisedLayer.GraphicsBuffer.getSize();
+        if (function.get() == null) throw new ExposedError("Invalid layer (no data)");
+        if (function.get().isUserGenerated()) throw new ExposedError("Invalid layer (invalid data)");
+        Value value;
+        try{
+            value = function.get().invoke(new FunctionInput(new LinkedList<>()));
+        }catch (Throwable ignored) {
+            throw new ExposedError("Invalid layer (data retrieval failure)");
+        }
+        if (!value.instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (invalid data)");
+        int[][] pixels = Layer.translateArray(value.toList());
+        Vector2i size = new Vector2i(pixels[0].length, pixels.length);
         for (int x2 = 0; x2 < size.x; x2++) {
             for (int y2 = 0; y2 < size.y; y2++) {
-                if (finalisedLayer.GraphicsBuffer instanceof RGBAGraphicsArray rgba) {
-                    if (!rgba.isCellBlank(x2, y2)) {
-                        Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(x2, y2));
-                        rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
-                    }
-                } else {
-                    Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(x2, y2));
-                    rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
-                }
+                rawDrawPixel(x + x2, y + y2, (pixels[y2][x2] & 0xFF0000) >> 16, (pixels[y2][x2] & 0x00FF00) >> 8, (pixels[y2][x2] & 0x0000FF));
             }
         }
     }
 
     @Exposed
     public void drawLayer(@Index int x, @Index int y,@Index int x0,@Index int y0,@Index int x1,@Index int y1, Table layer) {
-        AtomicReference<String> rasterizedUUID = new AtomicReference<>();
+        AtomicReference<Function> function = new AtomicReference<>();
         layer.foreach((key, value) -> {
-            if (key.toString() != null && key.toString().equals("_uuid")) {
-                if (value.instanceOf(VarType.STRING)) {
-                    rasterizedUUID.set(value.toString());
+            if (key.toString() != null && key.toString().equals("getAsArray")) {
+                if (value.instanceOf(VarType.FUNCTION)) {
+                    function.set(value.toFunction());
                 } else {
-                    throw new ExposedError("Table provided not valid layer2");
+                    throw new ExposedError("Table provided not valid layer");
                 }
             }
         });
-        if (rasterizedUUID.get() == null)
-            throw new ExposedError("Table provided not valid layer1");
-        UUID uuid = UUID.fromString(rasterizedUUID.get());
-        Layer finalisedLayer = Layer.memoryTable.get(uuid);
-        Vector2i size = finalisedLayer.GraphicsBuffer.getSize();
+        if (function.get() == null) throw new ExposedError("Invalid layer (no data)");
+        if (function.get().isUserGenerated()) throw new ExposedError("Invalid layer (invalid data)");
+        Value value;
+        try{
+            value = function.get().invoke(new FunctionInput(new LinkedList<>()));
+        }catch (Throwable ignored) {
+            throw new ExposedError("Invalid layer (data retrieval failure)");
+        }
+        if (!value.instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (invalid data)");
+        int[][] pixels = Layer.translateArray(value.toList());
+        Vector2i size = new Vector2i(pixels[0].length, pixels.length);
         int x2 = 0;
         x1 = Math.clamp(x1,0,size.x);
         x0 = Math.clamp(x0,0,size.x);
@@ -365,15 +369,8 @@ public class GraphicalAPI implements Exposable {
         for (int sourcex = x0; sourcex != x1; sourcex+=signx) {
             int y2 = 0;
             for (int sourcey = y0; sourcey != y1; sourcey+=signy) {
-                if (finalisedLayer.GraphicsBuffer instanceof RGBAGraphicsArray rgba) {
-                    if (!rgba.isCellBlank(sourcex, sourcey)) {
-                        Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(sourcex, sourcey));
-                        rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
-                    }
-                } else {
-                    Vector3i colors = RGBGraphicsArray.decimalToRgb(finalisedLayer.GraphicsBuffer.get(sourcex, sourcey));
-                    rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
-                }
+                Vector3i colors = RGBGraphicsArray.decimalToRgb(pixels[sourcey][sourcex]);
+                rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
                 y2++;
             }
             x2++;

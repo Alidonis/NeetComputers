@@ -18,7 +18,7 @@ public class RGBAGraphicsArray extends RGBGraphicsArray{
 
     @Override
     public int get(int x, int y){
-        return super.get(x, y) & (isCellBlank(x, y) ? 0x00000011 : 0);
+        return super.get(x, y) & (isCellBlank(x, y) ? 0x000000FF : 0);
     }
 
     @Override

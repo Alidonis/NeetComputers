@@ -75,7 +75,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         private final DiskSystem fs;
         private final Computer computer;
         public LuaRequire(LuaFunction require, DiskSystem fs, Runtime runtime){
-            super(runtime, "require", new ParameterRules(VarType.STRING));
+            super(false, "require", new ParameterRules(VarType.STRING));
             this.computer = runtime.getParent();
             this.require = require;
             this.fs = fs;
@@ -111,7 +111,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         private final LuaGlobals globals;
         private final Logger logger;
         public LuaPrint(Runtime runtime, LuaGlobals globals, Logger logger) {
-            super(runtime, ParameterRules.ANY);
+            super(false, ParameterRules.ANY);
             this.globals = globals;
             this.logger = logger;
         }

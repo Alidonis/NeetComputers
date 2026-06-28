@@ -1,6 +1,5 @@
 package com.redtoast.Lua;
 
-import com.redtoast.Lua.SpecialValues.Yield;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.PassthroughError;
@@ -20,8 +19,15 @@ import java.util.Objects;
 
 public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
     private abstract static class FunctionWrapper extends VarArgFunction {
+        private final Function function;
+
+        public FunctionWrapper(Function function) {
+            this.function = function;
+        }
+
         @Override
         public abstract Varargs invoke(Varargs args);
+        public Function getFunction() {return function;}
     }
 
     @Override
@@ -84,38 +90,29 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                     return array;
                 }
             case FUNCTION:
-                assert var.getValue() instanceof Function;
-                return new FunctionWrapper() {
-                    @Override
-                    public Varargs invoke(Varargs args) {
-                        Value[] values = new Value[args.narg()];
-                        for (int i = 0; i < args.narg(); i++){
-                            values[i] = toValue(args.arg(i+1));
+                if (var.getValue() instanceof Function function) {
+                    return new FunctionWrapper(function) {
+                        @Override
+                        public Varargs invoke(Varargs args) {
+                            Value[] values = new Value[args.narg()];
+                            for (int i = 0; i < args.narg(); i++) {
+                                values[i] = toValue(args.arg(i + 1));
+                            }
+                            ParameterRules rules = function.getRules();
+                            ParameterCheckReturn check = ParameterRules.checkParameters(values, rules, null);
+                            if (check.isError()) {
+                                String message = check.getMessage()
+                                        .replaceAll("null", "nil")
+                                        .replaceAll("int", "number")
+                                        .replaceAll("double", "number")
+                                        .replaceAll("float", "number");
+                                return LuaValue.error(message);
+                            } else {
+                                Value output = function.invoke(check.getFunctionInput());
+                                return fromValue(output);
+                            }
                         }
-                        ParameterRules rules = ((Function) var.getValue()).getRules();
-                        ParameterCheckReturn check = ParameterRules.checkParameters(values, rules, null);
-                        if (check.isError()){
-                            String message = check.getMessage()
-                                .replaceAll("null", "nil")
-                                .replaceAll("int", "number")
-                                .replaceAll("double", "number")
-                                .replaceAll("float", "number");
-                            return LuaValue.error(message);
-                        }else{
-                            Value output = ((Function) var.getValue()).invoke(check.getFunctionInput());
-                            return fromValue(output);
-                        }
-                    }
-                };
-            case CONTROL:
-                if (var.getValue() instanceof ControlType controlType){
-                    if (controlType.isYield()){
-                        return new Yield();
-                    }else{
-                        return fromValue(controlType.getReturn());
-                    }
-                }else{
-                    return LuaValue.NIL;
+                    };
                 }
             case EXCEPTION:
                 assert var.getValue() instanceof Exception;
@@ -189,7 +186,7 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
             }
             return isList ? Value.of(vals) : Value.of(tabll);
         }else if (val instanceof LuaFunction function){
-            return Value.of(new Function(null, ParameterRules.ANY) {
+            return function instanceof FunctionWrapper wrapper ? wrapper.getFunction().asValue() : Value.of(new Function(true, ParameterRules.ANY) {
                 @Override
                 public Value call(FunctionInput parameters) {
                     try{

@@ -8,52 +8,24 @@ import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
+import com.redtoast.simulation.value.VarType;
 
 import java.lang.reflect.Method;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.UUID;
 
 public class Layer extends GraphicalAPI{
-    private final UUID uuid;
-    protected static final Hashtable<UUID, Layer> memoryTable = new Hashtable<>();
-
     public Layer(RGBGraphicsArray graphics, Runtime runtime) {
         super(graphics, runtime);
-        uuid = UUID.randomUUID();
-        memoryTable.put(uuid, this);
         GraphicsBuffer.makeTransparent();
         Graphics = null;
     }
 
     @Override
-    public void onCall(Runtime runtime, Method method){
-        try{
-            if (!memoryTable.containsKey(uuid) && method != getClass().getMethod("isClosed")){
-                throw new ExposedError("Attempted to use closed layer");
-            }
-        }catch (NoSuchMethodException ignored){}
-    }
-
-    @Override
     public Table postProcessing(Table self){
-        self.put("_uuid", uuid.toString());
+        self.put("_data", getAsArray().asValue());
         return self;
-    }
-
-    /**
-     * tests to see if the layers resources are available
-     * @return boolean if closed
-     */
-    @Exposed
-    public boolean isClosed(){return !memoryTable.containsKey(uuid);}
-
-    /**
-     * Closes the current layer, freeing its resources
-     */
-    @Exposed
-    public void close(){
-        memoryTable.remove(uuid);
-        GraphicsBuffer = null;
     }
 
     /**
@@ -71,5 +43,30 @@ public class Layer extends GraphicalAPI{
             list.add(subList.asValue());
         }
         return list;
+    }
+
+    public static int[][] translateArray(List list) {
+        if (list == null) throw new ExposedError("Invalid layer (no data)");
+        if (list.isEmpty()) throw new ExposedError("Invalid layer (list lengths cant be zero)");
+        if (!list.get(0).instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (failed to produce list)");
+        int width = list.get(0).toList().size();
+        if (width==0) throw new ExposedError("Invalid layer (list lengths cant be zero)");
+        int[][] array = new int[list.size()][width];
+        int y = 0;
+        for (Value<?> subvalue : list) {
+            if (!subvalue.instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (failed to produce list)");
+            List sublist = subvalue.toList();
+            if (sublist.size()!=width) throw new ExposedError("Invalid layer (inconsistent list sizes)");
+            for (int x = 0; x < width; x++) {
+                Value pixel = sublist.get(x);
+                if (pixel.getValue() instanceof Integer color){
+                    array[y][x] = color;
+                }else{
+                    throw new ExposedError("Invalid layer (array contained invalid pixel)");
+                }
+            }
+            y++;
+        }
+        return array;
     }
 }
