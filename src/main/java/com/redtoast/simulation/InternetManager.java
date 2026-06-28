@@ -6,14 +6,12 @@ import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Bytes;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.VarType;
-import io.netty.buffer.UnpooledDirectByteBuf;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -301,7 +299,7 @@ public class InternetManager {
         @Override
         public void onOpen(WebSocket webSocket) {
             eventManager.queueEvent(new EventGeneric("WebsocketOpened", Value.of(id),
-                    new Function(null, "send", new ParameterRules(VarType.BYTES).add(VarType.BOOLEAN)) {
+                    new Function(false, "send", new ParameterRules(VarType.BYTES).add(VarType.BOOLEAN)) {
                         @Override
                         public Value call(FunctionInput parameters) {
                             if (!ready()) {
@@ -327,7 +325,7 @@ public class InternetManager {
                             return Value.NULL;
                         }
                     }.asValue(),
-                    new Function(null, "close", ParameterRules.NONE) {
+                    new Function(false, "close", ParameterRules.NONE) {
                         @Override
                         public Value call(FunctionInput parameters) {
                             if (webSocket.isInputClosed() || webSocket.isOutputClosed()) {

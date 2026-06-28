@@ -15,7 +15,6 @@ public enum VarType {
     TUPLE,
     BYTES,
     BINARY,
-    CONTROL,
     PRIMITIVE,
     ANY
 }

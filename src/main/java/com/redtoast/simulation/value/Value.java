@@ -76,8 +76,6 @@ public class Value<Type> {
             type = VarType.BYTES;
         }else if (val instanceof Function){
             type = VarType.FUNCTION;
-        }else if (val instanceof ControlType){
-            type = VarType.CONTROL;
         }else if (val instanceof Exception){
             type = VarType.EXCEPTION;
         }
@@ -511,8 +509,6 @@ public class Value<Type> {
                 return "tuple";
             case FUNCTION:
                 return "function";
-            case CONTROL:
-                return "control type";
             case EXCEPTION:
                 return "exemption";
             case BYTES:
