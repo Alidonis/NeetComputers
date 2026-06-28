@@ -357,7 +357,7 @@ public class APILoader {
 
     public static Function sandboxFunction(Method method, Object obj, ParameterRules ruleset, Runtime runtime){
         String funcname = method.isAnnotationPresent(Exposed.class) ? method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride() : null;
-        Function temp = new Function(runtime, ruleset) {
+        Function temp = new Function(false, ruleset) {
             @Override
             public Value call(FunctionInput parameters) {
                 try {
@@ -387,7 +387,6 @@ public class APILoader {
             }
         };
         temp.setName(funcname);
-        if (method.isAnnotationPresent(Exposed.class) && method.getAnnotation(Exposed.class).mainThread()) temp.makeMain();
         return temp;
     }
 
@@ -398,7 +397,7 @@ public class APILoader {
             if (values.size()==1){
                 output[i.get()] = values.getFirst();
             }else{
-                output[i.get()] = new Function(runtime, key, ParameterRules.ANY) {
+                output[i.get()] = new Function(false, key, ParameterRules.ANY) {
                     @Override
                     public Value call(FunctionInput parameters) {
                         LinkedList<String> errors = new LinkedList<>();
@@ -494,7 +493,7 @@ public class APILoader {
     }
 
     private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, Runtime runtime){
-        return new Function(runtime, functionCache.name, ParameterRules.ANY) {
+        return new Function(false, functionCache.name, ParameterRules.ANY) {
             @Override
             public Value call(FunctionInput parameters) {
                 LinkedList<String> errors = new LinkedList<>();

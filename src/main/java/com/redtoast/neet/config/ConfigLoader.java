@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class ConfigLoader {
     private static final ConfigurationTable serverConfigurationTable = new ConfigurationTable(new ConfigOption[]{
             new IntegerConfigOption(1, "processing-threads"),
-            new CompatibilityConfigOption(true, "CCT-compatibility"),
+            new CompatibilityConfigOption(true, "cct-compatibility"),
             new BooleanConfigOption(false, "print-to-console"),
             new BooleanConfigOption(true, "shift-click-to-clear-displays"),
             new BooleanConfigOption(true, "allow-internet-access"),

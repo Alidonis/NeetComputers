@@ -211,7 +211,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void markRemoved() {
         this.removed = true;
-        if ((boolean) ConfigLoader.getServerConfig("CCT-compatibility")) {
+        if ((boolean) ConfigLoader.getServerConfig("cct-compatibility")) {
             for (ComputerWrapper computerAccess : computer.computerAccesses) {
                 computerAccess.removeSelf(); //detach computers from peripherals properly
             }
