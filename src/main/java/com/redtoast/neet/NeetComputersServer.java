@@ -3,6 +3,7 @@ package com.redtoast.neet;
 import com.mojang.serialization.Codec;
 import com.redtoast.APIS.Crypto.CryptoAPI;
 import com.redtoast.Computer;
+import com.redtoast.Connections.Connections;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Lua.LuaMaster;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
@@ -10,8 +11,8 @@ import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.DesktopComputer.DesktopBlockComputer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
-import com.redtoast.blocks.DiskBay.DriveBayBlock;
-import com.redtoast.blocks.DiskBay.DriveBayBlockEntity;
+import com.redtoast.blocks.DriveBay.DriveBayBlock;
+import com.redtoast.blocks.DriveBay.DriveBayBlockEntity;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlock;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.Keyboard.KeyboardBlock;
@@ -29,6 +30,7 @@ import com.redtoast.graphics.screens.*;
 import com.redtoast.items.Disk;
 import com.redtoast.items.PeripheralTool;
 import com.redtoast.items.generics.DisplayPipes;
+import com.redtoast.items.networkingCable;
 import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
@@ -85,6 +87,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -105,9 +108,14 @@ public class NeetComputersServer implements ModInitializer {
 	public static final ComponentType<Integer> POINTER_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "pointer"), ComponentType.<Integer>builder().codec(Codec.INT).build());
 	public static final ComponentType<Boolean> BOOTABLE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "bootable"), ComponentType.<Boolean>builder().codec(Codec.BOOL).build());
 	public static final TransitiveSingleRecipe.Serializer TRANSITIVE_SINGLE_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transitive_single"), new TransitiveSingleRecipe.Serializer());
-	public static final RecipeType<TransitiveSingleRecipe> TRANSITIVE_SINGLE_RECIPE = Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
 	public static final OptionalDiskRecipe.Serializer OPTIONAL_DISK_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "optional_disk"), new OptionalDiskRecipe.Serializer());
-	public static final RecipeType<OptionalDiskRecipe> OPTIONAL_DISK_RECIPE = Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "optional_disk"), new RecipeType<OptionalDiskRecipe>(){});
+	private static int nextPointer = -1;
+	private static boolean savePointer = false;
+
+	static {
+		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
+		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "optional_disk"), new RecipeType<OptionalDiskRecipe>(){});
+	}
 
 	//internal config
 	public static String version = "NeetComputers ";
@@ -151,7 +159,13 @@ public class NeetComputersServer implements ModInitializer {
                     throw new RuntimeException(e);
                 }
 			}
-		});
+			File pointerPath = worldPath.resolve("neetcomputers/nextAddress.txt").toFile();
+			try(FileWriter writer = new FileWriter(pointerPath)) {
+				file.delete();
+				file.createNewFile();
+				writer.write((((Integer) nextPointer).toString()));
+            } catch (IOException ignored) {}
+        });
 
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
 			@Override
@@ -242,9 +256,9 @@ public class NeetComputersServer implements ModInitializer {
 		BulkRegistry.register("peripheral_cable", peripheralCableItem);
 		BulkRegistry.register(peripheralCableItem, group);
 
-//		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
-//		BulkRegistery.register("networking_cable", networkingCableItem);
-//		BulkRegistery.register(networkingCableItem, group);
+		Item networkingCableItem = new networkingCable(new Item.Settings().maxCount(1));
+		BulkRegistry.register("networking_cable", networkingCableItem);
+		BulkRegistry.register(networkingCableItem, group);
 
 		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SetPeripheralTagPayload.ID, SetPeripheralTagPayload.CODEC);
@@ -413,7 +427,28 @@ public class NeetComputersServer implements ModInitializer {
 			LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
 		}
-
+		Path pointerPath = worldPath.resolve("neetcomputers/nextAddress.txt");
+		boolean success = false;
+		if (pointerPath.toFile().exists()){
+			try {
+				nextPointer = Integer.parseInt(Files.readAllLines(pointerPath).getFirst());
+				success = true;
+			}catch (Throwable ignored) {
+				pointerPath.toFile().delete();
+			}
+        }
+		if (!success) {
+			nextPointer = 0;
+			for (String path : worldPath.resolve("neetcomputers").toFile().list()) {
+				try {
+					int num = Integer.parseInt(path);
+					if (num > nextPointer) nextPointer = num;
+				}catch (Throwable ignored) {}
+			}
+			nextPointer++;
+		}
+        savePointer = false;
+        Connections.COMPATIBILITY = (boolean) ConfigLoader.getServerConfig("cct-compatibility");
 		File file = worldPath.resolve("neet_data.bin").toFile();
 		if (file.exists() && !file.isDirectory()){
 			try{
@@ -440,6 +475,11 @@ public class NeetComputersServer implements ModInitializer {
 
 		ProcessManager.clear();
 		for (int i = 0; i < (int) ConfigLoader.getServerConfig("processing-threads"); i++) ProcessManager.openNewThread();
+	}
+
+	public static int getNextPointer() {
+		savePointer = true;
+		return nextPointer++;
 	}
 
 	public static LanguageTranslater getTranslater(String lang){

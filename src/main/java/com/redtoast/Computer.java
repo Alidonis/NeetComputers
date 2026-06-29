@@ -178,9 +178,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public void load(MinecraftServer GameServer){
         if (!loaded){
             assert GameServer != null;
-            IDFactory.getServerState(GameServer);
-            IDFactory.PointerIteration++;
-            pointer = IDFactory.PointerIteration;
+            pointer = NeetComputersServer.getNextPointer();
             state = ComputerState.OFF;
             load();
         }

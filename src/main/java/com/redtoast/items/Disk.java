@@ -4,7 +4,6 @@ import com.redtoast.items.generics.DiskItem;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.FS.DiskError;
 import com.redtoast.simulation.FS.DiskSystem;
-import com.redtoast.simulation.IDFactory;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,10 +31,8 @@ public class Disk extends Item implements DiskItem {
     @Override
     public int getAddress(ItemStack stack, World world) {
         if (stack.get(NeetComputersServer.POINTER_COMPONENT)==null || stack.get(NeetComputersServer.POINTER_COMPONENT)==0){
-            IDFactory.getServerState(NeetComputersServer.server);
-            IDFactory.PointerIteration++;
-            stack.set(NeetComputersServer.POINTER_COMPONENT, IDFactory.PointerIteration);
-            return IDFactory.PointerIteration;
+            stack.set(NeetComputersServer.POINTER_COMPONENT, NeetComputersServer.getNextPointer());
+            return stack.get(NeetComputersServer.POINTER_COMPONENT);
         }
         return stack.get(NeetComputersServer.POINTER_COMPONENT);
     }
