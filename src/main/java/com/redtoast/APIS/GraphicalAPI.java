@@ -319,7 +319,7 @@ public class GraphicalAPI implements Exposable {
             }
         });
         if (function.get() == null) throw new ExposedError("Invalid layer (no data)");
-        if (function.get().isUserGenerated()) throw new ExposedError("Invalid layer (invalid data)");
+        if (function.get().isUserGenerated() || !function.get().getName().equals("getAsArray")) throw new ExposedError("Invalid layer (invalid data)");
         Value value;
         try{
             value = function.get().invoke(new FunctionInput(new LinkedList<>()));
@@ -349,7 +349,7 @@ public class GraphicalAPI implements Exposable {
             }
         });
         if (function.get() == null) throw new ExposedError("Invalid layer (no data)");
-        if (function.get().isUserGenerated()) throw new ExposedError("Invalid layer (invalid data)");
+        if (function.get().isUserGenerated() || !function.get().getName().equals("getAsArray")) throw new ExposedError("Invalid layer (invalid data)");
         Value value;
         try{
             value = function.get().invoke(new FunctionInput(new LinkedList<>()));
