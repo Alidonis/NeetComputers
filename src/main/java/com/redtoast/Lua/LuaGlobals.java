@@ -7,7 +7,6 @@ import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.FS.FileImplementations.Filepath;
-import com.redtoast.simulation.GlobalManager;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.GlobalGeneric;
 import com.redtoast.simulation.base.ExposedError;
@@ -32,7 +31,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
-    private final Logger logger;
     public LuaValue LuaDebug;
     protected static LuaTranslater lua52;
     private final UUID uuid;
@@ -110,7 +108,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
     private static class LuaPrint extends Function{
         private final LuaGlobals globals;
         private final Logger logger;
-        public LuaPrint(Runtime runtime, LuaGlobals globals, Logger logger) {
+        public LuaPrint(LuaGlobals globals, Logger logger) {
             super(false, ParameterRules.ANY);
             this.globals = globals;
             this.logger = logger;
@@ -138,7 +136,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
     }
 
-    public LuaGlobals(GlobalManager globalManager){
+    public LuaGlobals(Runtime runtime){
         //generate Globals based off how jsePlatform.debugGlobals() works without a few unnecessary library's
         super();
         super.load(new JseBaseLib());
@@ -151,7 +149,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LoadState.install(this);
         LuaC.install(this);
         super.load(new DebugLib());
-        logger = LoggerFactory.getLogger("Lua Runtime ["+globalManager.getParent().getParent().getUuid()+']');
+        Logger logger = LoggerFactory.getLogger("Lua Runtime [" + runtime.getParent().getUuid() + ']');
 
         //fetch built in require object
         LuaFunction luaRequire = super.get("require").checkfunction();
@@ -168,20 +166,17 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         super.set("_VERSION", LuaValue.NIL);
 
         //load new luaj resource finder
-        super.finder = new NeoFinder(globalManager.getParent().getFileSpace().getHomeDisk());
+        super.finder = new NeoFinder(runtime.getFileSpace().getHomeDisk());
 
         //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(luaRequire, globalManager.getParent().getFileSpace().getHomeDisk(), globalManager.getParent()).asValue());
-        Varargs NewPrint = lua52.fromValue(new LuaPrint(globalManager.getParent(), this, logger).asValue());
+        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(luaRequire, runtime.getFileSpace().getHomeDisk(), runtime).asValue());
+        Varargs NewPrint = lua52.fromValue(new LuaPrint(this, logger).asValue());
         assert NewLuaRequire instanceof LuaValue;
         super.set("require", (LuaValue) NewLuaRequire);
         super.set("print", (LuaValue) NewPrint);
 
-        //register LuaGlobals with GlobalsManager
         uuid = UUID.randomUUID();
-
-        //enable globals connection to GlobalManager
-        globalManager.register(this);
+        runtime.loader.load(runtime.getParent(), this);
         push();
     }
 

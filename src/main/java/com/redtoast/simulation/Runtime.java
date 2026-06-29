@@ -16,17 +16,16 @@ public abstract class Runtime {
     private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
 
     //resources
-    private final GlobalManager globalManager;
     private final ComputerFileSystem fs;
     private final Computer parent;
     private LangThread thread = null;
+    public APILoader loader = null;
 
     //state info
     private boolean inTick = false;
     private boolean kill = false;
 
     public Runtime(Computer Parent){
-        globalManager = new GlobalManager(this);
         fs = Parent.getFileSystem();
         parent = Parent;
     }
@@ -36,13 +35,6 @@ public abstract class Runtime {
      */
     public boolean isInTick() {
         return inTick;
-    }
-
-    /**
-        Fetch this runtime's global space
-     */
-    public GlobalManager getGlobals(){
-        return globalManager;
     }
 
     /**

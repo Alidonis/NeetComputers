@@ -36,7 +36,7 @@ public class LuaThread extends LangThread {
         this.computerConfig = computerConfig;
         runtime = parentRuntime;
         try{
-            globals = new LuaGlobals(runtime.getGlobals());
+            globals = new LuaGlobals(runtime);
             chunk = globals.load(script, "LuaThread");
             coroutine = new org.luaj.vm2.LuaThread(globals, chunk);
             globals.LuaDebug.get("sethook").invoke(new LuaValue[]{coroutine,new clockIn(this),LuaValue.NIL,LuaValue.valueOf(computerConfig.instructionsPerBatch())});

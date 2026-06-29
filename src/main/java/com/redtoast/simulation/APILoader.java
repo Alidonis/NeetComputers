@@ -48,7 +48,7 @@ public class APILoader {
      */
     public APILoader(Computer computer){
         ParentRuntime = computer.getRuntime();
-        load(computer.getRuntime(), computer);
+        ParentRuntime.loader = this;
     }
 
     public static boolean preemptiveCache(Class<? extends Exposable> clazz){
@@ -87,12 +87,12 @@ public class APILoader {
         APIs.add(registry);
     }
 
-    private void load(Runtime runtime, Computer computer){
+    public void load(Computer computer, GlobalGeneric globals){
         try{
             for (APIRegistry registry : APIs){
                 if (registry.predicate(computer)){
                     API api = registry.Create(computer);
-                    Function[] functions = translateAPI(api, runtime);
+                    Function[] functions = translateAPI(api, ParentRuntime);
                     String label = api.getLabel();
 
                     Table apiTable = new Table();
@@ -104,24 +104,12 @@ public class APILoader {
                         }
                     }
                     api.postProcessing(apiTable);
-                    ParentRuntime.getGlobals().put(label, apiTable.asValue());
+                    globals.insert(Value.of(label), apiTable.asValue());
                 }
             }
         }catch (LoaderError loaderError){
             throw new CrashException(new CrashReport(loaderError.message, loaderError));
         }
-    }
-
-    private void loadIntoGlobals(Function[] functions, String label) throws LoaderError{
-        Table apiTable = new Table();
-        for (Function func : functions){
-            if (func.getName()!=null){
-                apiTable.put(func.getName(), func.asValue());
-            }else{
-                throw new LoaderError("Issue encountered loading api '"+label+"': nameless function (try .setName on runtime implemented functions)");
-            }
-        }
-        ParentRuntime.getGlobals().put(label, apiTable.asValue());
     }
 
     public static Table TableizeAPI(Exposable exposable, @Nullable Runtime runtime){

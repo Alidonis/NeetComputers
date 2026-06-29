@@ -28,8 +28,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.*;
 
@@ -56,8 +54,9 @@ import java.util.*;
  *
  * @see ComputerConfig
  * @see Runtime
- * @see GlobalManager
+ * @see ComputerFileSystem
  * @see DiskSystem
+ * @see InternetManager
  */
 public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProvider {
     //the instance representing a computers runtime, cycles with computer restarts
@@ -258,9 +257,7 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         return !doesBinaryGraphics ? null : BinGraphics;
     }
-    public @Nullable GlobalManager getGlobals(){
-        return runtime != null && !runtime.isDead() ? runtime.getGlobals() : null;
-    }
+
     public void renderColorGraphics(){graphicsDirty = true;}
 
     //set methods
