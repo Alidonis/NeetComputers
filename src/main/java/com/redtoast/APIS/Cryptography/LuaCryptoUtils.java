@@ -1,4 +1,4 @@
-package com.redtoast.APIS.Crypto;
+package com.redtoast.APIS.Cryptography;
 
 public class LuaCryptoUtils {
     public static String bytesToHex(byte[] hash) {

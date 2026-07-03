@@ -1,4 +1,4 @@
-package com.redtoast.APIS.Crypto;
+package com.redtoast.APIS.Cryptography;
 
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.Exposable;
