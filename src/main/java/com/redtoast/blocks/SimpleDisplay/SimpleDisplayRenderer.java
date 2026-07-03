@@ -1,7 +1,6 @@
 package com.redtoast.blocks.SimpleDisplay;
 
 import com.redtoast.blocks.Generics.ComputerRenderer;
-import com.redtoast.graphics.RotationTools;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -13,6 +12,10 @@ public class SimpleDisplayRenderer extends ComputerRenderer<SimpleDisplayBlockEn
 
     @Override
     public Matrix3f getRotation(SimpleDisplayBlockEntity blockEntity) {
-        return RotationTools.generateRotationX(0);
+        return new Matrix3f(
+                1, 0, 0,
+                0, 1, 0,
+                0, 0, 1
+        );
     }
 }

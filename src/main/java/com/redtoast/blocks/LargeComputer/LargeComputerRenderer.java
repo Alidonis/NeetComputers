@@ -1,8 +1,6 @@
 package com.redtoast.blocks.LargeComputer;
 
 import com.redtoast.blocks.Generics.ComputerRenderer;
-import com.redtoast.blocks.OfficeComputer.OfficeEntityComputer;
-import com.redtoast.graphics.RotationTools;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -15,6 +13,10 @@ public class LargeComputerRenderer extends ComputerRenderer<LargeEntityComputer>
 
     @Override
     public Matrix3f getRotation(LargeEntityComputer i) {
-        return RotationTools.generateRotationX(0);
+        return new Matrix3f(
+                1, 0, 0,
+                0, 1, 0,
+                0, 0, 1
+        );
     }
 }

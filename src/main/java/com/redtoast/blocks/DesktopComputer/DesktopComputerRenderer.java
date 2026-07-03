@@ -1,7 +1,6 @@
 package com.redtoast.blocks.DesktopComputer;
 
 import com.redtoast.blocks.Generics.ComputerRenderer;
-import com.redtoast.graphics.RotationTools;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -14,6 +13,10 @@ public class DesktopComputerRenderer extends ComputerRenderer<DesktopEntityCompu
 
     @Override
     public Matrix3f getRotation(DesktopEntityComputer i) {
-        return RotationTools.generateRotationX(22.5);
+        return new Matrix3f(
+                1, 0, 0,
+                0, 0.92387952551f, -0.38268344927f,
+                0, 0.38268344927f, 0.92387952551f
+        );
     }
 }

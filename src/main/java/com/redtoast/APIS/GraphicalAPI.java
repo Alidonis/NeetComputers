@@ -1,7 +1,6 @@
 package com.redtoast.APIS;
 
 import com.redtoast.graphics.FloodFillArray;
-import com.redtoast.graphics.RGBAGraphicsArray;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
@@ -10,7 +9,6 @@ import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
-import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -23,7 +21,6 @@ import org.joml.Vector3i;
 
 import java.lang.reflect.Method;
 import java.util.LinkedList;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GraphicalAPI implements Exposable {
@@ -384,7 +381,7 @@ public class GraphicalAPI implements Exposable {
         if (sizex == 0 || sizey == 0)
             throw new ExposedError("Copy range has a dimension of 0 size");
         Vector2i size = GraphicsBuffer.getSize();
-        Layer layer = new Layer(new RGBAGraphicsArray(sizex, sizey, true), runtime);
+        Layer layer = new Layer(new RGBGraphicsArray(sizex, sizey), runtime);
         for (int x = 0; x < sizex; x++) {
             for (int y = 0; y < sizey; y++) {
                 int absoluteX = Math.min(x1, x2) + x;

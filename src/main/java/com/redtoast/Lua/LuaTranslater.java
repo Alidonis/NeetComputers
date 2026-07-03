@@ -2,7 +2,6 @@ package com.redtoast.Lua;
 
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
-import com.redtoast.simulation.base.PassthroughError;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
@@ -199,8 +198,6 @@ public class LuaTranslater implements LanguageTranslater<Varargs, Varargs> {
                         return toValue(output);
                     }catch (ExposedError error){
                         return Value.asError(error.getMessage());
-                    }catch (PassthroughError passthroughError){
-                        throw passthroughError;
                     }catch (java.lang.Exception e){
                         return Value.of(new Exception(e.getMessage()));
                     }
