@@ -2,7 +2,6 @@ package com.redtoast.items.generics;
 
 import com.redtoast.Connections.PipeType;
 import com.redtoast.Connections.CableManager;
-import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -97,18 +96,18 @@ public class ConnectorItem extends Item implements DisplayPipes{
     }
 
     public boolean placePipe(World world, BlockPos pos, PlayerEntity player){
-        boolean mark = !CableManager.getInstance().pipeExists(world.getDimension(), pos, pipeType);
+        boolean mark = !CableManager.getInstance().pipeExists(world, pos, pipeType);
         if (mark) {
-            CableManager.getInstance().createPipe(world.getDimension(), pos, pipeType);
+            CableManager.getInstance().createPipe(world, pos, pipeType);
         }
         lastPlaced.put(player, pos);
         return mark;
     }
 
     public boolean removePipe(World world, BlockPos pos, PlayerEntity player){
-        boolean mark = CableManager.getInstance().pipeExists(world.getDimension(), pos, pipeType);
+        boolean mark = CableManager.getInstance().pipeExists(world, pos, pipeType);
         if (mark) {
-            CableManager.getInstance().removePipe(world.getDimension(), pos, pipeType);
+            CableManager.getInstance().removePipe(world, pos, pipeType);
         }
         lastPlaced.put(player, pos);
         return mark;
@@ -124,7 +123,7 @@ public class ConnectorItem extends Item implements DisplayPipes{
                     interaction = lastInteraction==null ? this::placePipe : lastInteraction;
                     pathfind(world, blockHitResult.getBlockPos(), lastPlaced.get(player), player, interaction);
                 }else{
-                    interaction = CableManager.getInstance().pipeExists(world.getDimension(), blockHitResult.getBlockPos(), getType()) ? this::removePipe : this::placePipe;
+                    interaction = CableManager.getInstance().pipeExists(world, blockHitResult.getBlockPos(), getType()) ? this::removePipe : this::placePipe;
                     lastInteraction = interaction;
                 }
                 interaction.apply(world, blockHitResult.getBlockPos(), player);

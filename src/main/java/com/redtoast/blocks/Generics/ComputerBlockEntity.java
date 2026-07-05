@@ -250,7 +250,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 if (provider!=null && isntDuplicate(peripherals, provider)){
                     peripherals.add(provider);
                 }
-                if (CableManager.getInstance().pipeExists(world.getDimension(), investigating, PipeType.PERIPHERAL)) {
+                if (CableManager.getInstance().pipeExists(world, investigating, PipeType.PERIPHERAL)) {
                     todoList.add(investigating);
                 }else{
                     PeripheralProvider provider2 = Connections.getPeripheral(investigating, world, computer);
@@ -283,7 +283,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public boolean shouldRenderPipeType(PipeType type) {
-        return type == PipeType.PERIPHERAL;
+        return type == PipeType.PERIPHERAL || type == PipeType.NETWORK;
     }
 
     @Override

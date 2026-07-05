@@ -1,7 +1,7 @@
 package com.redtoast.neet;
 
 import com.mojang.serialization.Codec;
-import com.redtoast.APIS.Crypto.CryptoAPI;
+import com.redtoast.APIS.Cryptography.CryptoAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.Connections;
 import com.redtoast.Connections.PipeType;
@@ -47,6 +47,7 @@ import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
+import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -59,8 +60,6 @@ import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
@@ -87,6 +86,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -149,20 +149,20 @@ public class NeetComputersServer implements ModInitializer {
 			}
 		});
 		ServerLifecycleEvents.AFTER_SAVE.register((server,a,b) -> {
-			File file = worldPath.resolve("neet_data.bin").toFile();
+			File file = worldPath.resolve("neetcomputers/pipes.bin").toFile();
 			if (cableManager!=null){
                 try {
-					file.delete();
-					file.createNewFile();
-                    NbtIo.write(cableManager.writeNbt(new NbtCompound()), file.toPath());
+					try (FileOutputStream stream = new FileOutputStream(file)) {
+						try (FileChannel channel = stream.getChannel()){
+							channel.write(cableManager.save().nioBuffer());
+						}
+					}
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 			}
 			File pointerPath = worldPath.resolve("neetcomputers/nextAddress.txt").toFile();
 			try(FileWriter writer = new FileWriter(pointerPath)) {
-				file.delete();
-				file.createNewFile();
 				writer.write((((Integer) nextPointer).toString()));
             } catch (IOException ignored) {}
         });
@@ -404,7 +404,7 @@ public class NeetComputersServer implements ModInitializer {
 				return z;
 			}
 		};
-		BlockPos[] buffer = cableManager.getPipesForRendering(player.getWorld().getDimension(), type, (blockpos) -> BlockPos.fromLong(blockpos).isWithinDistance(pos, 40));
+		BlockPos[] buffer = cableManager.getPipesForRendering(player.getWorld(), type, (blockpos) -> BlockPos.fromLong(blockpos).isWithinDistance(pos, 40));
 		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new PipeBufferPayload(type, buffer));
 		player.networkHandler.sendPacket(packet);
 	}
@@ -449,14 +449,12 @@ public class NeetComputersServer implements ModInitializer {
 		}
         savePointer = false;
         Connections.COMPATIBILITY = (boolean) ConfigLoader.getServerConfig("cct-compatibility");
-		File file = worldPath.resolve("neet_data.bin").toFile();
+		File file = worldPath.resolve("neetcomputers/pipes.bin").toFile();
 		if (file.exists() && !file.isDirectory()){
 			try{
-				cableManager = CableManager.createFromNbt(NbtIo.read(file.toPath()));
-			} catch (IOException e) {
-                cableManager = new CableManager();
-            } catch (Throwable error) {
-				throw new RuntimeException(error);
+				cableManager = CableManager.read(Unpooled.copiedBuffer(Files.readAllBytes(file.toPath())));
+			} catch (Throwable error) {
+				cableManager = new CableManager();
 			}
         }else{
 			cableManager = new CableManager();

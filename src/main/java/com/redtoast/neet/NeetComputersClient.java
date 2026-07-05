@@ -6,7 +6,7 @@ import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopEntityComputer;
-import com.redtoast.blocks.DiskBay.DriveBayBlockEntity;
+import com.redtoast.blocks.DriveBay.DriveBayBlockEntity;
 import com.redtoast.blocks.DynamicLight.DynamicLightBlockEntity;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.blocks.Generics.Displays.PipeSourceBlockRenderer;
@@ -19,8 +19,6 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
-import com.redtoast.graphics.RGBAGraphicsArray;
-import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.graphics.SectoredGraphics;
 import com.redtoast.graphics.screens.*;
 import com.redtoast.neet.Networking.*;
@@ -32,13 +30,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
-import net.minecraft.client.item.ModelPredicateProviderRegistry;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class NeetComputersClient implements ClientModInitializer {

@@ -25,7 +25,7 @@ public class PipeSourceBlockRenderer<Type extends BlockEntity> implements BlockE
                 connectorItem2 = connectorItem;
             }
             if (isholding && renderSource.shouldRenderPipeType(connectorItem2.getType())) {
-                CableRenderer.drawPipeBlock(matrices, vertexConsumers, entity.getPos().toCenterPos().add(-0.5, -0.5, -0.5), entity.getPos(), entity.getWorld(), connectorItem2.getType().getSourceTexture());
+                CableRenderer.drawPipeBlock(matrices, vertexConsumers, entity.getPos().toCenterPos().add(-0.5, -0.5, -0.5), entity.getPos(), entity.getWorld(), connectorItem2.getType().getSourceTexture(), connectorItem2.getType());
             }
         }
     }

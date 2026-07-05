@@ -1,6 +1,5 @@
 package com.redtoast.Connections;
 
-import com.redtoast.items.generics.ConnectorItem;
 import com.redtoast.items.generics.DisplayPipes;
 import com.redtoast.neet.NeetComputersClient;
 import net.fabricmc.api.EnvType;
@@ -35,7 +34,7 @@ public class CableRenderer {
             if (NeetComputersClient.lastTypeSent != connectorItem.getType()) return;
             BlockPos[] positions = NeetComputersClient.positionsForPipeRendering;
             for (BlockPos pos : positions) {
-                if (!world.getBlockState(pos).isAir()) CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera.getPos(), pos, world, connectorItem.getType().getTexture());
+                if (!world.getBlockState(pos).isAir()) CableRenderer.drawPipeBlock(matrices, vertexConsumers, camera.getPos(), pos, world, connectorItem.getType().getTexture(), connectorItem.getType());
             }
         }
     }
@@ -51,7 +50,8 @@ public class CableRenderer {
             Vec3d cameraPos,
             BlockPos targetPos,
             World world,
-            Identifier texture
+            Identifier texture,
+            PipeType pipe
     ) {
         double x = targetPos.getX() - cameraPos.x;
         double y = targetPos.getY() - cameraPos.y;
@@ -61,8 +61,8 @@ public class CableRenderer {
         Hashtable<Direction, Boolean> neighborMap = new Hashtable<>();
         for (Direction direction : Direction.values()) {
             BlockPos check = targetPos.offset(direction);
-            boolean isSource = world.getBlockEntity(check)!=null && world.getBlockEntity(check) instanceof PipeRenderSource;
-            neighborMap.put(direction, !doesBlockExist(check) && !isSource);
+            boolean isSource = world.getBlockEntity(check)!=null && world.getBlockEntity(check) instanceof PipeRenderSource source && source.shouldRenderPipeType(pipe);
+            neighborMap.put(direction, (!doesBlockExist(check) && !isSource));
         }
 
         matrices.translate(x, y, z);
@@ -82,7 +82,7 @@ public class CableRenderer {
         float upValue = 1.01f;
         float downValue = -0.01f;
         int lightLevel = 15728880;
-        int alpha = 255;
+        int alpha = 191;
 
         float u0 = sprite.getMinU();
         float u1 = sprite.getMaxU();
