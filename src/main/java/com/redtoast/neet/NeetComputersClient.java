@@ -81,32 +81,6 @@ public class NeetComputersClient implements ClientModInitializer {
 		BlockEntityType<KeyboardBlockEntity> keyboardType = (BlockEntityType<KeyboardBlockEntity>) BulkRegistry.fetchBlockEntityType("keyboard");
 		BulkRegistry.register(keyboardType, PipeSourceBlockRenderer::new);
 
-//		try {
-//			Class<?> reiScreenRegistryClass = Class.forName("me.shedaniel.rei.api.client.registry.screen.ScreenRegistry");
-//			Object reiScreenRegistryInstance = reiScreenRegistryClass.getMethod("getInstance").invoke(null);
-//
-//			reiScreenRegistryClass
-//				.getMethod("registerExclusionZones", Class.class, Function.class)
-//				.invoke(reiScreenRegistryInstance, RGBGraphicsScreen.class, (Function<RGBGraphicsScreen, List<Rectangle>>) screen -> {
-//					int x = screen.screenPos1.x;
-//					int y = screen.screenPos1.y;
-//					int w = screen.screenPos2.x - screen.screenPos1.x;
-//					int h = screen.screenPos2.y - screen.screenPos1.y;
-//					return List.of(new Rectangle(x, y, w, h));
-//				});
-//			reiScreenRegistryClass
-//					.getMethod("registerExclusionZones", Class.class, Function.class)
-//					.invoke(reiScreenRegistryInstance, KeyboardScreen.class, (Function<KeyboardScreen, List<Rectangle>>) screen -> {
-//						return List.of(new Rectangle(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE));
-//					});
-//		} catch (ClassNotFoundException e) {
-//			throw new RuntimeException(e);
-//			//Logger LOGGER = LoggerFactory.getLogger("NeetComputers");
-//			//LOGGER.warn("REI not installed");
-//		} catch (Throwable t) {
-//			t.printStackTrace();
-//		}
-
 		ClientPlayNetworking.registerGlobalReceiver(PipeBufferPayload.ID, ((payload, context) -> {
 			positionsForPipeRendering = payload.buffer();
 			lastTypeSent = payload.type();

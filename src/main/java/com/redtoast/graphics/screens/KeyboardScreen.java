@@ -15,6 +15,7 @@ public class KeyboardScreen extends HandledScreen<KeyboardScreenHandler> {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        drawForeground(context, mouseX, mouseY);
         context.drawText(MinecraftClient.getInstance().textRenderer, "dummy", 5, 5, 0xFFFFFFFF, true);
         context.draw();
     }
@@ -26,6 +27,14 @@ public class KeyboardScreen extends HandledScreen<KeyboardScreenHandler> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        context.fill(0,0,Integer.MAX_VALUE,Integer.MAX_VALUE, 0x00FFFFFF);
+        context.draw();
+    }
+
+    @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        context.fill(0,0,Integer.MAX_VALUE,Integer.MAX_VALUE, 0x00FFFFFF);
+        context.draw();
     }
 
     @Override
