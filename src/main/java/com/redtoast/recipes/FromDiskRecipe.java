@@ -17,10 +17,10 @@ import net.minecraft.world.World;
 
 import java.util.UUID;
 
-public class OptionalDiskRecipe extends ShapedRecipe {
+public class FromDiskRecipe extends ShapedRecipe {
     private final RawShapedRecipe raw;
 
-    public OptionalDiskRecipe(String group, CraftingRecipeCategory category, RawShapedRecipe raw, ItemStack result, boolean showNotification) {
+    public FromDiskRecipe(String group, CraftingRecipeCategory category, RawShapedRecipe raw, ItemStack result, boolean showNotification) {
         super(group, category, raw, result, showNotification);
         this.raw = raw;
     }
@@ -36,7 +36,10 @@ public class OptionalDiskRecipe extends ShapedRecipe {
                 Ingredient ingredient = getIngredients().get(j + i * craftingRecipeInput.getWidth());
 
                 ItemStack itemStack = craftingRecipeInput.getStackInSlot(j, i);
-                if (!ingredient.test(itemStack) && !(i==1 && j==1 && !itemStack.isEmpty() && itemStack.getItem() instanceof DiskItem diskItem && diskItem.isBootable(itemStack, null))) {
+                if (i==1 && j==1 && !(!itemStack.isEmpty() && itemStack.getItem() instanceof DiskItem diskItem && diskItem.isBootable(itemStack, null))) {
+                    return false;
+                }
+                if (!ingredient.test(itemStack)) {
                     return false;
                 }
             }
@@ -61,8 +64,8 @@ public class OptionalDiskRecipe extends ShapedRecipe {
         return NeetComputersServer.OPTIONAL_DISK_SERIALIZER;
     }
 
-    public static class Serializer implements RecipeSerializer<OptionalDiskRecipe> {
-        public static final MapCodec<OptionalDiskRecipe> CODEC = RecordCodecBuilder.mapCodec(
+    public static class Serializer implements RecipeSerializer<FromDiskRecipe> {
+        public static final MapCodec<FromDiskRecipe> CODEC = RecordCodecBuilder.mapCodec(
                 instance -> instance.group(
                                 Codec.STRING.optionalFieldOf("group", "").forGetter(ShapedRecipe::getGroup),
                                 CraftingRecipeCategory.CODEC.fieldOf("category").orElse(CraftingRecipeCategory.MISC).forGetter(ShapedRecipe::getCategory),
@@ -70,32 +73,32 @@ public class OptionalDiskRecipe extends ShapedRecipe {
                                 ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.getResult(null)),
                                 Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(ShapedRecipe::showNotification)
                         )
-                        .apply(instance, OptionalDiskRecipe::new)
+                        .apply(instance, FromDiskRecipe::new)
         );
-        public static final PacketCodec<RegistryByteBuf, OptionalDiskRecipe> PACKET_CODEC = PacketCodec.ofStatic(
-                OptionalDiskRecipe.Serializer::write, OptionalDiskRecipe.Serializer::read
+        public static final PacketCodec<RegistryByteBuf, FromDiskRecipe> PACKET_CODEC = PacketCodec.ofStatic(
+                FromDiskRecipe.Serializer::write, FromDiskRecipe.Serializer::read
         );
 
         @Override
-        public MapCodec<OptionalDiskRecipe> codec() {
+        public MapCodec<FromDiskRecipe> codec() {
             return CODEC;
         }
 
         @Override
-        public PacketCodec<RegistryByteBuf, OptionalDiskRecipe> packetCodec() {
+        public PacketCodec<RegistryByteBuf, FromDiskRecipe> packetCodec() {
             return PACKET_CODEC;
         }
 
-        private static OptionalDiskRecipe read(RegistryByteBuf buf) {
+        private static FromDiskRecipe read(RegistryByteBuf buf) {
             String string = buf.readString();
             CraftingRecipeCategory craftingRecipeCategory = buf.readEnumConstant(CraftingRecipeCategory.class);
             RawShapedRecipe rawShapedRecipe = RawShapedRecipe.PACKET_CODEC.decode(buf);
             ItemStack itemStack = ItemStack.PACKET_CODEC.decode(buf);
             boolean bl = buf.readBoolean();
-            return new OptionalDiskRecipe(string, craftingRecipeCategory, rawShapedRecipe, itemStack, bl);
+            return new FromDiskRecipe(string, craftingRecipeCategory, rawShapedRecipe, itemStack, bl);
         }
 
-        private static void write(RegistryByteBuf buf, OptionalDiskRecipe recipe) {
+        private static void write(RegistryByteBuf buf, FromDiskRecipe recipe) {
             buf.writeString(recipe.getGroup());
             buf.writeEnumConstant(recipe.getCategory());
             RawShapedRecipe.PACKET_CODEC.encode(buf, recipe.raw);

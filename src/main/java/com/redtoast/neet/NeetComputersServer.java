@@ -36,7 +36,7 @@ import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
 import com.redtoast.neet.config.ConfigLoader;
-import com.redtoast.recipes.OptionalDiskRecipe;
+import com.redtoast.recipes.FromDiskRecipe;
 import com.redtoast.recipes.TransitiveSingleRecipe;
 import com.redtoast.simulation.FS.DataNode;
 import com.redtoast.simulation.base.API;
@@ -108,13 +108,12 @@ public class NeetComputersServer implements ModInitializer {
 	public static final ComponentType<Integer> POINTER_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "pointer"), ComponentType.<Integer>builder().codec(Codec.INT).build());
 	public static final ComponentType<Boolean> BOOTABLE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "bootable"), ComponentType.<Boolean>builder().codec(Codec.BOOL).build());
 	public static final TransitiveSingleRecipe.Serializer TRANSITIVE_SINGLE_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transitive_single"), new TransitiveSingleRecipe.Serializer());
-	public static final OptionalDiskRecipe.Serializer OPTIONAL_DISK_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "optional_disk"), new OptionalDiskRecipe.Serializer());
+	public static final FromDiskRecipe.Serializer OPTIONAL_DISK_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transfer_disk"), new FromDiskRecipe.Serializer());
 	private static int nextPointer = -1;
-	private static boolean savePointer = false;
 
-	static {
+    static {
 		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
-		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "optional_disk"), new RecipeType<OptionalDiskRecipe>(){});
+		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transfer_disk"), new RecipeType<FromDiskRecipe>(){});
 	}
 
 	//internal config
@@ -447,7 +446,6 @@ public class NeetComputersServer implements ModInitializer {
 			}
 			nextPointer++;
 		}
-        savePointer = false;
         Connections.COMPATIBILITY = (boolean) ConfigLoader.getServerConfig("cct-compatibility");
 		File file = worldPath.resolve("neetcomputers/pipes.bin").toFile();
 		if (file.exists() && !file.isDirectory()){
@@ -476,8 +474,7 @@ public class NeetComputersServer implements ModInitializer {
 	}
 
 	public static int getNextPointer() {
-		savePointer = true;
-		return nextPointer++;
+        return nextPointer++;
 	}
 
 	public static LanguageTranslater getTranslater(String lang){

@@ -1,8 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "neetcomputers:transfer_disk",
   "pattern": [
-    "IC ",
-    "G G",
+    "ICI",
+    "GDG",
     "ICI"
   ],
   "key": {
@@ -14,10 +14,13 @@
     },
     "G": {
       "item": "minecraft:glass"
+    },
+    "D": {
+      "tag": "neetcomputers:disks"
     }
   },
   "result": {
-    "id": "neetcomputers:desktop_computer",
+    "id": "neetcomputers:large_computer",
     "count": 1
   }
 }
