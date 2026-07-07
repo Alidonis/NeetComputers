@@ -11,6 +11,7 @@ import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
+import com.redtoast.simulation.value.VarType;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -175,5 +176,18 @@ public class IOAPI implements API {
             }
         }
         throw new ExposedError("Peripheral not found");
+    }
+
+    @Override
+    public Table postProcessing(Table self){
+        self.put("broadcastLocal", new Function(false, "broadcastLocal", ParameterRules.ANY) {
+            @Override
+            public Value call(FunctionInput parameters) {
+                for (int i = 0; i < parameters.getSize(); i++) if (parameters.get(i).instanceOf(VarType.PRIMITIVE)) return Value.asError("Argument #"+i+": Expected primitive, got "+parameters.get(i).typeName());
+                computer.sendNetworkMessage(parameters.toArray());
+                return Value.NULL;
+            }
+        }.asValue());
+        return self;
     }
 }

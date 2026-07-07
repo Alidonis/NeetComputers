@@ -1,6 +1,7 @@
 package com.redtoast.blocks.Generics;
 
 import com.mojang.serialization.MapCodec;
+import com.redtoast.Connections.NetworkBlock;
 import com.redtoast.Connections.PeripheralBlock;
 import com.redtoast.blocks.ComputerDataComponent;
 import net.minecraft.block.*;
@@ -23,6 +24,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 @PeripheralBlock
+@NetworkBlock
 public abstract class ComputerBlock extends HorizontalFacingBlock implements BlockEntityProvider {
     public static final BooleanProperty ON = BooleanProperty.of("on");
     public static final BooleanProperty CRASHED = BooleanProperty.of("crashed");

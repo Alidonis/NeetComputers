@@ -2,7 +2,6 @@ package com.redtoast.blocks.Generics;
 
 import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.ComputerWrapper;
-import com.redtoast.Compat.GetCC;
 import com.redtoast.Computer;
 import com.redtoast.ComputerState;
 import com.redtoast.Connections.*;
@@ -49,25 +48,26 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralProvider, PeripheralReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
+public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory<ComputerScreenInitPayload>, PeripheralProvider, NetworkReceiver, PipeRenderSource, BinaryGraphicsRenderProvider {
     private final Computer computer;
     private final RGBGraphicsArray graphics;
     private String tag = null;
     private boolean loaded = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
+    private List<NetworkReceiver> networkReceiverCache = List.of();
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, ComputerConfig specifications) {
         super(type, pos, state);
         ComputerBlockEntity be = this;
         computer = new Computer(specifications) {
             @Override
-            public List<PeripheralProvider> scanForPeripherals() {
+            public List<PeripheralProvider> getPeripheralProviders() {
                 return be.scanForPeripherals();
             }
 
             @Override
-            public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
-                return be.sendFunctionCall(uuid, functionName, args);
+            public void sendNetworkMessage(Value<?>... args) {
+                for (NetworkReceiver receiver : be.networkReceiverCache) receiver.receiveNetwork(args);
             }
 
             @Override
@@ -193,7 +193,10 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
-                if (computerBlock.computer.getFileSystem()!=null) computerBlock.handlePeripheralScan();
+                if (computerBlock.computer.getFileSystem()!=null) {
+                    computerBlock.handlePeripheralScan();
+                    computerBlock.networkReceiverCache = computerBlock.scanForNetworkInternal();
+                }
                 if (!computerBlock.computer.isLoaded()) return;
                 computerBlock.computer.tick(world);
                 BlockState current = world.getBlockState(blockPos);
@@ -220,13 +223,17 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     public Computer getComputer() {return computer;}
 
-    @Override
     public List<com.redtoast.Connections.PeripheralProvider> scanForPeripherals(){
         return peripheralProviderCache;
     }
 
     private boolean isntDuplicate(LinkedList<PeripheralProvider> peripherals, PeripheralProvider duplicate){
         for (PeripheralProvider provider : peripherals) if (provider.getUuid().equals(duplicate.getUuid())) return false;
+        return true;
+    }
+
+    private boolean isntDuplicate(LinkedList<NetworkReceiver> peripherals, NetworkReceiver duplicate){
+        for (NetworkReceiver provider : peripherals) if (provider.getUuid().equals(duplicate.getUuid())) return false;
         return true;
     }
 
@@ -246,17 +253,12 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 if (investigated.contains(investigating)) {
                     continue;
                 }
+                if (CableManager.getInstance().pipeExists(world, investigating, PipeType.PERIPHERAL)) {
+                    todoList.add(investigating);
+                }
                 PeripheralProvider provider = Connections.getPeripheral(investigating, world, computer);
                 if (provider!=null && isntDuplicate(peripherals, provider)){
                     peripherals.add(provider);
-                }
-                if (CableManager.getInstance().pipeExists(world, investigating, PipeType.PERIPHERAL)) {
-                    todoList.add(investigating);
-                }else{
-                    PeripheralProvider provider2 = Connections.getPeripheral(investigating, world, computer);
-                    if (provider2!=null && isntDuplicate(peripherals, provider2)){
-                        peripherals.add(provider2);
-                    }
                 }
                 investigated.add(investigating);
             }
@@ -265,7 +267,34 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         return peripherals;
     }
 
-    @Override
+    public List<NetworkReceiver> scanForNetworkInternal() {
+        LinkedList<BlockPos> todoList = new LinkedList<>();
+        LinkedList<BlockPos> investigated = new LinkedList<>();
+        LinkedList<NetworkReceiver> networkDevices = new LinkedList<>();
+        todoList.add(getPos());
+
+        World world = getWorld();
+
+        while (!todoList.isEmpty()){
+            BlockPos current = todoList.getFirst();
+            todoList.remove();
+            for (Direction direction : Direction.values()){
+                BlockPos investigating = current.offset(direction);
+                if (investigated.contains(investigating)) {
+                    continue;
+                }
+                if (CableManager.getInstance().pipeExists(world, investigating, PipeType.NETWORK)) {
+                    todoList.add(investigating);
+                }
+                if (world.getBlockEntity(investigating) instanceof NetworkReceiver receiver && isntDuplicate(networkDevices, receiver)){
+                    networkDevices.add(receiver);
+                }
+                    investigated.add(investigating);
+                }
+            }
+            return networkDevices;
+        }
+
     public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
         for (PeripheralProvider peripheralProvider : peripheralProviderCache) {
             if (peripheralProvider.getUuid() == uuid) {
@@ -402,5 +431,10 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public void computerDetached(Computer computer) {
 
+    }
+
+    @Override
+    public void receiveNetwork(Value<?>... args) {
+        computer.queueEvent(new EventGeneric("networkMessage", args), EventLabel.NETWORK);
     }
 }

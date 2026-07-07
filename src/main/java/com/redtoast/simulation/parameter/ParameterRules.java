@@ -76,7 +76,7 @@ public class ParameterRules {
             }else{
                 if (ruleset.packExtra){
                     try{
-                        if (ruleset.rules.get(i).check(values[i], runtime)){
+                        if (ruleset.packRule.check(values[i], runtime)){
                             packed.add(values[i]);
                         }else{
                             return new ParameterCheckReturn("Argument #"+i+": Expected "+ruleset.rules.get(i).getName()+", got "+values[i].typeName());

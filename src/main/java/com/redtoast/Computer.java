@@ -2,7 +2,6 @@ package com.redtoast;
 
 import com.redtoast.Compat.ComputerWrapper;
 import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PeripheralReceiver;
 import com.redtoast.blocks.ComputerDataComponent;
 import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
@@ -21,6 +20,7 @@ import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
+import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -58,7 +58,7 @@ import java.util.*;
  * @see DiskSystem
  * @see InternetManager
  */
-public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProvider {
+public abstract class Computer implements BinaryGraphicsProvider {
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
     //pointer for the folder that contains this computer's files
@@ -335,9 +335,8 @@ public abstract class Computer implements PeripheralReceiver, BinaryGraphicsProv
     }
 
     //gets a list of all peripheral providers on the system
-    public List<PeripheralProvider> getPeripheralProviders(){
-        return scanForPeripherals();
-    }
+    public abstract List<PeripheralProvider> getPeripheralProviders();
+    public abstract void sendNetworkMessage(Value<?>... args);
 
     //queues an event to the event manager
     public void queueEvent(EventGeneric event, EventLabel queue){
