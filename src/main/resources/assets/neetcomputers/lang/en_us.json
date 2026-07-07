@@ -22,5 +22,6 @@
   "item.neetcomputers.disk": "Disk",
   "item.neetcomputers.neetos_disk": "Neet OS Disk",
   "item.neetcomputers.micro_chip": "Micro Chip",
-  "itemGroup.neetcomputers.main_item_group": "Neet Computers"
+  "itemGroup.neetcomputers.main_item_group": "Neet Computers",
+  "tag.item.neetcomputers.disks": "Disks"
 }
