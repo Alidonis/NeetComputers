@@ -27,6 +27,9 @@ public record DataNode(boolean isDirectory, String name, String path, DataNode[]
     public static @Nullable DataNode getNode(int address, String path) {
         assert nodeTree != null;
         if (!nodeTree.containsKey(address)) return null;
+        if (path.isEmpty()) {
+            return new DataNode(true, "", "/", nodeTree.get(address));
+        }
         DataNode[] space = nodeTree.get(address);
         String[] parts = path.replaceFirst("[/\\\\]$","").split("[/\\\\]");
         boolean startingSlash = path.charAt(0) == '/' || path.charAt(0) == '\\';
