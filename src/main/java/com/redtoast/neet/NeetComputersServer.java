@@ -320,40 +320,14 @@ public class NeetComputersServer implements ModInitializer {
 
         registerLanguage(new LuaMaster());
 
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				return new ChipAPI(computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				return new IOAPI(computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {
-				return new ScreenAPI(computer.getGraphics(), computer);
-			}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {return new EventAPI(computer);}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {return new CryptoAPI(computer);}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {return new InternetAPI(computer);}
-		});
-		APILoader.register(new APIRegistry() {
-			@Override
-			public @NotNull API Create(Computer computer) {return new FilesAPI(computer);}
-		});
+		APILoader.register(ChipAPI::new);
+		APILoader.register(IOAPI::new);
+		APILoader.register(ScreenAPI::new);
+		APILoader.register(EventAPI::new);
+		APILoader.register(CryptoAPI::new);
+		APILoader.register(InternetAPI::new);
+		APILoader.register(FilesAPI::new);
+		APILoader.register(HeadsUpAPI::new);
     }
 
 	public static boolean emitLight(){

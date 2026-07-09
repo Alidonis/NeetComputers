@@ -11,8 +11,8 @@ import com.redtoast.simulation.value.ValueTypes.Table;
 public class ScreenAPI extends DrawableGraphicalAPI implements API {
     Computer computer;
 
-    public ScreenAPI(RGBGraphicsArray graphics, Computer computer) {
-        super(graphics, computer.getRuntime());
+    public ScreenAPI(Computer computer) {
+        super(computer.getGraphics(), computer.getRuntime());
         this.computer = computer;
     }
 

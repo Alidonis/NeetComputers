@@ -1,6 +1,5 @@
 package com.redtoast.blocks.Generics;
 
-import com.redtoast.APIS.ProjectorAPI;
 import com.redtoast.Compat.ComputerWrapper;
 import com.redtoast.Computer;
 import com.redtoast.ComputerState;
@@ -95,8 +94,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
                 return getWorld() == null ? 0 : (int) getWorld().getLunarTime();
             }
         };
-        computer.setLibrary("projector", new ProjectorAPI(computer));
-        computer.createLibraryAlias("display", "projector");
         graphics = computer.getGraphics();
     }
 
@@ -294,16 +291,6 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
             return networkDevices;
         }
-
-    public Value<?> sendFunctionCall(UUID uuid, String functionName, Value<?>... args) {
-        for (PeripheralProvider peripheralProvider : peripheralProviderCache) {
-            if (peripheralProvider.getUuid() == uuid) {
-                return peripheralProvider.callFunction(computer.getRuntime(), functionName, args);
-            }
-        }
-
-        return Value.asError("Peripheral not found");
-    }
 
     @Override
     public ComputerScreenInitPayload getScreenOpeningData(ServerPlayerEntity player) {

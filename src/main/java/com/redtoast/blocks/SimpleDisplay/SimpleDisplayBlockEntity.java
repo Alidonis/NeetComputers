@@ -1,11 +1,6 @@
 package com.redtoast.blocks.SimpleDisplay;
 
-import com.redtoast.APIS.ProjectorAPI;
-import com.redtoast.Computer;
-import com.redtoast.Connections.PeripheralProvider;
-import com.redtoast.Connections.PipeRenderSource;
-import com.redtoast.Connections.PipeType;
-import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
+import com.redtoast.APIS.HeadsUpAPI;
 import com.redtoast.blocks.Generics.Displays.*;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.neet.BulkRegistry;
@@ -15,24 +10,15 @@ import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Table;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector2i;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SimpleDisplayBlockEntity extends MultiblockDisplayEntity implements BinaryGraphicsProvider, BinaryGraphicsRenderProvider {
@@ -41,13 +27,13 @@ public class SimpleDisplayBlockEntity extends MultiblockDisplayEntity implements
 
     public SimpleDisplayBlockEntity(BlockPos pos, BlockState state) {
         super(BulkRegistry.fetchBlockEntityType("simple_display"), pos, state);
-        api = APILoader.TableizeAPI(new ProjectorAPI(this), null);
+        api = APILoader.TableizeAPI(new HeadsUpAPI(this), null);
     }
 
     @Override
     public void load() {
         graphics = new BinaryGraphicsArray(getSize().x*16-4, getSize().y*16-4);
-        api = APILoader.TableizeAPI(new ProjectorAPI(this), null);
+        api = APILoader.TableizeAPI(new HeadsUpAPI(this), null);
     }
 
     @Override

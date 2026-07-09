@@ -7,11 +7,11 @@ import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
 
-public class ProjectorAPI implements API {
+public class HeadsUpAPI implements API {
     BinaryGraphicsProvider binaryGraphicsProvider;
     BinaryGraphicsArray graphics;
     int sizex, sizey;
-    public ProjectorAPI(BinaryGraphicsProvider computer) {
+    public HeadsUpAPI(BinaryGraphicsProvider computer) {
         this.binaryGraphicsProvider = computer;
         sizex = this.binaryGraphicsProvider.getBinaryGraphics().getSize().x;
         sizey = this.binaryGraphicsProvider.getBinaryGraphics().getSize().y;
@@ -96,6 +96,6 @@ public class ProjectorAPI implements API {
 
     @Override
     public String getLabel() {
-        return "projector screen";
+        return "headsup";
     }
 }
