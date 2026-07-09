@@ -227,7 +227,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public boolean isFile(String path){
         Filepath file = getFile(path);
-        return file.isDirectory();
+        return !file.isDirectory();
     }
 
     @Override
