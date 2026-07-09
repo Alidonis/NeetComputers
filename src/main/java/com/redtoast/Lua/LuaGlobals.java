@@ -20,15 +20,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Hashtable;
-import java.util.Objects;
 import java.util.UUID;
 
 public class LuaGlobals extends Globals implements GlobalGeneric {
     public LuaValue LuaDebug;
     protected static LuaTranslater lua52;
     private final UUID uuid;
-    private final Hashtable<Value, Value> queue = new Hashtable<>();
 
     private static class NeoFinder implements ResourceFinder{
         private final DiskSystem fs;
@@ -130,28 +127,18 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
 
         uuid = UUID.randomUUID();
         runtime.loader.load(runtime.getParent(), this);
-        push();
     }
 
     //override Globals core set function to report back to manager object
     @Override
     public void rawset( LuaValue key, LuaValue value ) {
         super.rawset(key, value);
-        if (Objects.equals(this, value)) return;
-        //if (lua52!=null && !noForwarding && manager!=null) manager.put(uuid, lua52.toValue(key), lua52.toValue(value));
     }
 
     @Override
     public void insert(Value key, Value value) {
-        queue.put(key, value);
-    }
-
-    public void push(){
-        queue.forEach((key, value) -> {
-            LuaValue luaKay = (LuaValue) lua52.fromValue(key.pack());
-            super.set(luaKay, (LuaValue) lua52.fromValue(value.pack()));
-        });
-        queue.clear();
+        LuaValue luaKay = (LuaValue) lua52.fromValue(key.pack());
+        super.set(luaKay, (LuaValue) lua52.fromValue(value.pack()));
     }
 
     @Override

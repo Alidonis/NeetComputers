@@ -67,7 +67,6 @@ public class LuaThread extends LangThread {
 
     private void step(){
         Varargs result = coroutine.resume(LuaValue.NIL);
-        globals.push();
         if (!result.arg1().toboolean()){
             if (result.arg(2).toString().equals("cannot resume dead coroutine")) {
                 log("LuaThread has ran to completion!");
