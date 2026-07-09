@@ -1,22 +1,16 @@
 package com.redtoast.Lua;
 
-import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
-import com.redtoast.simulation.APILoader;
-import com.redtoast.simulation.FS.FileHelper;
 import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.FS.FileImplementations.Filepath;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.GlobalGeneric;
-import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
 import com.redtoast.simulation.parameter.ParameterRules;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
-import com.redtoast.simulation.value.VarType;
 import org.luaj.vm2.*;
 import org.luaj.vm2.compiler.LuaC;
 import org.luaj.vm2.lib.*;
@@ -68,43 +62,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         }
     }
 
-    private static class LuaRequire extends Function{
-        private final LuaFunction require;
-        private final DiskSystem fs;
-        private final Computer computer;
-        public LuaRequire(LuaFunction require, DiskSystem fs, Runtime runtime){
-            super(false, "require", new ParameterRules(VarType.STRING));
-            this.computer = runtime.getParent();
-            this.require = require;
-            this.fs = fs;
-        }
-        @Override
-        public Value call(FunctionInput parameters) {
-            ParameterCheckReturn ckrn = ParameterRules.checkParameters(parameters.toArray(), new ParameterRules(VarType.STRING), computer.getRuntime());
-            if (ckrn.isError()) return Value.asError(ckrn.getMessage());
-            String path = parameters.get(0).toString();
-            if (computer.libraryExists(path.toLowerCase())){
-                return APILoader.TableizeAPI(computer.getLibrary(path.toLowerCase()), computer.getRuntime()).asValue();
-            }else if (FileHelper.validatePathStatic(FileHelper.normalize(path))){
-                Filepath filepath = fs.getFile(path+".lua");
-                if (filepath.isInvalid()) throw new ExposedError("Invalid file path");
-                if (!filepath.exists()) throw new ExposedError("No such file");
-                if (!filepath.isFile()) throw new ExposedError("Not a file");
-                if (!filepath.canRead()) throw new ExposedError("Access denied");
-                LanguageTranslater translater = NeetComputersServer.getTranslater("Lua");
-                assert translater != null;
-                try{
-                    Varargs args = require.call(LuaValue.valueOf(path));
-                    return translater.toValue(args);
-                }catch (Throwable ignored){
-                    return Value.asError("Failed to load '"+path+".lua'");
-                }
-            }else{
-                return Value.asError("Invalid asset path");
-            }
-        }
-    }
-
     private static class LuaPrint extends Function{
         private final LuaGlobals globals;
         private final Logger logger;
@@ -152,7 +109,6 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         Logger logger = LoggerFactory.getLogger("Lua Runtime [" + runtime.getParent().getUuid() + ']');
 
         //fetch built in require object
-        LuaFunction luaRequire = super.get("require").checkfunction();
         LuaDebug = super.get("debug");
 
         //get lang
@@ -160,6 +116,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         if (translater instanceof LuaTranslater luaTranslater) lua52 = luaTranslater;
 
         //remove unwanted base libs
+        super.set("require", LuaValue.NIL);
         super.set("package", LuaValue.NIL);
         super.set("file",LuaValue.NIL);
         super.set("collectgarbage", LuaValue.NIL);
@@ -168,11 +125,7 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         //load new luaj resource finder
         super.finder = new NeoFinder(runtime.getFileSpace().getHomeDisk());
 
-        //set up new require functionality with anti-abuse in mind
-        Varargs NewLuaRequire = lua52.fromValue(new LuaRequire(luaRequire, runtime.getFileSpace().getHomeDisk(), runtime).asValue());
         Varargs NewPrint = lua52.fromValue(new LuaPrint(this, logger).asValue());
-        assert NewLuaRequire instanceof LuaValue;
-        super.set("require", (LuaValue) NewLuaRequire);
         super.set("print", (LuaValue) NewPrint);
 
         uuid = UUID.randomUUID();

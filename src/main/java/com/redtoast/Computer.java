@@ -95,9 +95,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     private long tickTime;
     //tells the computer to shut down at the end of a tick cycle
     private boolean killFlag = false;
-    //stores hard library's
-    private final Hashtable<String, API> hardLibrarys = new Hashtable<>();
-    private final Hashtable<String, String> libraryAliases = new Hashtable<>();
 
     //abstract methods
     /**
@@ -265,32 +262,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
         if (!doesBinaryGraphics) return;
         BinGraphics = graphics;
         refreshBinaryGraphics();
-    }
-
-    //sets internal non-mutable library
-    public void setLibrary(String name, API api){
-        hardLibrarys.put(name.toLowerCase(), api);
-    }
-
-    //creates a name alias in the library system
-    public void createLibraryAlias(String alias, String rootName) {
-        libraryAliases.put(alias.toLowerCase(), rootName.toLowerCase());
-    }
-
-    //tests to see if hard library exists
-    public boolean libraryExists(String label){
-        return libraryAliases.containsKey(label.toLowerCase()) || hardLibrarys.containsKey(label.toLowerCase());
-    }
-
-    //returns the library associated with label or its alias, or null if no such library exists
-    public API getLibrary(String label){
-        if (hardLibrarys.containsKey(label.toLowerCase())){
-            return hardLibrarys.get(label.toLowerCase());
-        }else if (libraryAliases.containsKey(label.toLowerCase())){
-            return hardLibrarys.get(libraryAliases.get(label.toLowerCase()));
-        }else{
-            return null;
-        }
     }
 
     //ticks the computer
