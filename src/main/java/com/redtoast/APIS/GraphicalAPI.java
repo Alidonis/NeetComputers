@@ -11,6 +11,7 @@ import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueTypes.Bytes;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
@@ -887,12 +888,47 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawPixels(@Index int x, @Index int y, List buffer, int width, int height) {
-        if (!buffer.check((val) -> val.instanceOf(VarType.NUMBER))) {
-            throw new ExposedError("Argument #2: all values in buffer must be numbers");
+        int bufferSize = buffer.size();
+        Vector2i dims = resolvePixelBufferDimensions(bufferSize, width, height);
+        int actualWidth = dims.x, actualHeight = dims.y;
+
+        Value[] values = buffer.toArray();
+        int[] pixels = new int[bufferSize];
+        for (int i = 0; i < bufferSize; i++) {
+            Value val = values[i];
+            if (!val.instanceOf(VarType.NUMBER)) {
+                throw new ExposedError("Argument #2: all values in buffer must be numbers");
+            }
+            int intVal = val.toInt();
+            if (intVal < 0 || intVal > 255) {
+                throw new ExposedError("Color values must be in range [0-255] at index " + i);
+            }
+            pixels[i] = intVal;
         }
 
-        int bufferSize = buffer.size();
+        blitPixels(x, y, pixels, actualWidth, actualHeight);
+    }
 
+    @Exposed
+    public void drawPixels(@Index int x, @Index int y, Bytes buffer) {
+        drawPixels(x, y, buffer, -1, -1);
+    }
+
+    @Exposed
+    public void drawPixels(@Index int x, @Index int y, Bytes buffer, int width) {
+        drawPixels(x, y, buffer, width, -1);
+    }
+
+    @Exposed
+    public void drawPixels(@Index int x, @Index int y, Bytes buffer, int width, int height) {
+        byte[] data = buffer.getData();
+        Vector2i dims = resolvePixelBufferDimensions(data.length, width, height);
+        int actualWidth = dims.x, actualHeight = dims.y;
+
+        blitPixels(x, y, data, actualWidth, actualHeight);
+    }
+
+    private Vector2i resolvePixelBufferDimensions(int bufferSize, int width, int height) {
         int actualWidth, actualHeight;
         if (width > 0 && height > 0) {
             actualWidth = width;
@@ -915,18 +951,22 @@ public class GraphicalAPI implements Exposable {
             }
             actualHeight = actualWidth;
         }
+        return new Vector2i(actualWidth, actualHeight);
+    }
 
-        int[] pixels = new int[bufferSize];
-        for (int i = 0; i < bufferSize; i++) {
-            int val = buffer.get(i).toInt();
-            if (val < 0 || val > 255) {
-                throw new ExposedError("Color values must be in range [0-255] at index " + i);
-            }
-            pixels[i] = val;
-        }
-
+    private void blitPixels(int x, int y, int[] pixels, int actualWidth, int actualHeight) {
         boolean needsRotation = (rotatePos != null && angle != 0);
+        if (needsRotation) {
+            startRotationSession(x + actualWidth / 2, y + actualHeight / 2);
+            GraphicsBuffer.bulkBlendPixelsWithTransform(x, y, pixels, actualWidth, actualHeight, this::rotateLocal);
+            endRotationSession();
+        } else {
+            GraphicsBuffer.bulkBlendPixels(x, y, pixels, actualWidth, actualHeight);
+        }
+    }
 
+    private void blitPixels(int x, int y, byte[] pixels, int actualWidth, int actualHeight) {
+        boolean needsRotation = (rotatePos != null && angle != 0);
         if (needsRotation) {
             startRotationSession(x + actualWidth / 2, y + actualHeight / 2);
             GraphicsBuffer.bulkBlendPixelsWithTransform(x, y, pixels, actualWidth, actualHeight, this::rotateLocal);
