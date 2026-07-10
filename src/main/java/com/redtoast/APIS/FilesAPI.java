@@ -30,13 +30,9 @@ public class FilesAPI implements API {
     @Exposed
     public List getPartitions(int disk){
         GenericSystem diskSystem = getDisk(disk);
-        LinkedList<Value<Table>> partitionsStrings = new LinkedList<>();
+        LinkedList<Value<String>> partitionsStrings = new LinkedList<>();
         for (Partition partition : diskSystem.getPartitions()){
-            Table table = new Table();
-            table.put("name", partition.path());
-            table.put("readonly", Value.of(partition.readOnly()));
-            table.put("hidden", Value.of(partition.hidden()));
-            partitionsStrings.add(table.asValue());
+            partitionsStrings.add(Value.of(partition.path()));
         }
         return new List(partitionsStrings);
     }
