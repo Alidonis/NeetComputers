@@ -8,15 +8,15 @@ import java.security.SecureRandom;
 
 public class LuaCryptoSecureRNG implements Exposable {
     @Exposed
-    public double GetRandomInt() {
+    public double GetRandom() {
         return new SecureRandom().nextDouble(Double.MIN_VALUE, Double.MAX_VALUE);
     }
     @Exposed
-    public double GetRandomIntFromMin(double min) {
+    public double GetRandomFromMin(double min) {
         return new SecureRandom().nextDouble(min, Double.MAX_VALUE);
     }
     @Exposed
-    public double GetRandomIntUpTo(double max) {
+    public double GetRandomUpTo(double max) {
         if (max == Double.MAX_VALUE)
             return new SecureRandom().nextDouble(Double.MIN_VALUE, max);
         return new SecureRandom().nextDouble(Double.MIN_VALUE, max + 1);
