@@ -37,12 +37,11 @@ local function drawChar(x,y,c)
 end
 
 --draws a cute little graphic to the screen
-local projector = require("projector")
-projector.clear()
-projector.drawLine(2,2,2,3)
-projector.drawLine(4,2,4,3)
-projector.drawLine(2,5,4,6)
-projector.draw()
+headsup.clear()
+headsup.drawLine(2,2,2,3)
+headsup.drawLine(4,2,4,3)
+headsup.drawLine(2,5,4,6)
+headsup.draw()
 
 --write the speech
 speech = [[
