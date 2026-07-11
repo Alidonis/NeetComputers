@@ -11,8 +11,6 @@ import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 
-import java.util.LinkedList;
-
 public class FilesAPI implements API {
     private final DiskManager diskManager;
     private final Computer parent;
@@ -30,11 +28,11 @@ public class FilesAPI implements API {
     @Exposed
     public List getPartitions(int disk){
         GenericSystem diskSystem = getDisk(disk);
-        LinkedList<Value<String>> partitionsStrings = new LinkedList<>();
+        List partitionsStrings = new List();
         for (Partition partition : diskSystem.getPartitions()){
             partitionsStrings.add(Value.of(partition.path()));
         }
-        return new List(partitionsStrings);
+        return partitionsStrings;
     }
 
     @Exposed
@@ -204,9 +202,9 @@ public class FilesAPI implements API {
 
     @Exposed
     public List getDisks(){
-        java.util.List<Value> ls = new java.util.ArrayList<>(java.util.List.of());
+        List ls = new List();
         for (int disk : diskManager.diskNumbers()) ls.add(Value.of(disk));
-        return new List(ls);
+        return ls;
     }
 
     @Exposed
