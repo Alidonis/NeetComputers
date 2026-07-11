@@ -203,7 +203,11 @@ public class FilesAPI implements API {
     }
 
     @Exposed
-    public int[] getDisks(){return diskManager.diskNumbers();}
+    public List getDisks(){
+        java.util.List<Value> ls = new java.util.ArrayList<>(java.util.List.of());
+        for (int disk : diskManager.diskNumbers()) ls.add(Value.of(disk));
+        return new List(ls);
+    }
 
     @Exposed
     public String getDiskID(int disk) {
