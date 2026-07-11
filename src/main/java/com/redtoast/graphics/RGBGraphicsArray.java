@@ -187,6 +187,35 @@ public class RGBGraphicsArray {
         }
     }
 
+    public void bulkBlendPixels(int startX, int startY, byte[] buffer, int bufferWidth, int bufferHeight) {
+        if (buffer.length != bufferWidth * bufferHeight * 4) {
+            throw new IllegalArgumentException("Buffer size mismatch");
+        }
+
+        int bufferIdx = 0;
+        for (int py = 0; py < bufferHeight; py++) {
+            int targetY = startY + py;
+            if (targetY < 0 || targetY >= sizey) {
+                bufferIdx += bufferWidth * 4;
+                continue;
+            }
+
+            for (int px = 0; px < bufferWidth; px++) {
+                int targetX = startX + px;
+
+                int r = buffer[bufferIdx++] & 0xFF;
+                int g = buffer[bufferIdx++] & 0xFF;
+                int b = buffer[bufferIdx++] & 0xFF;
+                int a = buffer[bufferIdx++] & 0xFF;
+
+                if (targetX >= 0 && targetX < sizex) {
+                    int color = (a << 24) | (r << 16) | (g << 8) | b;
+                    pixels[targetY][targetX] = blendPixel(pixels[targetY][targetX], color);
+                }
+            }
+        }
+    }
+
     public void bulkWritePixels(int startX, int startY, int[] buffer, int bufferWidth, int bufferHeight) {
         if (buffer.length != bufferWidth * bufferHeight * 4) {
             throw new IllegalArgumentException("Buffer size mismatch");
@@ -228,6 +257,37 @@ public class RGBGraphicsArray {
                 int g = buffer[bufferIdx++];
                 int b = buffer[bufferIdx++];
                 int a = buffer[bufferIdx++];
+
+                int targetX = startX + px;
+                int targetY = startY + py;
+
+                if (rotateFunc != null) {
+                    Vector2i rotated = rotateFunc.apply(targetX, targetY);
+                    targetX = rotated.x;
+                    targetY = rotated.y;
+                }
+
+                if (targetX >= 0 && targetX < sizex && targetY >= 0 && targetY < sizey) {
+                    int color = (a << 24) | (r << 16) | (g << 8) | b;
+                    pixels[targetY][targetX] = blendPixel(pixels[targetY][targetX], color);
+                }
+            }
+        }
+    }
+
+    public void bulkBlendPixelsWithTransform(int startX, int startY, byte[] buffer, int bufferWidth, int bufferHeight,
+            java.util.function.BiFunction<Integer, Integer, Vector2i> rotateFunc) {
+        if (buffer.length != bufferWidth * bufferHeight * 4) {
+            throw new IllegalArgumentException("Buffer size mismatch");
+        }
+
+        int bufferIdx = 0;
+        for (int py = 0; py < bufferHeight; py++) {
+            for (int px = 0; px < bufferWidth; px++) {
+                int r = buffer[bufferIdx++] & 0xFF;
+                int g = buffer[bufferIdx++] & 0xFF;
+                int b = buffer[bufferIdx++] & 0xFF;
+                int a = buffer[bufferIdx++] & 0xFF;
 
                 int targetX = startX + px;
                 int targetY = startY + py;
