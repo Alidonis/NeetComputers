@@ -304,8 +304,7 @@ public class GraphicalAPI implements Exposable {
         drawLine(x1, y1, x2, y2, color.x, color.y, color.z);
     }
 
-    @Exposed
-    public void drawLayer(@Index int x, @Index int y, Table layer) {
+    private int[][] extractLayerPixels(Table layer) {
         AtomicReference<Function> function = new AtomicReference<>();
         layer.foreach((key, value) -> {
             if (key.toString() != null && key.toString().equals("getAsArray")) {
@@ -325,53 +324,53 @@ public class GraphicalAPI implements Exposable {
             throw new ExposedError("Invalid layer (data retrieval failure)");
         }
         if (!value.instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (invalid data)");
-        int[][] pixels = Layer.translateArray(value.toList());
-        Vector2i size = new Vector2i(pixels[0].length, pixels.length);
-        for (int x2 = 0; x2 < size.x; x2++) {
-            for (int y2 = 0; y2 < size.y; y2++) {
-                rawDrawPixel(x + x2, y + y2, (pixels[y2][x2] & 0xFF0000) >> 16, (pixels[y2][x2] & 0x00FF00) >> 8, (pixels[y2][x2] & 0x0000FF));
+        return Layer.translateArray(value.toList());
+    }
+
+    @Exposed
+    public void drawLayer(@Index int x, @Index int y, Table layer) {
+        int[][] pixels = extractLayerPixels(layer);
+        int sizeY = pixels.length;
+        int sizeX = pixels[0].length;
+        Vector2i destSize = GraphicsBuffer.getSize();
+
+        int startY2 = Math.max(0, -y);
+        int endY2 = Math.min(sizeY, destSize.y - y);
+        int startX2 = Math.max(0, -x);
+        int endX2 = Math.min(sizeX, destSize.x - x);
+
+        int packedAlpha = alpha << 24;
+        for (int y2 = startY2; y2 < endY2; y2++) {
+            int[] srcRow = pixels[y2];
+            int destY = y + y2;
+            for (int x2 = startX2; x2 < endX2; x2++) {
+                int destX = x + x2;
+                int color = packedAlpha | (srcRow[x2] & 0x00FFFFFF);
+                GraphicsBuffer.set(destX, destY, RGBGraphicsArray.blendPixel(GraphicsBuffer.get(destX, destY), color));
             }
         }
     }
 
     @Exposed
     public void drawLayer(@Index int x, @Index int y,@Index int x0,@Index int y0,@Index int x1,@Index int y1, Table layer) {
-        AtomicReference<Function> function = new AtomicReference<>();
-        layer.foreach((key, value) -> {
-            if (key.toString() != null && key.toString().equals("getAsArray")) {
-                if (value.instanceOf(VarType.FUNCTION)) {
-                    function.set(value.toFunction());
-                } else {
-                    throw new ExposedError("Table provided not valid layer");
-                }
-            }
-        });
-        if (function.get() == null) throw new ExposedError("Invalid layer (no data)");
-        if (function.get().isUserGenerated() || !function.get().getName().equals("getAsArray")) throw new ExposedError("Invalid layer (invalid data)");
-        Value value;
-        try{
-            value = function.get().invoke(new FunctionInput(new LinkedList<>()));
-        }catch (Throwable ignored) {
-            throw new ExposedError("Invalid layer (data retrieval failure)");
-        }
-        if (!value.instanceOf(VarType.LIST)) throw new ExposedError("Invalid layer (invalid data)");
-        int[][] pixels = Layer.translateArray(value.toList());
+        int[][] pixels = extractLayerPixels(layer);
         Vector2i size = new Vector2i(pixels[0].length, pixels.length);
-        int x2 = 0;
         x1 = Math.clamp(x1,0,size.x);
         x0 = Math.clamp(x0,0,size.x);
         y1 = Math.clamp(y1,0,size.y);
         y0 = Math.clamp(y0,0,size.y);
         int signx = x1-x0==0 ? 1 : (x1-x0)/Math.abs(x1-x0);
         int signy = y1-y0==0 ? 1 : (y1-y0)/Math.abs(y1-y0);
-        for (int sourcex = x0; sourcex != x1; sourcex+=signx) {
-            int y2 = 0;
-            for (int sourcey = y0; sourcey != y1; sourcey+=signy) {
-                Vector3i colors = RGBGraphicsArray.decimalToRgb(pixels[sourcey][sourcex]);
+        int y2 = 0;
+        for (int sourcey = y0; sourcey != y1; sourcey += signy) {
+            int[] srcRow = pixels[sourcey];
+            int x2 = 0;
+            for (int sourcex = x0; sourcex != x1; sourcex += signx) {
+                Vector3i colors = RGBGraphicsArray.decimalToRgb(srcRow[sourcex]);
                 rawDrawPixel(x + x2, y + y2, colors.x, colors.y, colors.z);
-                y2++;
+                x2++;
             }
-            x2++;
+            y2++;
         }
     }
 
@@ -459,11 +458,8 @@ public class GraphicalAPI implements Exposable {
     public void fill(@Index(strict = true, offset = -1) @Range(range = 256) int R,
             @Index(strict = true, offset = -1) @Range(range = 256) int G,
             @Index(strict = true, offset = -1) @Range(range = 256) int B) {
-        for (int w = 0; w < width; w++) {
-            for (int h = 0; h < height; h++) {
-                rawDrawPixel(w, h, R, G, B);
-            }
-        }
+        int color = (alpha << 24) | (R << 16) | (G << 8) | B;
+        GraphicsBuffer.fillRect(0, 0, width, height, color);
     }
 
     @Exposed
@@ -471,11 +467,8 @@ public class GraphicalAPI implements Exposable {
             @Index(strict = true, offset = -1) @Range(range = 256) int R,
             @Index(strict = true, offset = -1) @Range(range = 256) int G,
             @Index(strict = true, offset = -1) @Range(range = 256) int B) {
-        for (int w = Math.min(x1, x2); w < Math.max(x1, x2); w++) {
-            for (int h = Math.min(y1, y2); h < Math.max(y1, y2); h++) {
-                rawDrawPixel(w, h, R, G, B);
-            }
-        }
+        int color = (alpha << 24) | (R << 16) | (G << 8) | B;
+        GraphicsBuffer.fillRect(x1, y1, x2, y2, color);
     }
 
     @Exposed

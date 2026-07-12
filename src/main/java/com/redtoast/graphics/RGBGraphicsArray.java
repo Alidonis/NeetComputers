@@ -4,6 +4,8 @@ import net.minecraft.network.PacketByteBuf;
 import org.joml.Vector2i;
 import org.joml.Vector3i;
 
+import java.util.Arrays;
+
 public class RGBGraphicsArray {
     public int[][] pixels;
     private int sizex, sizey;
@@ -124,6 +126,35 @@ public class RGBGraphicsArray {
         return sizex * sizey;
     }
 
+    public void fillRect(int x1, int y1, int x2, int y2, int color) {
+        int minX = Math.max(0, Math.min(x1, x2));
+        int maxX = Math.min(sizex, Math.max(x1, x2));
+        int minY = Math.max(0, Math.min(y1, y2));
+        int maxY = Math.min(sizey, Math.max(y1, y2));
+        if (minX >= maxX || minY >= maxY) {
+            return;
+        }
+
+        int sourceAlpha = (color >>> 24) & 0xFF;
+        if (sourceAlpha == 0) {
+            return;
+        }
+
+        if (sourceAlpha == 255) {
+            for (int y = minY; y < maxY; y++) {
+                Arrays.fill(pixels[y], minX, maxX, color);
+            }
+            return;
+        }
+
+        for (int y = minY; y < maxY; y++) {
+            int[] row = pixels[y];
+            for (int x = minX; x < maxX; x++) {
+                row[x] = blendPixel(row[x], color);
+            }
+        }
+    }
+
     public void clear() {
         for (int y = 0; y < sizey; y++) {
             for (int x = 0; x < sizex; x++) {
@@ -133,12 +164,19 @@ public class RGBGraphicsArray {
     }
 
     public static int blendPixel(int source, int color) {
+        int a2 = (color >>> 24) & 0xFF;
+        if (a2 == 255) {
+            return color;
+        }
+        if (a2 == 0) {
+            return source;
+        }
+
         int a1 = (source >> 24) & 0xFF;
         int r1 = (source >> 16) & 0xFF;
         int g1 = (source >> 8) & 0xFF;
         int b1 = source & 0xFF;
 
-        int a2 = (color >> 24) & 0xFF;
         int r2 = (color >> 16) & 0xFF;
         int g2 = (color >> 8) & 0xFF;
         int b2 = color & 0xFF;
