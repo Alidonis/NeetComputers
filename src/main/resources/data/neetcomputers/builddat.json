@@ -1,4 +1,5 @@
 {
   "version": "${version}",
-  "buildTime": "${buildTime}"
+  "buildTime": "${buildTime}",
+  "luaVersion": "${luaVersion}"
 }
