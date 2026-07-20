@@ -140,14 +140,4 @@ public class LuaGlobals extends Globals implements GlobalGeneric {
         LuaValue luaKay = (LuaValue) lua52.fromValue(key.pack());
         super.set(luaKay, (LuaValue) lua52.fromValue(value.pack()));
     }
-
-    @Override
-    public String getLang() {
-        return "Lua";
-    }
-
-    @Override
-    public UUID getUUID() {
-        return uuid;
-    }
 }
