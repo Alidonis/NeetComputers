@@ -5,7 +5,6 @@ import com.redtoast.APIS.Cryptography.CryptoAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.Connections;
 import com.redtoast.Connections.PipeType;
-import com.redtoast.Lua.LuaMaster;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ComputerDataComponent;
@@ -39,9 +38,7 @@ import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.recipes.FromDiskRecipe;
 import com.redtoast.recipes.TransitiveSingleRecipe;
 import com.redtoast.simulation.FS.DataNode;
-import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.APILoader;
-import com.redtoast.simulation.APIRegistry;
 import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.events.EventLabel;
@@ -80,8 +77,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Position;
-import org.jetbrains.annotations.NotNull;
-import org.luaj.vm2.Lua;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +121,6 @@ public class NeetComputersServer implements ModInitializer {
 	public static Long timeBenchMark = null;
 
 	//internal language processing
-	private static boolean LangsLoaded = false;
 	protected static LanguageGeneric[] LanguageCache;
 	private static LanguageTranslater[] translators;
 	private final static LinkedList<LanguageGeneric> languageGenerics = new LinkedList<>();
@@ -136,7 +130,7 @@ public class NeetComputersServer implements ModInitializer {
 		BuildData.updateDat();
 		version += BuildData.VERSION;
 
-		LOGGER.info(version+" running using "+ Lua._VERSION);
+		LOGGER.info(version+" running using YSLua "+ BuildData.LUA_VERSION);
 		LOGGER.info("mod build from "+BuildData.BUILD_TIME);
 
 		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputersServer::updateServer);
@@ -318,8 +312,6 @@ public class NeetComputersServer implements ModInitializer {
 			}
 		});
 
-        registerLanguage(new LuaMaster());
-
 		APILoader.register(ChipAPI::new);
 		APILoader.register(IOAPI::new);
 		APILoader.register(ScreenAPI::new);
@@ -382,7 +374,7 @@ public class NeetComputersServer implements ModInitializer {
 		player.networkHandler.sendPacket(packet);
 	}
 
-	public void registerLanguage(LanguageGeneric language){
+	public static void registerLanguage(LanguageGeneric language){
 		for (LanguageGeneric lang : languageGenerics){
 			if (lang.getName().equals(language.getName())){
 				return;
@@ -393,8 +385,10 @@ public class NeetComputersServer implements ModInitializer {
 
 	public static void updateServer(MinecraftServer server) {
 		NeetComputersServer.server = server;
+		languageGenerics.clear();
 		timeBenchMark = System.currentTimeMillis();
 		worldPath = server.getSavePath(WorldSavePath.ROOT);
+		BinaryLoader.load(datahandling, server.getPath("luaBinaries"));
 		ConfigLoader.loadServerConfig(server);
 		if (!worldPath.resolve("neetcomputers").toFile().exists()){
 			LOGGER.info("Generating neetcomputers world directory");
@@ -433,14 +427,11 @@ public class NeetComputersServer implements ModInitializer {
 		}
 
 		//process lang translaters
-		if (!LangsLoaded){
-			LangsLoaded = true;
-			LanguageCache = new LanguageGeneric[languageGenerics.size()];
-			translators = new LanguageTranslater[languageGenerics.size()];
-			for (int i = 0; i < languageGenerics.size(); i++){
-				LanguageCache[i] = languageGenerics.get(i);
-				translators[i] = languageGenerics.get(i).generateTranslationClass();
-			}
+		LanguageCache = new LanguageGeneric[languageGenerics.size()];
+		translators = new LanguageTranslater[languageGenerics.size()];
+		for (int i = 0; i < languageGenerics.size(); i++){
+			LanguageCache[i] = languageGenerics.get(i);
+			translators[i] = languageGenerics.get(i).generateTranslationClass();
 		}
 
 		ProcessManager.clear();

@@ -24,6 +24,9 @@ public class ProcessManager extends Thread{
     private boolean wrapUp = false;
     private final LinkedBlockingQueue<Runnable> que = new LinkedBlockingQueue<>();
 
+    private native void attachC();
+    private native void detachC();
+
     private ProcessManager(){
         super();
     }
