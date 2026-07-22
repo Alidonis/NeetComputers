@@ -133,8 +133,10 @@ public class LayeredFilepath implements Filepath {
     @Override
     public String[] listFiles() throws IOException {
         if (!mainFilepath.exists()) return layoverFilepath.listFiles();
-        LinkedList<String> files = new LinkedList<>(Arrays.asList(layoverFilepath.listFiles()));
-        for (String file : mainFilepath.listFiles()){
+        String[] layoverFiles = layoverFilepath.listFiles();
+        String[] mainFiles = mainFilepath.listFiles();
+        LinkedList<String> files = new LinkedList<>(Arrays.asList(layoverFiles != null ? layoverFiles : new String[0]));
+        for (String file : (mainFiles != null ? mainFiles : new String[0])){
             if (!files.contains(file) && !fs.blacklist.contains(file)) files.add(file);
         }
         return files.toArray(new String[]{});

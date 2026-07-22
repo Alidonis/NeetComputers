@@ -8,7 +8,7 @@ local function drawChar(px, py, char, r,g,b)
         local index = 1 + (string.byte(char) - 32) * 5 + y
         local charn = chars[index]
         for x=0,2 do
-            local bitchar = bit32.band(charn, 2 ^ x)
+            local bitchar = math.floor(charn / (2 ^ x)) % 2
             if bitchar~=0 then
                 screen.fill((x*4)+(px*4), (y*4)+(py*4), (x*4)+3+(px*4), (y*4)+3+(py*4), r,g,b)
             end

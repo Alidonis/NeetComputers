@@ -22,19 +22,26 @@ public abstract class Runtime {
     public APILoader loader = null;
 
     //state info
-    private boolean inTick = false;
+    private volatile boolean inTick = false;
     private boolean kill = false;
+
+    private volatile boolean killFlag = false;
+
+    public final Object tickLock = new Object();
 
     public Runtime(Computer Parent){
         fs = Parent.getFileSystem();
         parent = Parent;
     }
 
-    /**
-        Tests if the thread is being processed
-     */
     public boolean isInTick() {
         return inTick;
+    }
+
+    public boolean isSafeToDrop() {
+        synchronized (tickLock) {
+            return !inTick;
+        }
     }
 
     /**
@@ -76,35 +83,44 @@ public abstract class Runtime {
         }
     }
 
-    /**
-     * called when runtime completes a tick, if true kills the process
-     * @return if the process should die
-     */
-    public abstract boolean shouldDie();
+    public void requestKill(){
+        killFlag = true;
+    }
+
+    public boolean shouldDie(){
+        boolean temp = killFlag;
+        if (temp) killFlag = false;
+        return temp;
+    }
 
     /**
      * ticks the process forward once and performs state maintenance
      */
     public void tick(){
         String errorMessage = null;
-        if (!kill) {
-            if (thread == null) {
-                kill = true;
-                return;
-            }
-            if (thread.isAlive()) {
-                inTick=true;
-                if (parent.isCrashed()) return;
-                thread.tick();
-                inTick=false;
-                if (!thread.isAlive()) {
-                    errorMessage = thread.getErrorMessage();
-                    if (errorMessage!=null) errorMessage = errorMessage.replaceFirst("\n\t\\[Java]: in \\?$", "").replaceAll("\t", "    ");
-                    thread = null;
+        synchronized (tickLock) {
+            if (!kill) {
+                if (thread == null) {
+                    kill = true;
+                    return;
                 }
-            }
-            if (thread == null) {
-                kill = true;
+                if (thread.isAlive()) {
+                    inTick = true;
+                    try {
+                        if (parent.isCrashed()) return;
+                        thread.tick();
+                    } finally {
+                        inTick = false;
+                    }
+                    if (!thread.isAlive()) {
+                        errorMessage = thread.getErrorMessage();
+                        if (errorMessage != null) errorMessage = errorMessage.replaceFirst("\n\t\\[Java]: in \\?$", "").replaceAll("\t", "    ");
+                        thread = null;
+                    }
+                }
+                if (thread == null) {
+                    kill = true;
+                }
             }
         }
         if (shouldDie()){
