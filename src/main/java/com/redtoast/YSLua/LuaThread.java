@@ -54,6 +54,9 @@ public class LuaThread extends LangThread {
         LuaTranslater translater = (LuaTranslater) NeetComputersServer.getTranslater("Lua");
         assert translater != null;
         parentRuntime.loader.load(parentRuntime.getParent(), (key, value) -> bridge.setGlobal(key.getValue().toString(), translater.fromValue(value)));
+
+        bridge.setGlobal("bit32", Bit32Compat.build());
+
         bridge.init(script, computerConfig.instructionsPerBatch(), computerConfig.batchesPerTick());
     }
 
