@@ -19,9 +19,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class BinaryLoader {
     private static boolean loaded = false;
+    private static boolean linked = false;
 
     public static void load(ResourceManager datahandling, Path gamePath) {
-        if (loaded) return;
+        if (loaded) {
+            if (linked) {
+                NeetComputersServer.registerLanguage(new LuaMaster());
+            }
+            return;
+        }
         loaded = true;
         Map<String, Fork> forks = new Hashtable<>();
         datahandling.findResources("binaries", arg -> {
@@ -106,6 +112,7 @@ public class BinaryLoader {
                 testInstance.init("print('YSLua loaded successfully!')", 1, 20);
                 testInstance.tick();
                 testInstance.close();
+                linked = true;
                 NeetComputersServer.registerLanguage(new LuaMaster());
             }
         } catch (Throwable error) {

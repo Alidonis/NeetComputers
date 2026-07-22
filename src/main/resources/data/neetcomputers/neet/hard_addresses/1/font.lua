@@ -6,7 +6,7 @@ local function drawChar(px, py, char, r,g,b)
         local index = 1 + (string.byte(char) - 32) * 5 + y
         local charn = chars[index]
         for x=0,2 do
-            local bitchar = bit32.band(charn, 2 ^ x)
+            local bitchar = math.floor(charn / (2 ^ x)) % 2
             if bitchar~=0 then
                 screen.drawPixel(x+px, y+py, r,g,b)
             end

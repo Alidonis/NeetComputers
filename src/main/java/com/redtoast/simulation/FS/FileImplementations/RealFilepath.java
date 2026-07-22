@@ -187,9 +187,9 @@ public class RealFilepath implements Filepath {
     @Override
     public String[] listFiles() throws IOException {
         if (invalid) throw new IOException("Invalid file path");
-        if (!isDirectory()) return null;
+        if (!isDirectory()) return new String[0];
         java.io.File[] files = root.resolve(relPath).toFile().listFiles();
-        if (files==null) return null;
+        if (files==null) return new String[0];
         String[] files2 = new String[files.length];
         for (int i = 0; i < files.length; i++){
             files2[i] = files[i].getName();

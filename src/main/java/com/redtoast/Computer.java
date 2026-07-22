@@ -28,6 +28,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -59,6 +61,8 @@ import java.util.*;
  * @see InternetManager
  */
 public abstract class Computer implements BinaryGraphicsProvider {
+
+    private static final Logger diagLogger = LoggerFactory.getLogger("NeetComputers: DIAGNOSTIC");
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
     //pointer for the folder that contains this computer's files
@@ -93,8 +97,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public final ArrayList<ComputerWrapper> computerAccesses;
     //value holding last time computer ticked
     private long tickTime;
-    //tells the computer to shut down at the end of a tick cycle
-    private boolean killFlag = false;
 
     //abstract methods
     /**
@@ -193,6 +195,9 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (loaded && state != ComputerState.OFF){
+            diagLogger.warn("stop() called, previous state=" + state
+                    + ", runtime=" + (runtime == null ? "null" : (runtime.isDead() ? "dead" : "alive"))
+                    + ", inTick=" + (runtime != null && !runtime.isSafeToDrop()), new Exception("stop() call site"));
             state = ComputerState.OFF;
             maintainState();
         }
@@ -209,6 +214,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //sets the computer to a crashed state
     public void crash(String message){
         if (loaded && state != ComputerState.CRASHED){
+            diagLogger.warn("crash() called with message: " + message, new Exception("crash() call site"));
             state = ComputerState.CRASHED;
             if (runtime==null || runtime.isDead()){
                 crashMessage = message;
@@ -222,7 +228,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
 
     //yields the computer
     public void yield(){
-        if (runtime!=null && runtime.getThread()!=null) runtime.getThread().yield();
+        if (runtime!=null && runtime.isInTick() && runtime.getThread()!=null) runtime.getThread().yield();
     }
 
     //one line fetch methods
@@ -358,15 +364,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
             internetManager.reset();
             eventManager.reset();
 
-            runtime = new Runtime(this) {
-                @Override
-                public boolean shouldDie() {
-                    boolean temp = killFlag;
-                    if (temp) killFlag = false;
-                    return temp;
-                }
-
-            };
+            runtime = new Runtime(this) {};
 
             new APILoader(this);
             runtime.load();
@@ -388,8 +386,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
             save = true;
         }
         if ((state == ComputerState.OFF || state == ComputerState.CRASHED) && runtime!=null) {
-            if (!runtime.isDead() && runtime.isInTick()){
-                killFlag = true;
+            if (!runtime.isDead() && !runtime.isSafeToDrop()){
+                runtime.requestKill();
             }else{
                 internetManager.reset();
                 eventManager.reset();

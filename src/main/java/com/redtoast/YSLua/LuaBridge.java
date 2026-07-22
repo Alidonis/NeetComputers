@@ -11,7 +11,7 @@ public abstract class LuaBridge {
     }
 
     private final long pointer;
-    private boolean closed = false;
+    private volatile boolean closed = false;
     private final Map<Integer, LuaValue.Function> functionMemory = new Hashtable<>();
     private int rollingPointer = 0;
 
@@ -39,6 +39,7 @@ public abstract class LuaBridge {
     private native void pushInt(int integer, long pointer);
     private native void pushFloat(float floatingPoint, long pointer);
     private native void pushString(String string, long pointer);
+    private native void pushBinary(byte[] data, long pointer);
     private native void pushFunc(int id, long pointer);
     private native void pushError(String string, long pointer);
 
@@ -57,6 +58,7 @@ public abstract class LuaBridge {
             case NUMINT -> pushInt((int) value.getValue(), pointer);
             case NUMFLOAT -> pushFloat((float) value.getValue(), pointer);
             case STRING -> pushString((String) value.getValue(), pointer);
+            case BINARY -> pushBinary((byte[]) value.getValue(), pointer);
             case FUNCTION -> {
                 functionMemory.put(rollingPointer, (LuaValue.Function) value.getValue());
                 pushFunc(rollingPointer++, pointer);
@@ -156,12 +158,18 @@ public abstract class LuaBridge {
             for (int i = 0; i < amount;) values[i++] = pull(i, new ArrayList<>());
             LuaValue[] returns = func.call(values);
             for (int i = 0; i < amount; i++) pop(1, pointer);
+            for (LuaValue value : returns) {
+                if (value.getType() == LuaValue.Type.ERROR) {
+                    pushString((String) value.getValue(), pointer);
+                    return -1;
+                }
+            }
             for (LuaValue value : returns) push(value);
             return returns.length;
         }else{
             for (int i = 0; i < amount; i++) pop(1, pointer);
-            pushError("Lost function reference (how did you get here?)", pointer);
-            return 1;
+            pushString("Lost function reference (how did you get here?)", pointer);
+            return -1;
         }
     }
 
@@ -190,6 +198,7 @@ public abstract class LuaBridge {
     public void tick(){
         if (closed) throw new IllegalStateException("Bridge closed");
         if (!isAlive()) return;
+        if (closed) return;
         tick(pointer);
     }
 
@@ -207,7 +216,6 @@ public abstract class LuaBridge {
             release(pointer);
             functionMemory.clear();
             closed = true;
-        }else
-            throw new IllegalStateException("Already closed");
+        }
     }
 }

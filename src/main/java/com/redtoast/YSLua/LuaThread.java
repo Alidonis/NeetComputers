@@ -42,8 +42,9 @@ public class LuaThread extends LangThread {
 
             @Override
             public boolean isAlive() {
-                if (parentRuntime.getParent().isCrashed()) shutDown();
-                if (parentRuntime.shouldDie()) {
+                if (parentRuntime.getParent().isCrashed()) {
+                    shutDown();
+                } else if (parentRuntime.shouldDie()) {
                     shutDown();
                     parentRuntime.getParent().stop();
                 }

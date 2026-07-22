@@ -2,6 +2,8 @@ package com.redtoast.neet;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.value.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -10,6 +12,8 @@ import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ProcessManager extends Thread{
+    private static final Logger diagLogger = LoggerFactory.getLogger("NeetComputers: DIAGNOSTIC");
+
     //static functions
     private static final ArrayList<ProcessManager> processManagers = new ArrayList<>();
     private static final LinkedList<UUID> knownUUIDs = new LinkedList<>();
@@ -35,7 +39,13 @@ public class ProcessManager extends Thread{
     public void run(){
         while (!killFlag) {
             try {
-                que.take().run();
+                try {
+                    que.take().run();
+                } catch (InterruptedException e) {
+                    throw e;
+                } catch (Throwable t) {
+                    diagLogger.warn("Uncaught exception in ProcessManager worker task", t);
+                }
                 if ((killFlag || wrapUp) && que.isEmpty()) break;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -101,8 +111,11 @@ public class ProcessManager extends Thread{
         if (knownUUIDs.contains(computer.getUuid())) return false;
         knownUUIDs.add(computer.getUuid());
         return donateTask(() -> {
-            if (computer.getRuntime() != null) {
-                computer.getRuntime().tick();
+            try {
+                if (computer.getRuntime() != null) {
+                    computer.getRuntime().tick();
+                }
+            } finally {
                 knownUUIDs.remove(computer.getUuid());
             }
         });

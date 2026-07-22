@@ -12,6 +12,7 @@ import com.redtoast.simulation.value.VarType;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Objects;
 
 public class LuaTranslater implements LanguageTranslater<LuaValue, LuaValue> {
     @Override
@@ -32,6 +33,9 @@ public class LuaTranslater implements LanguageTranslater<LuaValue, LuaValue> {
             }
             case STRING -> {
                 return Value.of((String) var.getValue());
+            }
+            case BINARY -> {
+                return Value.of((byte[]) var.getValue());
             }
             case FUNCTION -> {
                 return var.getValue() instanceof LuaFunction function ? Value.of(function.function) : Value.NULL;
@@ -60,13 +64,16 @@ public class LuaTranslater implements LanguageTranslater<LuaValue, LuaValue> {
                 return LuaValue.from((int) var.getValue());
             }
             case DOUBLE, FLOAT -> {
-                return LuaValue.from((float) var.getValue());
+                return LuaValue.from(((Number) var.getValue()).floatValue());
             }
             case BOOLEAN -> {
                 return LuaValue.from((boolean) var.getValue());
             }
             case STRING -> {
                 return LuaValue.from(var.toString());
+            }
+            case BYTES -> {
+                return LuaValue.from(Objects.requireNonNull(var.toBytes()).getData());
             }
             case NULL -> {
                 return LuaValue.from();

@@ -322,7 +322,11 @@ public class Value<Type> {
         if (instanceOf(VarType.BYTES)){
             return (Bytes) value;
         }else if (instanceOf(VarType.STRING)){
-            return new Bytes(((String) value).getBytes());
+            // ISO-8859-1 maps every byte value 0-255 to exactly one char and back,
+            // so it round-trips losslessly for Lua strings that were packed byte-for-byte
+            // on the way in (see YSLua's native getString). The previous platform-default
+            // getBytes() silently corrupted any non-ASCII byte content.
+            return new Bytes(((String) value).getBytes(StandardCharsets.ISO_8859_1));
         }else{
             return null;
         }

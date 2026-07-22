@@ -31,6 +31,10 @@ public class LuaValue {
         return new LuaValue(value, Type.STRING);
     }
 
+    public static LuaValue from(byte[] value) {
+        return new LuaValue(value, Type.BINARY);
+    }
+
     public static LuaValue from(LuaValue[] list) {
         return new LuaValue(list, Type.LIST);
     }
@@ -69,6 +73,7 @@ public class LuaValue {
         NUMINT,
         NUMFLOAT,
         STRING,
+        BINARY,
         FUNCTION,
         LIST,
         TABLE,
