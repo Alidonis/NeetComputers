@@ -112,7 +112,7 @@ public class FileHelper {
         }else if (mode.equals("w")){
             return new OpeningMode(false, true, true, false, true,false);
         }else if(mode.equals("a")){
-            return new OpeningMode(false, false, false, false, true,false);
+            return new OpeningMode(false, true, false, false, true,false);
         }else if(mode.equals("r+")){
             return new OpeningMode(true, true, false, false, false,false);
         }else if(mode.equals("w+")){
@@ -130,7 +130,7 @@ public class FileHelper {
         }else if(mode.equals("wb+") || mode.equals("w+b")){
             return new OpeningMode(true, true, true, true, true,false);
         }else if(mode.equals("ab+") || mode.equals("a+b")){
-            return new OpeningMode(true, true, false, false, true,false);
+            return new OpeningMode(true, true, false, true, true,false);
         }else{
             return new OpeningMode(false, false, false, false, false,true);
         }
