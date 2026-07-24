@@ -146,6 +146,7 @@ public final class Bit32Compat {
             case FUNCTION -> "function";
             case LIST -> "table";
             case BINARY -> "string";
+            case OPAQUE -> (String) value.getValue();
             default -> "value";
         };
     }
