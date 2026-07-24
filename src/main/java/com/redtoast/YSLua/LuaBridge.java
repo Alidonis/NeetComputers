@@ -82,6 +82,7 @@ public abstract class LuaBridge {
             }
             case ERROR -> pushError((String) value.getValue(), pointer);
             case INVALID -> pushString("Invalid Data", pointer);
+            case OPAQUE -> pushString("[" + (String) value.getValue() + "]", pointer);
         }
     }
 
@@ -110,8 +111,12 @@ public abstract class LuaBridge {
             case (-1) -> LuaValue.from(getInt(index, pointer));
             case (0) -> LuaValue.from();
             case (1) -> LuaValue.from(getBool(index, pointer));
+            case (2) -> LuaValue.opaque("userdata");
             case (3) -> LuaValue.from(getFloat(index, pointer));
             case (4) -> LuaValue.from(getString(index, pointer));
+            case (6) -> LuaValue.opaque("function");
+            case (7) -> LuaValue.opaque("userdata");
+            case (8) -> LuaValue.opaque("thread");
             case (5) -> {
                 long id = tableIdentity(index, pointer);
                 if (seen.contains(id)) yield LuaValue.invalid();

@@ -55,6 +55,10 @@ public class LuaValue {
         return new LuaValue(null, Type.INVALID);
     }
 
+    public static LuaValue opaque(String nativeTypeName) {
+        return new LuaValue(nativeTypeName, Type.OPAQUE);
+    }
+
     public interface Function {
         LuaValue[] call(LuaValue[] parameters);
     }
@@ -78,6 +82,7 @@ public class LuaValue {
         LIST,
         TABLE,
         ERROR,
-        INVALID
+        INVALID,
+        OPAQUE
     }
 }

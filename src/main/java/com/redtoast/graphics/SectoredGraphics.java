@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 
 public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Iterable<SectoredGraphics.Sector> {
     public record Sector(int x1, int y1, int x2, int y2, int color) {
@@ -61,7 +61,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
         return Arrays.stream(sectors).iterator();
     }
 
-    private static List<Sector> scanGraphics(Vector2i size, Function<Vector2i, Integer> getColor, @Nullable List<Integer> colorOutput) {
+    private static List<Sector> scanGraphics(Vector2i size, IntBinaryOperator getColor, @Nullable List<Integer> colorOutput) {
         ArrayList<Sector> sectors = new ArrayList<>();
         int targetVolume = size.x * size.y;
         int currentVolume = 0;
@@ -70,14 +70,14 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
         Vector2i start = null;
         for (int x = 0; x < size.x; x++){
             for (int y = 0; y < size.y; y++) {
-                int color = getColor.apply(new Vector2i(x, y));
+                int color = getColor.applyAsInt(x, y);
                 boolean mapped = map[x * size.y + y];
                 if (color!=lastColor && !mapped) {
                     if (start!=null) {
                         Vector2i end = new Vector2i(start.x, y-1);
                         for (int c = start.x; c < size.x; c++) {
                             for (int v = start.y; v < y; v++) {
-                                if (getColor.apply(new Vector2i(c, v)) != lastColor) {
+                                if (getColor.applyAsInt(c, v) != lastColor) {
                                     c = size.x;
                                     v = size.y;
                                 }
@@ -100,7 +100,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
                         Vector2i end = new Vector2i(start.x, y-1);
                         for (int c = start.x; c < size.x; c++) {
                             for (int v = start.y; v < y; v++) {
-                                if (getColor.apply(new Vector2i(c, v)) != lastColor) {
+                                if (getColor.applyAsInt(c, v) != lastColor) {
                                     c = size.x;
                                     v = size.y;
                                 }
@@ -128,7 +128,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
                 Vector2i end = new Vector2i(start.x, size.y-1);
                 for (int c = start.x; c < size.x; c++) {
                     for (int v = start.y; v < size.y; v++) {
-                        if (getColor.apply(new Vector2i(c, v)) != lastColor) {
+                        if (getColor.applyAsInt(c, v) != lastColor) {
                             c = size.x;
                             v = size.y;
                         }
@@ -261,7 +261,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
         Vector2i size = graphics.getSize();
         int[][] pixels = graphics.pixels;
         LinkedList<Integer> colorBuffer = new LinkedList<>();
-        List<Sector> sectors = scanGraphics(size, (pos) -> RGBGraphicsArray.blendPixel(0xFF000000, pixels[pos.y][pos.x] | 0xFF000000), colorBuffer);
+        List<Sector> sectors = scanGraphics(size, (x, y) -> RGBGraphicsArray.blendPixel(0xFF000000, pixels[y][x] | 0xFF000000), colorBuffer);
         if (sectors.size()==1){
             packet.writeByte(0b0100000);
             packet.writeInt(size.x);
@@ -328,7 +328,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
             for (int i = 0; i < pixelBuffer.length; i++){
                 pixelBuffer[i] = doPalletization ? colorPallet[packet.readByte() & 0xFF] : readColor(packet);
             }
-            List<Sector> sectors = scanGraphics(size, (pos) -> pixelBuffer[pos.x * size.y + pos.y], null);
+            List<Sector> sectors = scanGraphics(size, (x, y) -> pixelBuffer[x * size.y + y], null);
             return new SectoredGraphics(sectors.toArray(new Sector[]{}), size);
         }
         throw new IllegalArgumentException("Illegal control byte");
@@ -336,7 +336,7 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
 
     public static SectoredGraphics decodeFromGraphics(RGBGraphicsArray graphics) {
         Vector2i size = graphics.getSize();
-        List<Sector> sectors = scanGraphics(size, (pos) -> RGBGraphicsArray.blendPixel(0xFF000000, graphics.get(pos.x, pos.y) | 0xFF000000), null);
+        List<Sector> sectors = scanGraphics(size, (x, y) -> RGBGraphicsArray.blendPixel(0xFF000000, graphics.get(x, y) | 0xFF000000), null);
         return new SectoredGraphics(sectors.toArray(new Sector[]{}), size);
     }
 

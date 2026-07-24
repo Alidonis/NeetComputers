@@ -47,6 +47,6 @@ public class DefaultComputerConfig implements ComputerConfig{
 
     @Override
     public int batchesPerTick() {
-        return 750;
+        return 3750;
     }
 }
