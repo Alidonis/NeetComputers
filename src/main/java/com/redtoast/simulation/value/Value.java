@@ -322,10 +322,6 @@ public class Value<Type> {
         if (instanceOf(VarType.BYTES)){
             return (Bytes) value;
         }else if (instanceOf(VarType.STRING)){
-            // ISO-8859-1 maps every byte value 0-255 to exactly one char and back,
-            // so it round-trips losslessly for Lua strings that were packed byte-for-byte
-            // on the way in (see YSLua's native getString). The previous platform-default
-            // getBytes() silently corrupted any non-ASCII byte content.
             return new Bytes(((String) value).getBytes(StandardCharsets.ISO_8859_1));
         }else{
             return null;
@@ -455,6 +451,8 @@ public class Value<Type> {
         if (comparison==VarType.NUMBER && type==VarType.INT) return true;
         if (comparison==VarType.NUMBER && type==VarType.DOUBLE) return true;
         if (comparison==VarType.NUMBER && type==VarType.FLOAT) return true;
+        if (comparison==VarType.TABLE && type==VarType.LIST) return ((List) value).isEmpty();
+        if (comparison==VarType.LIST && type==VarType.TABLE) return ((Table) value).isEmpty();
         return comparison==type;
     }
 
