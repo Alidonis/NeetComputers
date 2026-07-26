@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class InternetManager {
     private final ConcurrentLinkedQueue<Request> sendQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentHashMap<Integer, WebSocket> liveSockets = new ConcurrentHashMap<>();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
     private double burden = 0;
     private final EventManager eventManager;
     private static final Map<Integer, String> errorCodes = new HashMap<>();
@@ -241,8 +242,7 @@ public class InternetManager {
             throw new ExposedError("Limit on active sockets reached");
         }
         try {
-            HttpClient client = HttpClient.newHttpClient();
-            WebSocket.Builder request = client.newWebSocketBuilder();
+            WebSocket.Builder request = httpClient.newWebSocketBuilder();
             headers.forEach(request::header);
             request.connectTimeout(Duration.ofSeconds(5));
 
@@ -291,7 +291,9 @@ public class InternetManager {
 
         @Override
         public CompletionStage<?> onBinary(WebSocket webSocket, ByteBuffer data, boolean last) {
-            receiveMessage(new Bytes(data.array()), true);
+            byte[] body = new byte[data.remaining()];
+            data.get(body);
+            receiveMessage(new Bytes(body), true);
             webSocket.request(1);
             return null;
         }
