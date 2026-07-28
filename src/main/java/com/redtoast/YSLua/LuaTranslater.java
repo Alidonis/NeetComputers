@@ -29,7 +29,7 @@ public class LuaTranslater implements LanguageTranslater<LuaValue, LuaValue> {
                 return Value.of((int) var.getValue());
             }
             case NUMFLOAT -> {
-                return Value.of((float) var.getValue());
+                return Value.of((double) var.getValue());
             }
             case STRING -> {
                 return Value.of((String) var.getValue());
@@ -64,7 +64,7 @@ public class LuaTranslater implements LanguageTranslater<LuaValue, LuaValue> {
                 return LuaValue.from((int) var.getValue());
             }
             case DOUBLE, FLOAT -> {
-                return LuaValue.from(((Number) var.getValue()).floatValue());
+                return LuaValue.from(((Number) var.getValue()).doubleValue());
             }
             case BOOLEAN -> {
                 return LuaValue.from((boolean) var.getValue());
