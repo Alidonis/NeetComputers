@@ -23,7 +23,7 @@ public class LuaValue {
         return new LuaValue(value, Type.NUMINT);
     }
 
-    public static LuaValue from(float value) {
+    public static LuaValue from(double value) {
         return new LuaValue(value, Type.NUMFLOAT);
     }
 

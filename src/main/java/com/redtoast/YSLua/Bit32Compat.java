@@ -127,7 +127,7 @@ public final class Bit32Compat {
         LuaValue value = args[index];
         return switch (value.getType()) {
             case NUMINT -> (int) value.getValue();
-            case NUMFLOAT -> (int) (float) value.getValue();
+            case NUMFLOAT -> (int) (double) value.getValue();
             default -> throw new BitArgException("bad argument #" + (index + 1) + " to '" + fname + "' (number expected, got " + typeName(value) + ")");
         };
     }

@@ -37,7 +37,7 @@ public abstract class LuaBridge {
     private native void pushNil(long pointer);
     private native void pushBool(boolean bool, long pointer);
     private native void pushInt(int integer, long pointer);
-    private native void pushFloat(float floatingPoint, long pointer);
+    private native void pushFloat(double floatingPoint, long pointer);
     private native void pushString(String string, long pointer);
     private native void pushBinary(byte[] data, long pointer);
     private native void pushFunc(int id, long pointer);
@@ -56,7 +56,7 @@ public abstract class LuaBridge {
             case NIL -> pushNil(pointer);
             case BOOLEAN -> pushBool((boolean) value.getValue(), pointer);
             case NUMINT -> pushInt((int) value.getValue(), pointer);
-            case NUMFLOAT -> pushFloat((float) value.getValue(), pointer);
+            case NUMFLOAT -> pushFloat((double) value.getValue(), pointer);
             case STRING -> pushString((String) value.getValue(), pointer);
             case BINARY -> pushBinary((byte[]) value.getValue(), pointer);
             case FUNCTION -> {
@@ -92,7 +92,7 @@ public abstract class LuaBridge {
 
     private native boolean getBool(int index, long pointer);
     private native int getInt(int index, long pointer);
-    private native float getFloat(int index, long pointer);
+    private native double getFloat(int index, long pointer);
     private native String getString(int index, long pointer);
 
     private native int pullTable(int index, long pointer);
