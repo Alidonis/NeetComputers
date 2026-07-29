@@ -15,7 +15,6 @@ import com.redtoast.simulation.FS.ComputerFileSystem;
 import com.redtoast.simulation.FS.DiskError;
 import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
@@ -61,8 +60,6 @@ import java.util.*;
  * @see InternetManager
  */
 public abstract class Computer implements BinaryGraphicsProvider {
-
-    private static final Logger diagLogger = LoggerFactory.getLogger("NeetComputers: DIAGNOSTIC");
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
     //pointer for the folder that contains this computer's files
@@ -195,15 +192,12 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //marks computer as off and overrides the runtime with null
     public void stop(){
         if (loaded && state != ComputerState.OFF){
-            diagLogger.warn("stop() called, previous state=" + state
-                    + ", runtime=" + (runtime == null ? "null" : (runtime.isDead() ? "dead" : "alive"))
-                    + ", inTick=" + (runtime != null && !runtime.isSafeToDrop()), new Exception("stop() call site"));
             state = ComputerState.OFF;
             maintainState();
         }
     }
 
-    //marks computer as off and overrides the runtime with null
+    //marks computer as off
     public void pause(){
         if (loaded && fileSystem!=null && state != ComputerState.PAUSED){
             state = ComputerState.PAUSED;
@@ -214,7 +208,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //sets the computer to a crashed state
     public void crash(String message){
         if (loaded && state != ComputerState.CRASHED){
-            diagLogger.warn("crash() called with message: " + message, new Exception("crash() call site"));
             state = ComputerState.CRASHED;
             if (runtime==null || runtime.isDead()){
                 crashMessage = message;
