@@ -22,18 +22,10 @@ public class ProcessManager extends Thread{
     // checked/mutated once per computer per tick, so it needs to be O(1) rather than the O(n) LinkedList this used to be.
     private static final Set<UUID> knownUUIDs = ConcurrentHashMap.newKeySet();
 
-    //Main thread functionality
-    private static final Hashtable<UUID, Value> returnTable = new Hashtable<>();
-    private record FunctionPackage(UUID uuuid, Runnable runnable){}
-    private static final ArrayList<FunctionPackage> mainQue = new ArrayList<>();
-
     //dynamic functions
     private boolean killFlag = false;
     private boolean wrapUp = false;
     private final LinkedBlockingQueue<Runnable> que = new LinkedBlockingQueue<>();
-
-    private native void attachC();
-    private native void detachC();
 
     private ProcessManager(){
         super();
