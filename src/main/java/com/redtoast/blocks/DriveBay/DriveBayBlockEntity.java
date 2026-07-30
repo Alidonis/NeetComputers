@@ -7,6 +7,7 @@ import com.redtoast.Connections.PipeType;
 import com.redtoast.graphics.screens.DriveBayScreenHandler;
 import com.redtoast.items.generics.DiskItem;
 import com.redtoast.neet.BulkRegistry;
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.FS.DiskError;
 import com.redtoast.simulation.FS.DiskSystem;
@@ -114,7 +115,7 @@ public class DriveBayBlockEntity extends LootableContainerBlockEntity implements
                 try{
                     system = diskItem.generateSystem(item, getUuid(), this);
                 } catch (DiskError e) {
-                    APILoader.errorLogger.warn("Drive bay failed to load drive");
+                    if (NeetComputersServer.DO_LOGGING) APILoader.errorLogger.warn("Drive bay failed to load drive");
                     APILoader.printJavaError(e);
                     lastItem = inventory.getFirst();
                     Objects.requireNonNull(getWorld()).setBlockState(getPos(), getWorld().getBlockState(getPos()).with(DriveBayBlock.LOADED, !item.isEmpty()), Block.NOTIFY_ALL);

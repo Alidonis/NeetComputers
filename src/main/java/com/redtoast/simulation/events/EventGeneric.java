@@ -1,6 +1,8 @@
 package com.redtoast.simulation.events;
 
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.EventUploadPayload;
+import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueConvertible;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -78,7 +80,10 @@ public class EventGeneric implements ValueConvertible<List> {
                 case STRING -> values.add(Value.of(packet.readString()));
                 case BOOLEAN -> values.add(Value.of(packet.readBoolean()));
                 case NULL -> values.add(Value.NULL);
-                default -> Function.logError("event packet received with invalid type " + type);
+                default -> {
+                    if (NeetComputersServer.DO_LOGGING)
+                        APILoader.errorLogger.error("event packet received with invalid type " + type);
+                }
             }
         }
 

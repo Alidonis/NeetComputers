@@ -105,6 +105,7 @@ public class NeetComputersServer implements ModInitializer {
 	public static final TransitiveSingleRecipe.Serializer TRANSITIVE_SINGLE_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transitive_single"), new TransitiveSingleRecipe.Serializer());
 	public static final FromDiskRecipe.Serializer OPTIONAL_DISK_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transfer_disk"), new FromDiskRecipe.Serializer());
 	private static int nextPointer = -1;
+	public static boolean DO_LOGGING = false;
 
     static {
 		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
@@ -131,7 +132,7 @@ public class NeetComputersServer implements ModInitializer {
 		version += BuildData.VERSION;
 
 		LOGGER.info(version+" running using YSLua "+ BuildData.LUA_VERSION);
-		LOGGER.info("mod build from "+BuildData.BUILD_TIME);
+		if (DO_LOGGING) LOGGER.info("mod build from "+BuildData.BUILD_TIME);
 
 		ServerLifecycleEvents.SERVER_STARTING.register(NeetComputersServer::updateServer);
 		ServerLifecycleEvents.SERVER_STARTED.register(server1 -> updateClientPipes());
@@ -390,8 +391,10 @@ public class NeetComputersServer implements ModInitializer {
 		worldPath = server.getSavePath(WorldSavePath.ROOT);
 		BinaryLoader.load(datahandling, server.getPath("luaBinaries"));
 		ConfigLoader.loadServerConfig(server);
+		Connections.COMPATIBILITY = (boolean) ConfigLoader.getServerConfig("cct-compatibility");
+		DO_LOGGING = (boolean) ConfigLoader.getServerConfig("log-system-notifications");
 		if (!worldPath.resolve("neetcomputers").toFile().exists()){
-			LOGGER.info("Generating neetcomputers world directory");
+			if (DO_LOGGING) LOGGER.info("Generating neetcomputers world directory");
 			worldPath.resolve("neetcomputers").toFile().mkdir();
 		}
 		Path pointerPath = worldPath.resolve("neetcomputers/nextAddress.txt");
@@ -414,7 +417,6 @@ public class NeetComputersServer implements ModInitializer {
 			}
 			nextPointer++;
 		}
-        Connections.COMPATIBILITY = (boolean) ConfigLoader.getServerConfig("cct-compatibility");
 		File file = worldPath.resolve("neetcomputers/pipes.bin").toFile();
 		if (file.exists() && !file.isDirectory()){
 			try{

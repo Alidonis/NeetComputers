@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
  * represents the code execution of a computer, and ticks on the computer ticking thread
  */
 public abstract class Runtime {
-    private static final Logger debug = LoggerFactory.getLogger("NeetComputers:init-runtime");
-
     //resources
     private final ComputerFileSystem fs;
     private final Computer parent;
