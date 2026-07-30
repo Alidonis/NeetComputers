@@ -2,11 +2,9 @@ package com.redtoast.simulation.value.ValueTypes;
 
 import com.redtoast.simulation.value.Value;
 import org.jetbrains.annotations.NotNull;
-import org.luaj.vm2.ast.Str;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * represents an N.E.E.T. computers list, interchangeable with {@link Tuple}
