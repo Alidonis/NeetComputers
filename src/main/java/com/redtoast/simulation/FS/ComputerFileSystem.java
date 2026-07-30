@@ -1,5 +1,7 @@
 package com.redtoast.simulation.FS;
 
+import com.redtoast.neet.BinaryLoader;
+
 import java.util.UUID;
 
 public class ComputerFileSystem extends DiskManager{
@@ -8,6 +10,11 @@ public class ComputerFileSystem extends DiskManager{
     public ComputerFileSystem(int homePointer, String template, UUID computerID) throws DiskError {
         super();
         homedisk = createDisk(homePointer, template, computerID);
+        if (homedisk instanceof DiskSystem diskSystem && diskSystem.getBuild().language==null) {
+            if (diskSystem.getBuild().isLua && BinaryLoader.loaded){
+                throw new DiskError("Lua failed to load (check logs, it might be possible to download functionality for your machine)");
+            }else throw new DiskError("Language does not exist");
+        }
         if (!homedisk.isBootable()) throw new DiskError("System not bootable");
     }
 
