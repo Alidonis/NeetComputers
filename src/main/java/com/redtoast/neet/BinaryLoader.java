@@ -18,14 +18,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BinaryLoader {
-    private static boolean loaded = false;
-    private static boolean linked = false;
+    public static boolean loaded = false;
+    public static boolean linked = false;
 
     public static void load(ResourceManager datahandling, Path gamePath) {
         if (loaded) {
-            if (linked) {
-                NeetComputersServer.registerLanguage(new LuaMaster());
-            }
+            if (linked) NeetComputersServer.registerLanguage(new LuaMaster());
             return;
         }
         loaded = true;
