@@ -1,5 +1,6 @@
 package com.redtoast.simulation;
 
+import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.events.EventGeneric;
@@ -221,7 +222,7 @@ public class InternetManager {
             case InterruptedException ignored -> queueResponse(label, id, 409, "CONFLICT", new Table());
             default -> {
                 queueResponse(label, id, 0, "UNIDENTIFIED EXCEPTION", new Table());
-                APILoader.errorLogger.error("Unknown HTTP error encountered");
+                if (NeetComputersServer.DO_LOGGING) APILoader.errorLogger.error("Unknown HTTP error encountered");
                 APILoader.printJavaError(error);
             }
         }
@@ -263,7 +264,7 @@ public class InternetManager {
                 case InterruptedException ignored -> throw new ExposedError("Threading failure");
                 case IllegalArgumentException ignored -> throw new ExposedError("Invalid Request");
                 default -> {
-                    APILoader.errorLogger.error("Unknown HTTP error encountered");
+                    if (NeetComputersServer.DO_LOGGING) APILoader.errorLogger.error("Unknown HTTP error encountered");
                     APILoader.printJavaError(error);
                     throw new ExposedError("Unknown error, check logs");
                 }
@@ -351,7 +352,7 @@ public class InternetManager {
         @Override
         public void onError(WebSocket webSocket, Throwable error) {
             eventManager.queueEvent(new EventGeneric("WebsocketClosed", Value.of(id), Value.of(1006), Value.of("Abnormal Closure")), EventLabel.NETWORK);
-            APILoader.errorLogger.error("Unknown Websocket error encountered");
+            if (NeetComputersServer.DO_LOGGING) APILoader.errorLogger.error("Unknown Websocket error encountered");
             APILoader.printJavaError(error);
         }
     }

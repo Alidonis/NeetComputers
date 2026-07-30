@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
     private final Runtime ParentRuntime;
-    public static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
+    private static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
     public static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
     private static final Hashtable<Class<? extends Exposable>, LoaderCache> cache = new Hashtable<>();
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
@@ -328,7 +328,7 @@ public class APILoader {
     public static void profilerFunction(long startTime, String function, @Nullable Context context){
         short timeSpent = (short) (System.currentTimeMillis() - startTime);
         if (timeSpent>100){
-            profiler.warn(function +" exceeded 100 milliseconds ("+timeSpent+")");
+            if (NeetComputersServer.DO_LOGGING) profiler.warn(function +" exceeded 100 milliseconds ("+timeSpent+")");
             if (context!=null && context.runtime.getThread()!=null){
                 context.runtime.getThread().taxJavaLag((short) 1000);
             }
@@ -464,7 +464,7 @@ public class APILoader {
     }
 
     public static void printJavaError(Throwable error){
-        errorLogger.warn(generateJavaErrorLog(error), error);
+        if (NeetComputersServer.DO_LOGGING) errorLogger.warn(generateJavaErrorLog(error), error);
     }
 
     private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, Runtime runtime){

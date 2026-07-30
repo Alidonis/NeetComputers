@@ -1,5 +1,6 @@
 package com.redtoast.simulation.base;
 
+import com.redtoast.neet.NeetComputersServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +16,10 @@ public abstract class LangThread {
         uuid = UUID.randomUUID();
     }
     public void log(String message){
-        logger.info(message);
+        if (NeetComputersServer.DO_LOGGING) logger.info(message);
     }
     public void error(String message){
-        logger.warn(message);
+        if (NeetComputersServer.DO_LOGGING) logger.warn(message);
     }
     public void kill(String message){
         errorMessage = message;
