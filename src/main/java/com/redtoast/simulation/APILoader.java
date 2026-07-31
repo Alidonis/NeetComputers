@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class APILoader {
     private final Runtime ParentRuntime;
-    public static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
+    private static final Logger profiler = LoggerFactory.getLogger("NeetComputers: Profiler");
     public static final Logger errorLogger = LoggerFactory.getLogger("NeetComputers: Runtime Java Errors");
     private static final Hashtable<Class<? extends Exposable>, LoaderCache> cache = new Hashtable<>();
     private static final LinkedList<APIRegistry> APIs = new LinkedList<>();
@@ -328,7 +328,7 @@ public class APILoader {
     public static void profilerFunction(long startTime, String function, @Nullable Context context){
         short timeSpent = (short) (System.currentTimeMillis() - startTime);
         if (timeSpent>100){
-            profiler.warn(function +" exceeded 100 milliseconds ("+timeSpent+")");
+            if (NeetComputersServer.DO_LOGGING) profiler.warn(function +" exceeded 100 milliseconds ("+timeSpent+")");
             if (context!=null && context.runtime.getThread()!=null){
                 context.runtime.getThread().taxJavaLag((short) 1000);
             }
@@ -367,10 +367,10 @@ public class APILoader {
                         return Value.asError(error.getMessage());
                     }
                     printJavaError(e.getTargetException());
-                    return Value.asError("Unexpected internal error, check log for information");
+                    return Value.asError(describeUnexpectedError(e.getTargetException()));
                 }catch (java.lang.Exception e){
                     printJavaError(e);
-                    return Value.asError("Unexpected internal error, check log for information");
+                    return Value.asError(describeUnexpectedError(e));
                 }
             }
         };
@@ -414,70 +414,57 @@ public class APILoader {
         return output;
     }
 
+    public static String describeException(Throwable error){
+        StringBuilder builder = new StringBuilder();
+        Throwable current = error;
+        while (current != null){
+            if (!builder.isEmpty()) builder.append(" <- caused by <- ");
+            builder.append(current.getClass().getSimpleName());
+            if (current.getMessage() != null && !current.getMessage().isBlank()){
+                builder.append(" (").append(current.getMessage()).append(')');
+            }
+            current = current.getCause();
+        }
+        return builder.toString();
+    }
+
+    public static String describeUnexpectedError(Throwable error){
+        return "Internal error: " + describeException(error);
+    }
+
     public static String generateJavaErrorLog(Throwable error){
         StringBuilder builder = new StringBuilder();
-        int interations = 0;
-        ArrayList<String> glossary = new ArrayList<>();
-        Throwable buffer = error;
-        while (buffer!=null) {
-            /*write individual error and message*/
-            builder.append(interations==0 ? '-' : '>');
-            builder.append(':');
-            builder.append(buffer.getClass().getName());
-            if (buffer.getMessage()!=null){
-                builder.append("\n  [ ");
-                builder.append(buffer.getMessage());
-                builder.append(" ]");
-            }
+        builder.append("Internal error: ").append(describeException(error)).append('\n');
 
-            /*appends stack trace*/
-            int stackNumber = 0;
-            for (StackTraceElement trace : buffer.getStackTrace()){
-                stackNumber++;
-                builder.append("\n    ");
-                builder.append(stackNumber);
-                builder.append(": [");
-                builder.append(trace.getLineNumber());
-                builder.append("] ");
-                builder.append(trace.getClassName());
-                builder.append('.');
-                builder.append(trace.getMethodName());
-                if (trace.getFileName()!=null){
-                    builder.append(" [");
-                    builder.append(trace.getFileName());
-                    if (trace.getLineNumber()>0){
-                        builder.append(':');
-                        builder.append(trace.getLineNumber());
-                    }
-                    builder.append(']');
+        Throwable deepest = error;
+        while (deepest.getCause() != null) deepest = deepest.getCause();
+
+        StackTraceElement[] trace = deepest.getStackTrace();
+        if (trace.length == 0){
+            builder.append("  (no stack trace available)");
+        } else {
+            builder.append("Where:\n");
+            int shown = Math.min(trace.length, 10);
+            for (int i = 0; i < shown; i++){
+                StackTraceElement frame = trace[i];
+                builder.append("  at ").append(frame.getClassName()).append('.').append(frame.getMethodName());
+                if (frame.getFileName() != null){
+                    builder.append(" (").append(frame.getFileName());
+                    if (frame.getLineNumber() > 0) builder.append(':').append(frame.getLineNumber());
+                    builder.append(')');
                 }
+                builder.append('\n');
             }
-            if (stackNumber==0) builder.append("\n    0: No Valid Stack Trace Available!");
-            builder.append('\n');
-
-            /*add class to glossary in reverse order to simplify printing later*/
-            glossary.add(0,"  " + (interations + 1) + ':' + buffer.getClass().getName() + '\n');
-
-            /*shift through the error stack*/
-            interations++;
-            buffer = buffer.getCause();
+            if (trace.length > shown){
+                builder.append("  ... ").append(trace.length - shown).append(" more frame(s), see attached trace below\n");
+            }
         }
 
-        /*prepend glossary to string builder*/
-        if (glossary.size()>1){
-            String title = "Glossary:\n";
-            builder.insert(0, new char[]{'\n','\n'}, 0 , 2);
-            for (String entry : glossary){
-                builder.insert(0, entry.toCharArray(), 0, entry.length());
-            }
-            builder.insert(0, title.toCharArray(), 0, title.length());
-        }
-
-        return "Stack Trace:\n" + builder;
+        return builder.toString();
     }
 
     public static void printJavaError(Throwable error){
-        errorLogger.warn(generateJavaErrorLog(error), error);
+        if (NeetComputersServer.DO_LOGGING) errorLogger.warn(generateJavaErrorLog(error), error);
     }
 
     private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, Runtime runtime){

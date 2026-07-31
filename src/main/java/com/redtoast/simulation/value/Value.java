@@ -322,7 +322,7 @@ public class Value<Type> {
         if (instanceOf(VarType.BYTES)){
             return (Bytes) value;
         }else if (instanceOf(VarType.STRING)){
-            return new Bytes(((String) value).getBytes());
+            return new Bytes(((String) value).getBytes(StandardCharsets.ISO_8859_1));
         }else{
             return null;
         }
@@ -451,6 +451,8 @@ public class Value<Type> {
         if (comparison==VarType.NUMBER && type==VarType.INT) return true;
         if (comparison==VarType.NUMBER && type==VarType.DOUBLE) return true;
         if (comparison==VarType.NUMBER && type==VarType.FLOAT) return true;
+        if (comparison==VarType.TABLE && type==VarType.LIST) return ((List) value).isEmpty();
+        if (comparison==VarType.LIST && type==VarType.TABLE) return ((Table) value).isEmpty();
         return comparison==type;
     }
 

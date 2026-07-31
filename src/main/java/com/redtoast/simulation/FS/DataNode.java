@@ -82,11 +82,11 @@ public record DataNode(boolean isDirectory, String name, String path, DataNode[]
             try {
                 id = -Integer.parseInt(key);
                 if (id>=0) {
-                    logger.warn("Invalid id number '{}'", key);
+                    if (NeetComputersServer.DO_LOGGING) logger.warn("Invalid id number '{}'", key);
                     return;
                 }
             }catch (NumberFormatException ignored) {
-                logger.warn("Non-address '{}' found in address folder", key);
+                if (NeetComputersServer.DO_LOGGING) logger.warn("Non-address '{}' found in address folder", key);
                 return;
             }
             DataNode[] subNodes = new DataNode[nodes.size()];

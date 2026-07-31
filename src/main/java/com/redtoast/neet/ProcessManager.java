@@ -2,22 +2,25 @@ package com.redtoast.neet;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.value.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.LinkedList;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ProcessManager extends Thread{
+    private static final Logger diagLogger = LoggerFactory.getLogger("NeetComputers: DIAGNOSTIC");
+
     //static functions
     private static final ArrayList<ProcessManager> processManagers = new ArrayList<>();
-    private static final LinkedList<UUID> knownUUIDs = new LinkedList<>();
-
-    //Main thread functionality
-    private static final Hashtable<UUID, Value> returnTable = new Hashtable<>();
-    private record FunctionPackage(UUID uuuid, Runnable runnable){}
-    private static final ArrayList<FunctionPackage> mainQue = new ArrayList<>();
+    // add() happens on the ticking (main/server) thread, remove() happens later on a worker thread when the
+    // queued task finishes, so this set is genuinely accessed concurrently and must be thread-safe. It's also
+    // checked/mutated once per computer per tick, so it needs to be O(1) rather than the O(n) LinkedList this used to be.
+    private static final Set<UUID> knownUUIDs = ConcurrentHashMap.newKeySet();
 
     //dynamic functions
     private boolean killFlag = false;
@@ -32,7 +35,13 @@ public class ProcessManager extends Thread{
     public void run(){
         while (!killFlag) {
             try {
-                que.take().run();
+                try {
+                    que.take().run();
+                } catch (InterruptedException e) {
+                    throw e;
+                } catch (Throwable t) {
+                    diagLogger.warn("Uncaught exception in ProcessManager worker task", t);
+                }
                 if ((killFlag || wrapUp) && que.isEmpty()) break;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -98,8 +107,11 @@ public class ProcessManager extends Thread{
         if (knownUUIDs.contains(computer.getUuid())) return false;
         knownUUIDs.add(computer.getUuid());
         return donateTask(() -> {
-            if (computer.getRuntime() != null) {
-                computer.getRuntime().tick();
+            try {
+                if (computer.getRuntime() != null) {
+                    computer.getRuntime().tick();
+                }
+            } finally {
                 knownUUIDs.remove(computer.getUuid());
             }
         });

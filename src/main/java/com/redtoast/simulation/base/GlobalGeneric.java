@@ -6,6 +6,4 @@ import java.util.UUID;
 
 public interface GlobalGeneric {
     void insert(Value key, Value value);
-    String getLang();
-    UUID getUUID();
 }

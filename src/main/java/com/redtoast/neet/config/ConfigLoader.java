@@ -12,6 +12,7 @@ public class ConfigLoader {
             new IntegerConfigOption(1, "processing-threads"),
             new CompatibilityConfigOption(true, "cct-compatibility"),
             new BooleanConfigOption(false, "print-to-console"),
+            new BooleanConfigOption(false, "log-system-notifications"),
             new BooleanConfigOption(true, "shift-click-to-clear-displays"),
             new BooleanConfigOption(true, "allow-internet-access"),
             new RateConfigOption(4000, "internet-rate-limit"),
@@ -54,6 +55,8 @@ public class ConfigLoader {
                         processing-threads = 1
                         #allows the default core print function to echo to the game console, meant for debugging
                         print-to-console = false
+                        #allows NEET error / utility messages to print to console
+                        log-system-notifications = false
                         #allows computers to connect to the internet
                         allow-internet-access = true
                         #internet rate limit per second, 0 disables the limit (in bytes not bits)

@@ -16,4 +16,14 @@ public class CompatibilityConfigOption extends BooleanConfigOption {
         }catch (NoClassDefFoundError ignored){}
         return super.parseFromString(string) && CCExists;
     }
+
+    @Override
+    public Boolean getDefaultOption(){
+        boolean CCExists = false;
+        try {
+            Class<IComputerSystem> ignored = IComputerSystem.class;
+            CCExists = true;
+        }catch (NoClassDefFoundError ignored){}
+        return super.getDefaultOption() && CCExists;
+    }
 }

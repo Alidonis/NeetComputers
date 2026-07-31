@@ -15,7 +15,6 @@ import com.redtoast.simulation.FS.ComputerFileSystem;
 import com.redtoast.simulation.FS.DiskError;
 import com.redtoast.simulation.FS.DiskSystem;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
@@ -28,6 +27,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -93,8 +94,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public final ArrayList<ComputerWrapper> computerAccesses;
     //value holding last time computer ticked
     private long tickTime;
-    //tells the computer to shut down at the end of a tick cycle
-    private boolean killFlag = false;
 
     //abstract methods
     /**
@@ -198,7 +197,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
         }
     }
 
-    //marks computer as off and overrides the runtime with null
+    //marks computer as off
     public void pause(){
         if (loaded && fileSystem!=null && state != ComputerState.PAUSED){
             state = ComputerState.PAUSED;
@@ -222,7 +221,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
 
     //yields the computer
     public void yield(){
-        if (runtime!=null && runtime.getThread()!=null) runtime.getThread().yield();
+        if (runtime!=null && runtime.isInTick() && runtime.getThread()!=null) runtime.getThread().yield();
     }
 
     //one line fetch methods
@@ -358,15 +357,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
             internetManager.reset();
             eventManager.reset();
 
-            runtime = new Runtime(this) {
-                @Override
-                public boolean shouldDie() {
-                    boolean temp = killFlag;
-                    if (temp) killFlag = false;
-                    return temp;
-                }
-
-            };
+            runtime = new Runtime(this) {};
 
             new APILoader(this);
             runtime.load();
@@ -388,8 +379,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
             save = true;
         }
         if ((state == ComputerState.OFF || state == ComputerState.CRASHED) && runtime!=null) {
-            if (!runtime.isDead() && runtime.isInTick()){
-                killFlag = true;
+            if (!runtime.isDead() && !runtime.isSafeToDrop()){
+                runtime.requestKill();
             }else{
                 internetManager.reset();
                 eventManager.reset();

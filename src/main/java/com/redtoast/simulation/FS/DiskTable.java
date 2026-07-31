@@ -11,6 +11,7 @@ public class DiskTable {
     public final LinkedList<Partition> partitions = new LinkedList<>();
     public String entrypoint = null;
     public @Nullable LanguageGeneric language = null;
+    public final boolean isLua;
 
     public DiskTable(String json) throws DiskError, JsonSyntaxException{
         JsonElement element = JsonParser.parseString(json);
@@ -27,11 +28,14 @@ public class DiskTable {
                 if (!object.get("language").isJsonPrimitive() || !object.getAsJsonPrimitive("language").isString()){
                     throw new DiskError("Build config 'language' expected string");
                 }
+                isLua = object.get("language").getAsString().equals("Lua");
                 language = NeetComputersServer.getLanguage(object.get("language").getAsString());
             }else{
+                isLua = true;
                 language = NeetComputersServer.getLanguage("Lua");
             }
-        }
+        }else
+            isLua = false;
         if (!object.has("partitions")){
             throw new DiskError("Build config expected partitions, got null");
         }

@@ -78,6 +78,8 @@ public class DiskSystem implements GenericSystem {
     public void saveBuild() {saveBuild = true;}
     public void saveBlacklist() {saveBlacklist = true;}
 
+    public DiskTable getBuild() {return build;}
+
     @Override
     public void update() {
         if (saveBuild) {

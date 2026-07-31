@@ -45,6 +45,9 @@ public class Table implements ComplexValue<Table> {
     public boolean contains(String key){
         return table.containsKey(Value.of(key));
     }
+    public boolean isEmpty(){
+        return table.isEmpty();
+    }
     public void foreach(BiConsumer<? super Value, ? super Value> action){
         table.forEach(action);
     }

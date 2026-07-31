@@ -42,11 +42,11 @@ public class DefaultComputerConfig implements ComputerConfig{
 
     @Override
     public int instructionsPerBatch() {
-        return 3000;
+        return 10125000;
     }
 
     @Override
     public int batchesPerTick() {
-        return 750;
+        return 10;
     }
 }

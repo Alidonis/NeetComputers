@@ -20,11 +20,6 @@ public abstract class Function{
     private String name;
     private final boolean userGenerated;
 
-    private static final Logger error = LoggerFactory.getLogger("Neetcomputer: java function");
-    public static void logError(String e){
-        error.warn(e);
-    }
-
     public Function(boolean userGenerated){
         ruleset = new ParameterRules();
         this.userGenerated = userGenerated;

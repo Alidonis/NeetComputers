@@ -54,6 +54,11 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     private boolean loaded = false;
     private List<com.redtoast.Connections.PeripheralProvider> peripheralProviderCache = List.of();
     private List<NetworkReceiver> networkReceiverCache = List.of();
+    // scanForPeripheralsInternal/scanForNetworkInternal walk the whole connected cable graph with a BFS;
+    // running that every single tick (20x/sec) per computer is expensive and rarely necessary since the
+    // topology essentially never changes tick-to-tick. Throttle it to once per second instead.
+    private int scanCounter = 0;
+    private static final int PERIPHERAL_SCAN_INTERVAL_TICKS = 20;
 
     public ComputerBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, ComputerConfig specifications) {
         super(type, pos, state);
@@ -190,20 +195,21 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         if (!world.isClient()){
             BlockEntity be = world.getBlockEntity(blockPos);
             if (be instanceof ComputerBlockEntity computerBlock) {
-                if (computerBlock.computer.getFileSystem()!=null) {
+                if (computerBlock.computer.getFileSystem()!=null && computerBlock.scanCounter % PERIPHERAL_SCAN_INTERVAL_TICKS == 0) {
                     computerBlock.handlePeripheralScan();
                     computerBlock.networkReceiverCache = computerBlock.scanForNetworkInternal();
                 }
+                computerBlock.scanCounter++;
                 if (!computerBlock.computer.isLoaded()) return;
                 computerBlock.computer.tick(world);
                 BlockState current = world.getBlockState(blockPos);
-                if (current.get(DesktopBlockComputer.ON) != computerBlock.computer.isOn()) {
-                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.ON, computerBlock.computer.isOn()), Block.NOTIFY_ALL);
+                BlockState updated = current
+                        .with(DesktopBlockComputer.ON, computerBlock.computer.isOn())
+                        .with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed())
+                        .with(DesktopBlockComputer.STATE, computerBlock.computer.getStatus().ordinal());
+                if (!updated.equals(current)) {
+                    world.setBlockState(blockPos, updated, Block.NOTIFY_ALL);
                 }
-                if (current.get(DesktopBlockComputer.CRASHED) != computerBlock.computer.isCrashed()) {
-                    world.setBlockState(blockPos, current.with(DesktopBlockComputer.CRASHED, computerBlock.computer.isCrashed()), Block.NOTIFY_ALL);
-                }
-                world.setBlockState(blockPos, current.with(DesktopBlockComputer.STATE, computerBlock.computer.getStatus().ordinal()), Block.NOTIFY_ALL);
             }
         }
     }
