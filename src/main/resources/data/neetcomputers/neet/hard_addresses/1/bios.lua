@@ -1,93 +1,146 @@
---this nightmare of a "operating system" is brought to you by the hacked together remains of my failed attempt to make a working one
+-- bios.lua
 
---load the font, should only fail is the file is modified or corrupted
-local success = true
-local drawChar1
-local didWork
-print("if log suppression wasnt enabled in settings this would be in the game console!")
-if files.exists("bios:/font.lua") then
-	local fontFile = files.open("bios:/font.lua","r")
-	local fontDat = fontFile.read("a")
-	fontFile.close()
-	local fontProg = load(fontDat,"font")
-	if fontProg then
-		didWork, drawChar1 = pcall(fontProg)
-		if not didWork then
-			success = false
-		end
-	else
-		success = false
-	end
-else 
-	success = false
+local DISK = 0
+
+_G.NeetOS = _G.NeetOS or { version = "0.3.0" }
+
+local function loadFile(path)
+    local header, err = files.open(path, "r", DISK)
+    if not header then
+        error("cannot open " .. path .. ": " .. tostring(err))
+    end
+    local source = header.read("a")
+    header.close()
+
+    local chunk, cerr = load(source, "=" .. path)
+    if not chunk then
+        error("syntax error in " .. path .. ": " .. tostring(cerr))
+    end
+    return chunk()
 end
 
---stop boot process if it doesnt load the font
-if not success then
-	chip.crash("font failed to load")
+local searchPaths = {
+    "bios:/os/?.lua",
+    "bios:/?.lua",
+    "bios:/programs/?.lua",
+}
+
+local moduleCache = {}
+local LOADING = {}
+
+local function resolveModulePath(name)
+    if type(name) ~= "string" or name == "" then
+        return nil
+    end
+    if name:match("^%a[%w_%-]*:/") then
+        return name
+    end
+
+    local rel = name:gsub("%.", "/")
+    for _, template in ipairs(searchPaths) do
+        local candidate = template:gsub("%?", rel)
+        if files.exists(candidate, DISK) then
+            return candidate
+        end
+    end
+    return nil
 end
 
---draws the character formatted correctly at the X,Y in the terminal
-local sizeX,sizeY = screen.getSize()
-local termSizeX, termSizeY = math.floor((sizeX-1)/5)*5, math.floor((sizeY-1)/6)*6
-local topX, topY = (sizeX/2)-(termSizeX/2), (sizeY/2)-(termSizeY/2)
-local function drawChar(x,y,c)
-	screen.fill(topX+((x-1)*5),topY+((y-1)*6),topX+((x-1)*5)+5,topY+((y-1)*6)+6,0,0,0)
-	drawChar1(topX+((x-1)*5)+1,topY+((y-1)*6)+1,c,255,192,0)
+function _G.require(name)
+    local path = resolveModulePath(name)
+    if not path then
+        error(string.format(
+            "module '%s' not found (searched %s)",
+            tostring(name), table.concat(searchPaths, ", ")), 2)
+    end
+
+    local cached = moduleCache[path]
+    if cached ~= nil then
+        if cached == LOADING then
+            error("circular require detected for '" .. tostring(name) ..
+                "' (" .. path .. ")", 2)
+        end
+        return cached
+    end
+
+    local header, openErr = files.open(path, "r", DISK)
+    if not header then
+        error("cannot open module '" .. tostring(name) .. "' (" .. path ..
+            "): " .. tostring(openErr), 2)
+    end
+    local source = header.read("a")
+    header.close()
+
+    local chunk, cerr = load(source, "=" .. path)
+    if not chunk then
+        error("syntax error in module '" .. tostring(name) .. "' (" .. path ..
+            "): " .. tostring(cerr), 2)
+    end
+
+    moduleCache[path] = LOADING
+    local ok, result = pcall(chunk, name, path)
+    if not ok then
+        moduleCache[path] = nil
+        error("error loading module '" .. tostring(name) .. "': " .. tostring(result), 2)
+    end
+
+    if result == nil then result = true end
+    moduleCache[path] = result
+    return result
 end
 
---draws a cute little graphic to the screen
-headsup.clear()
-headsup.drawLine(2,2,2,3)
-headsup.drawLine(4,2,4,3)
-headsup.drawLine(2,5,4,6)
-headsup.draw()
+local function tryRunStartup(term)
+    local STARTUP_PATH = "bios:/startup.lua"
+    if not files.exists(STARTUP_PATH, DISK) then return end
 
---write the speech
-speech = [[
-Welcome to NeetComputers beta!
-
-Bad news, if you dont have access to your world file the mod is basicly bricked for you.
-
-You see, there is no os, i (the dev) know how to make java do my bidding but im pathetic at lua.
-
-But if you do, its your lucky day!
-
-Go to https://www.red-toast.net/NeetDocumentation/ to read how to make your own! (or how to just write normal software)
-
-The website has full documentation, and a guide or two.
-
-Happy camping and good luck, and message me (redtoastneedsbutter on discord) if you make something cool, i want to see that you people make.
-
-Also if you make a os and it has MIT liscencing, you can send it to me and i might bundle it with the mod along with any others that i think are good.
-]]
-local x = 1
-local y = 1
---i copyed this from google, your welcome for my excelence
-for i = 1, #speech do
-    -- get substring of 1 chracter
-    local c = speech:sub(i,i)
-    -- print char
-    if c=="\n" then
-		y = y + 1
-		x = 1
-    else
-		drawChar(x, y, c)
-		x = x + 1
-		if x == termSizeX/5 then
-			drawChar(x,y,"-")
-			y = y + 1
-			x = 1
-		end
+    local ok, err = pcall(loadFile, STARTUP_PATH)
+    if not ok then
+        term:writeLine("startup.lua: " .. tostring(err))
+        term:redraw()
     end
 end
-x = 1
-signature = "Thanks for trying my mod, Red Toast!"
-for i = 1, #signature do
-	drawChar(x,termSizeY/6,signature:sub(i,i))
-	x = x + 1
-end
-screen.draw()
 
---loop to keep the thread alive to the computer doesnt shut down
-while true do end
+local ok, err = pcall(function()
+    require("util")
+    require("colors")
+    require("config")
+    require("keyboard")
+    require("parse")
+    require("fs")
+    require("term")
+    require("highlight")
+    require("edit")
+    require("api")
+    require("shell")
+
+    local fs = NeetOS.Fs.new()
+    local cfgOk, cfgErr = NeetOS.Config.load(fs)
+
+    local psf = require("psf")
+    local font, fontErr = psf.open("bios:/assets/default8x9.psf")
+    if not font then
+        error("could not load font: " .. tostring(fontErr))
+    end
+    font:setSpacing(1)
+
+    local term = NeetOS.Term.new(font)
+    term:setCursorBlink(true)
+
+    local shell = NeetOS.Shell.new(term, fs)
+    NeetOS.term, NeetOS.fs, NeetOS.shell, NeetOS.font = term, fs, shell, font
+
+    event.clear("User")
+
+    if not cfgOk then
+        term:writeLine("neetos.cfg: " .. tostring(cfgErr))
+        term:redraw()
+    end
+
+    tryRunStartup(term)
+
+    shell:run()
+end)
+
+if not ok then
+    chip.crash("NeetOS boot failed: " .. tostring(err))
+end

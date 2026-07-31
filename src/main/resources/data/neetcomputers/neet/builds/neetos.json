@@ -7,16 +7,6 @@
             "source" : -1,
             "readonly" : false,
             "hidden" : false
-        },
-        {
-            "path" : "system",
-            "readonly" : false,
-            "hidden" : false
-        },
-        {
-            "path" : "user",
-            "readonly" : false,
-            "hidden" : false
         }
     ]
 }
