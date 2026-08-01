@@ -1,13 +1,9 @@
 package com.redtoast.simulation.value.ValueTypes;
 
-import com.redtoast.simulation.value.ComplexValue;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.VarType;
-import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -19,9 +15,9 @@ import java.util.function.BiConsumer;
  * @see Exception
  * @see Hashtable
  */
-public class Table implements ComplexValue<Table> {
+public class Table {
     private final Hashtable<Value, Value> table = new Hashtable<>();
-    public Table metadata = null;
+
     public void put(Value key, Value value){
         table.put(key, value);
     }
@@ -57,46 +53,5 @@ public class Table implements ComplexValue<Table> {
     }
     public void remove(Value key){
         table.remove(key);
-    }
-
-    @Override
-    public Value<Table> asValue(){
-        return Value.of(this);
-    }
-
-    @Override
-    public void setMetaTable(Table metadata) {
-        this.metadata = metadata;
-    }
-
-    @Override
-    public @Nullable Table getMetaTable() {
-        if (metadata==null) return new Table();
-        return metadata;
-    }
-
-    @Override
-    public boolean hasMetaTable() {
-        return metadata!=null;
-    }
-
-    @Override
-    public void setMeta(Object key, Object value) {
-        if (metadata==null) metadata = new Table();
-        metadata.put(Value.of(key), Value.of(value));
-    }
-
-    @Override
-    public Value getMeta(Object key) {
-        if (metadata==null) return null;
-        return metadata.get(Value.of(key));
-    }
-
-    public String[] getKeysString(){
-        String[] keys = new String[table.keySet().size()];
-        for (int i = 0; i < keys.length; i++){
-            keys[i] = table.keySet().toArray()[i].toString();
-        }
-        return keys;
     }
 }

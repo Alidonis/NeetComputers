@@ -47,8 +47,6 @@ public class Value<Type> {
 
     private final Type value;
     private VarType type = VarType.NULL;
-    private Table metaTable = null;
-    private boolean hasMetadata = false;
 
     /**
      * initializes the value raw with no type protection, it's advisable to use {@link #of(Object)} instead
@@ -78,9 +76,6 @@ public class Value<Type> {
             type = VarType.FUNCTION;
         }else if (val instanceof Exception){
             type = VarType.EXCEPTION;
-        }
-        if (val instanceof ComplexValue<?> complexValue){
-            metaTable = complexValue.getMetaTable();
         }
         value = val;
     }
@@ -378,63 +373,6 @@ public class Value<Type> {
     }
 
     /**
-     * sets the values internal metatable
-     * @param metadata new table
-     */
-    public void setMetaTable(Table metadata){
-        metaTable = metadata;
-        hasMetadata = true;
-    }
-
-    /**
-     * retrieves the internal metatable or returns null
-     * @return Table or null
-     */
-    public @Nullable Table getMetaTable(){
-        return (value instanceof ComplexValue<?> cv) ? cv.getMetaTable() : null;
-    }
-
-    /**
-     * determines if this value encapsulates a internal metatable (istg this function is haunted)
-     * @return boolean
-     */
-    public boolean hasMetaTable(){
-        return hasMetadata && metaTable!=null;
-    }
-
-    /**
-     * sets individual value in the internal metatable or does nothing if no metatable is present
-     * @param key key determining were the new value is stored
-     * @param value new value
-     */
-    public void setMetaTable(String key, Value value){
-        if (metaTable==null) return;
-        metaTable.put(key, value);
-    }
-    /**
-     * sets individual value in the internal metatable or does nothing if no metatable is present
-     * @param key key determining were the new value is stored
-     * @param value new value
-     */
-    public void setMetaTable(String key, String value){
-        if (metaTable==null) return;
-        metaTable.put(key, Value.of(value));
-    }
-
-    /**
-     * gets the value associated with the given key in the internal metatable or returns null if no metatable is present
-     * @param key key determining were the new value is read
-     * @return Value or null
-     */
-    public @Nullable Value getMetaTable(String key){
-        if (metaTable==null) return null;
-        if (!metaTable.contains(key)){
-            return Value.NULL;
-        }
-        return metaTable.get(key);
-    }
-
-    /**
      * tests to see if the values type matches the provided comparison type with exceptions for .Number and .ANY types
      * @param comparison the VarType to compare with
      * @return the result of the test preformed
@@ -462,9 +400,6 @@ public class Value<Type> {
      */
     @Deprecated
     public Type getValue() {
-        if (value instanceof ComplexValue<?> complexValue){
-            complexValue.setMetaTable(metaTable);
-        }
         return value;
     }
 
