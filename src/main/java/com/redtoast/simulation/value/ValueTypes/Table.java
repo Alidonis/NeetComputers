@@ -1,6 +1,7 @@
 package com.redtoast.simulation.value.ValueTypes;
 
 import com.redtoast.simulation.value.Value;
+import com.redtoast.simulation.value.ValueConvertible;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Hashtable;
@@ -15,7 +16,7 @@ import java.util.function.BiConsumer;
  * @see Exception
  * @see Hashtable
  */
-public class Table {
+public class Table implements ValueConvertible<Table> {
     private final Hashtable<Value, Value> table = new Hashtable<>();
 
     public void put(Value key, Value value){
@@ -53,5 +54,10 @@ public class Table {
     }
     public void remove(Value key){
         table.remove(key);
+    }
+
+    @Override
+    public Value asValue() {
+        return Value.of(this);
     }
 }
