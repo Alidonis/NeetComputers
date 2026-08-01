@@ -1,6 +1,7 @@
 package com.redtoast.simulation.base;
 
 import com.redtoast.neet.NeetComputersServer;
+import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ public abstract class LangThread {
     public abstract void yield();
     public abstract void tick();
     public abstract String getSource();
+    public abstract void insert(String key, Value value);
     public void taxJavaLag(short lagTime){
         javaLag += lagTime;
     }

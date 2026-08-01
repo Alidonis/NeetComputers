@@ -87,7 +87,7 @@ public class APILoader {
         APIs.add(registry);
     }
 
-    public void load(Computer computer, GlobalGeneric globals){
+    public void load(Computer computer, LangThread thread){
         try{
             for (APIRegistry registry : APIs){
                 if (registry.predicate(computer)){
@@ -104,7 +104,7 @@ public class APILoader {
                         }
                     }
                     api.postProcessing(apiTable);
-                    globals.insert(Value.of(label), apiTable.asValue());
+                    thread.insert(label, apiTable.asValue());
                 }
             }
         }catch (LoaderError loaderError){

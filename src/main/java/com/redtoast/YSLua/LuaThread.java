@@ -5,12 +5,14 @@ import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.config.ComputerConfig;
+import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LuaThread extends LangThread {
     private final Logger logger;
     private final LuaBridge bridge;
+    private final LuaTranslater translater;
 
     public LuaThread(String script, Runtime parentRuntime, ComputerConfig computerConfig) {
         logger = LoggerFactory.getLogger("Lua Runtime [" + parentRuntime.getParent().getUuid() + ']');
@@ -51,9 +53,9 @@ public class LuaThread extends LangThread {
                 return self.isAlive();
             }
         };
-        LuaTranslater translater = (LuaTranslater) NeetComputersServer.getTranslater("Lua");
+        translater = (LuaTranslater) NeetComputersServer.getTranslater("Lua");
         assert translater != null;
-        parentRuntime.loader.load(parentRuntime.getParent(), (key, value) -> bridge.setGlobal(key.getValue().toString(), translater.fromValue(value)));
+        parentRuntime.loader.load(parentRuntime.getParent(), this);
 
         bridge.setGlobal("bit32", Bit32Compat.build());
 
@@ -78,5 +80,10 @@ public class LuaThread extends LangThread {
     @Override
     public String getSource() {
         return "[Lua]";
+    }
+
+    @Override
+    public void insert(String key, Value value) {
+        bridge.setGlobal(key, translater.fromValue(value));
     }
 }
