@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class LuaThread extends LangThread {
     private final Logger logger;
     private final LuaBridge bridge;
-    private final LuaTranslater translater;
+    private final LuaMaster translater;
 
     public LuaThread(String script, Runtime parentRuntime, ComputerConfig computerConfig) {
         logger = LoggerFactory.getLogger("Lua Runtime [" + parentRuntime.getParent().getUuid() + ']');
@@ -53,8 +53,7 @@ public class LuaThread extends LangThread {
                 return self.isAlive();
             }
         };
-        translater = (LuaTranslater) NeetComputersServer.getTranslater("Lua");
-        assert translater != null;
+        translater = (LuaMaster) NeetComputersServer.getLanguage("Lua");
         parentRuntime.loader.load(parentRuntime.getParent(), this);
 
         bridge.setGlobal("bit32", Bit32Compat.build());

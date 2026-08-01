@@ -6,8 +6,6 @@ import com.redtoast.simulation.config.ComputerConfig;
 
 public interface LanguageGeneric {
     String getName();
-    LanguageTranslater generateTranslationClass();
     LangThread createThread(String script, Runtime parentRuntime, Computer parentComputer, ComputerConfig specifications);
     boolean bumpIndexs();
-    boolean dynamicNumbers();
 }

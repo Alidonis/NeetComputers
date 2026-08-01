@@ -39,7 +39,6 @@ import com.redtoast.recipes.FromDiskRecipe;
 import com.redtoast.recipes.TransitiveSingleRecipe;
 import com.redtoast.simulation.FS.DataNode;
 import com.redtoast.simulation.APILoader;
-import com.redtoast.simulation.base.LanguageTranslater;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.value.Value;
@@ -123,7 +122,6 @@ public class NeetComputersServer implements ModInitializer {
 
 	//internal language processing
 	protected static LanguageGeneric[] LanguageCache;
-	private static LanguageTranslater[] translators;
 	private final static LinkedList<LanguageGeneric> languageGenerics = new LinkedList<>();
 
 	@Override
@@ -430,10 +428,8 @@ public class NeetComputersServer implements ModInitializer {
 
 		//process lang translaters
 		LanguageCache = new LanguageGeneric[languageGenerics.size()];
-		translators = new LanguageTranslater[languageGenerics.size()];
 		for (int i = 0; i < languageGenerics.size(); i++){
 			LanguageCache[i] = languageGenerics.get(i);
-			translators[i] = languageGenerics.get(i).generateTranslationClass();
 		}
 
 		ProcessManager.clear();
@@ -442,19 +438,6 @@ public class NeetComputersServer implements ModInitializer {
 
 	public static int getNextPointer() {
         return nextPointer++;
-	}
-
-	public static LanguageTranslater getTranslater(String lang){
-		for (int i = 0; i < LanguageCache.length; i++){
-			if (LanguageCache[i].getName().equals(lang)){
-				return translators[i];
-			}
-		}
-		return null;
-	}
-
-	public static LanguageTranslater[] getTranslaters(){
-		return translators;
 	}
 
 	public static String[] getLangs(){
