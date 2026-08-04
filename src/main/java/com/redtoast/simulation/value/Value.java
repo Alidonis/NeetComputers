@@ -1,9 +1,12 @@
 package com.redtoast.simulation.value;
 
+import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.ValueTypes.Exception;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 
@@ -47,6 +50,7 @@ public class Value<Type> {
 
     private final Type value;
     private VarType type = VarType.NULL;
+    private LanguageGeneric language = null;
 
     /**
      * initializes the value raw with no type protection, it's advisable to use {@link #of(Object)} instead
@@ -182,6 +186,20 @@ public class Value<Type> {
      */
     public static Value<Exception> asError(String message){
         return Value.of(new Exception(message));
+    }
+
+    /**
+     * Associates a language object with the value, the language module is preferred for API casting operations
+     */
+    public void setLanguage(@NotNull LanguageGeneric language) {
+        this.language = language;
+    }
+
+    /**
+     * Gets a values associated language, may be null
+     */
+    public LanguageGeneric getLanguage(){
+        return language;
     }
 
     /**
@@ -392,6 +410,75 @@ public class Value<Type> {
         if (comparison==VarType.TABLE && type==VarType.LIST) return ((List) value).isEmpty();
         if (comparison==VarType.LIST && type==VarType.TABLE) return ((Table) value).isEmpty();
         return comparison==type;
+    }
+
+    /**
+     * Asks the associated language if the value can be cast to the given type, falls back on {@link #instanceOf(VarType)} if no language is found
+     */
+    public boolean canCast(VarType type, Annotation[] annotations) {
+        if (language != null) {
+            return language.canCast(this, type, annotations);
+        }else{
+            if (this.type==VarType.INT && (type==VarType.DOUBLE || type==VarType.FLOAT)) return true;
+            if (this.type==VarType.DOUBLE && (type==VarType.INT || type==VarType.FLOAT)) return true;
+            if (this.type==VarType.FLOAT && (type==VarType.INT || type==VarType.DOUBLE)) return true;
+            return instanceOf(type);
+        }
+    }
+
+    /**
+     * Asks the associated language if the value can be cast to the given type, falls back on {@link #instanceOf(VarType)} if no language is found
+     */
+    public boolean canCast(VarType type) {
+        return canCast(type, new Annotation[0]);
+    }
+
+    /**
+     * Trys to use the language associated with the value to cast the value, or falls back on standard casting functions, passes a list of annotations that can affect the casting process
+     */
+    public Value<?> castTo(VarType type, Annotation[] annotations) {
+        if (language != null) {
+            return language.castValue(this, type, annotations);
+        }else{
+            if (type == this.type) return this;
+            return Value.of(switch (type) {
+                case INT -> toInt();
+                case DOUBLE -> toDouble();
+                case FLOAT -> toFloat();
+                case BOOLEAN -> toBool();
+                case STRING -> toString();
+                case FUNCTION -> toFunction();
+                case TABLE -> toTable();
+                case LIST -> toList();
+                case TUPLE -> toTuple();
+                case BYTES -> toBytes();
+                default -> throw new IllegalStateException("Invalid casting operation");
+            });
+        }
+    }
+
+    /**
+     * Trys to use the language associated with the value to cast the value, or falls back on standard casting functions
+     */
+    public Value<?> castTo(VarType type) {
+        if (language != null) {
+            return language.castValue(this, type, new Annotation[0]);
+        }else{
+            if (type == this.type) return this;
+            return Value.of(switch (type) {
+                case INT -> toInt();
+                case DOUBLE -> toDouble();
+                case FLOAT -> toFloat();
+                case BOOLEAN -> toBool();
+                case STRING -> toString();
+                case FUNCTION -> toFunction();
+                case TABLE -> toTable();
+                case LIST -> toList();
+                case TUPLE -> toTuple();
+                case BYTES -> toBytes();
+                default -> throw new IllegalStateException("Invalid casting operation");
+            });
+        }
     }
 
     /**

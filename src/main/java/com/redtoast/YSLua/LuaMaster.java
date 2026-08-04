@@ -2,17 +2,19 @@ package com.redtoast.YSLua;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.Runtime;
+import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.parameter.FunctionInput;
+import com.redtoast.simulation.parameter.ParameterHelper;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.ValueTypes.Function;
-import com.redtoast.simulation.value.ValueTypes.List;
-import com.redtoast.simulation.value.ValueTypes.Table;
-import com.redtoast.simulation.value.ValueTypes.Tuple;
+import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.VarType;
 
+import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
@@ -34,44 +36,87 @@ public class LuaMaster implements LanguageGeneric {
         return true;
     }
 
+    @Override
+    public boolean canCast(Value<?> value, VarType castTo, Annotation[] annotations) {
+        VarType type = value.getType();
+        if (type==castTo) return true;
+        if (castTo==VarType.INT && (type==VarType.DOUBLE || type==VarType.FLOAT)) return true;
+        if (castTo==VarType.DOUBLE && (type==VarType.INT || type==VarType.FLOAT)) return true;
+        if (castTo==VarType.FLOAT && (type==VarType.INT || type==VarType.DOUBLE)) return true;
+        if (castTo==VarType.STRING && type==VarType.BYTES) return true;
+        if (castTo==VarType.BYTES && type==VarType.STRING) return true;
+        if (castTo==VarType.LIST && type==VarType.TUPLE) return true;
+        if (castTo==VarType.TUPLE && type==VarType.LIST) return true;
+        if (castTo==VarType.TABLE && type==VarType.LIST) return value.toList().isEmpty();
+        return false;
+    }
+
+    @Override
+    public Value<?> castValue(Value<?> value, VarType castTo, Annotation[] annotations) {
+        if (castTo==VarType.INT) {
+            if (getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-index.offset()-1);
+            return Value.of(value.toInt());
+        }
+        if (value.getType()==castTo) {
+            return value;
+        }
+        if (castTo==VarType.BYTES) return Value.of(new Bytes(((String) value.getValue()).getBytes(StandardCharsets.ISO_8859_1)));
+        if (castTo==VarType.STRING) return Value.of(new String(((Bytes) value.getValue()).getData(), StandardCharsets.UTF_8));
+        if (castTo==VarType.LIST) return Value.of(value.toList());
+        if (castTo==VarType.TUPLE) return Value.of(value.toTuple());
+        if (castTo==VarType.TABLE) return new Table().asValue();
+        return null;
+    }
+
+    @Override
+    public String generateError(Parameters.ParameterErrorType type, int position, VarType userType, ParameterHelper.ParameterType correctType) {
+        return switch (type) {
+            case ARGUMENT_OVERFLOW_ERROR -> "#"+(position+1)+" Expected nil, got "+getName(userType);
+            case MISSING_ARGUMENT_ERROR -> "#"+(position+1)+" Expected "+getName(correctType)+", got nil";
+            case MISMATCHED_ARGUMENT_ERROR -> "#"+(position+1)+" Expected "+getName(correctType)+", got "+getName(userType);
+            case MISMATCHED_VARARGS_ERROR -> "#"+(position+1)+"... Expected "+getName(correctType).replaceFirst("\\[]$", "");
+            default -> "Unknown Parameter Error #" +(position+1);
+        };
+    }
+
+    private String getName(Object obj) {
+        return obj.toString().toLowerCase().replaceFirst("null", "nil");
+    }
+
+    private static boolean hasAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
+        for (Annotation anno : annotations) if (anno.getClass()==annotation) return true;
+        return false;
+    }
+
+    private static Annotation getAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
+        for (Annotation anno : annotations) if (anno.getClass()==annotation) return anno;
+        return null;
+    }
+
     public Value<?> toValue(LuaValue var) {
         if (var==null) return Value.NULL;
-        switch (var.getType()){
-            case NIL -> {
-                return Value.NULL;
-            }
-            case BOOLEAN -> {
-                return Value.of((boolean) var.getValue());
-            }
-            case NUMINT -> {
-                return Value.of((int) var.getValue());
-            }
-            case NUMFLOAT -> {
-                return Value.of((double) var.getValue());
-            }
-            case STRING -> {
-                return Value.of((String) var.getValue());
-            }
-            case BINARY -> {
-                return Value.of((byte[]) var.getValue());
-            }
-            case FUNCTION -> {
-                return var.getValue() instanceof LuaFunction function ? Value.of(function.function) : Value.NULL;
-            }
+        Value<?> output = switch (var.getType()){
+            case NIL -> Value.NULL;
+            case BOOLEAN -> Value.of((boolean) var.getValue());
+            case NUMINT -> Value.of((int) var.getValue());
+            case NUMFLOAT -> Value.of((double) var.getValue());
+            case STRING -> Value.of((String) var.getValue());
+            case BINARY -> Value.of((byte[]) var.getValue());
+            case FUNCTION -> var.getValue() instanceof LuaFunction function ? Value.of(function.function) : Value.NULL;
             case LIST -> {
                 List list = new List();
                 for (LuaValue value : (LuaValue[]) var.getValue()) list.add(toValue(value));
-                return list.asValue();
+                yield list.asValue();
             }
             case TABLE -> {
                 Table table = new Table();
                 ((Map<LuaValue, LuaValue>) var.getValue()).forEach((key, value) -> table.put(toValue(key), toValue(value)));
-                return table.asValue();
+                yield table.asValue();
             }
-            default -> {
-                return Value.NULL;
-            }
-        }
+            default -> Value.NULL;
+        };
+        output.setLanguage(this);
+        return output;
     }
 
     public LuaValue fromValue(Value<?> var) {
