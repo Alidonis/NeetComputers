@@ -7,7 +7,6 @@ import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import net.minecraft.block.BlockState;
@@ -17,8 +16,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SimpleDisplayBlockEntity extends MultiblockDisplayEntity implements BinaryGraphicsProvider, BinaryGraphicsRenderProvider {
@@ -47,7 +44,7 @@ public class SimpleDisplayBlockEntity extends MultiblockDisplayEntity implements
         AtomicReference<Value<?>> dummy = new AtomicReference<>();
         api.foreach((key, value) -> {
             if (key.getValue().equals(name)) {
-                dummy.set(value.toFunction().invoke(new FunctionInput(new LinkedList<>(List.of(args)))));
+                dummy.set(value.toFunction().invoke(args));
             }
         });
         markDirty();

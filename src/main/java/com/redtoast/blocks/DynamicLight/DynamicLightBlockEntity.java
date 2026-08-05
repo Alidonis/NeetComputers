@@ -6,10 +6,8 @@ import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.neet.BulkRegistry;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
-import com.redtoast.simulation.value.VarType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -21,11 +19,12 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public class DynamicLightBlockEntity extends BlockEntity implements PeripheralProvider, PipeRenderSource {
-    private static final ParameterRules ruleset = new ParameterRules(VarType.INT);
-    private static final ParameterRules ruleset2 = new ParameterRules();
+    private static final Parameters intrule = Parameters.make(int.class);
+    private static final Parameters empty = Parameters.empty();
     private UUID uuid = null;
     private String tag = null;
     private Integer lightLevel = null;
@@ -68,26 +67,20 @@ public class DynamicLightBlockEntity extends BlockEntity implements PeripheralPr
     @Override
     public Value<?> callFunction(Runtime runtime, String name, Value<?>... args) {
         if (Objects.equals(name, "setLuminance")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset, null);
-            if (retur.isError()){
-                return Value.asError(retur.getMessage());
-            }
-            lightLevel = retur.getFunctionInput().get(0).toInt();
+            Optional<String> check = intrule.canCast(args, null);
+            if (check.isPresent()) return Value.asError(check.get());
+            lightLevel = (Integer) intrule.cast(args)[0];
             return Value.NULL;
         }
         if (Objects.equals(name, "turnOff")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset2, null);
-            if (retur.isError()){
-                return Value.asError(retur.getMessage());
-            }
+            Optional<String> check = empty.canCast(args, null);
+            if (check.isPresent()) return Value.asError(check.get());
             lightLevel = 0;
             return Value.NULL;
         }
         if (Objects.equals(name, "turnOn")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(args, ruleset2, null);
-            if (retur.isError()){
-                return Value.asError(retur.getMessage());
-            }
+            Optional<String> check = empty.canCast(args, null);
+            if (check.isPresent()) return Value.asError(check.get());
             lightLevel = 15;
             return Value.NULL;
         }

@@ -1,10 +1,7 @@
 package com.redtoast.simulation.value.ValueTypes;
 
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * represents an N.E.E.T. computers callable function, call implementation, parameter handling, and error handling not included
@@ -16,33 +13,33 @@ import org.slf4j.LoggerFactory;
  * @see java.lang.reflect.Method
  */
 public abstract class Function{
-    private final ParameterRules ruleset;
+    private final Parameters ruleset;
     private String name;
     private final boolean userGenerated;
 
     public Function(boolean userGenerated){
-        ruleset = new ParameterRules();
+        ruleset = Parameters.empty();
         this.userGenerated = userGenerated;
     }
     public Function(boolean userGenerated, String Name){
         name = Name;
-        ruleset = new ParameterRules();
+        ruleset = Parameters.empty();
         this.userGenerated = userGenerated;
     }
-    public Function(boolean userGenerated, ParameterRules rules){
+    public Function(boolean userGenerated, Parameters rules){
         ruleset = rules;
         this.userGenerated = userGenerated;
     }
-    public Function(boolean userGenerated, String Name, ParameterRules rules){
+    public Function(boolean userGenerated, String Name, Parameters rules){
         ruleset=rules;
         name=Name;
         this.userGenerated = userGenerated;
     }
-    public abstract Value call(FunctionInput parameters);
-    public Value invoke(FunctionInput parameters){
+    public abstract Value call(Value<?>[] parameters);
+    public Value invoke(Value<?>[] parameters){
         return call(parameters);
     }
-    public ParameterRules getRules(){
+    public Parameters getRules(){
         return ruleset;
     }
     public void setName(String Name){name = Name;}

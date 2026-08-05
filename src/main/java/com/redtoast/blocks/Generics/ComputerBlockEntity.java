@@ -17,8 +17,7 @@ import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
@@ -361,36 +360,39 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
         return new String[]{"shutdown", "startup", "getId", "getMachine", "isOn"};
     }
 
-    private static final ParameterRules blankRuleset = new ParameterRules();
-
     @Override
     public Value<?> callFunction(Runtime runtime, String name, Value<?>... Args) {
         if (computer==null) return Value.asError("computer not loaded");
         if (Objects.equals(name, "shutdown")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
-            if (retur.isError()) return Value.asError(retur.getMessage());
+            //TODO USE LANG
+            Optional<String> test = Parameters.empty().canCast(Args, null);
+            if (!test.isEmpty()) return Value.asError(test.get());
             computer.stop();
             return Value.NULL;
         }
         if (Objects.equals(name, "startup")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
-            if (retur.isError()) return Value.asError(retur.getMessage());
+            //TODO USE LANG
+            Optional<String> test = Parameters.empty().canCast(Args, null);
+            if (!test.isEmpty()) return Value.asError(test.get());
             computer.start();
             return Value.NULL;
         }
         if (Objects.equals(name, "getId")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
-            if (retur.isError()) return Value.asError(retur.getMessage());
+            //TODO USE LANG
+            Optional<String> test = Parameters.empty().canCast(Args, null);
+            if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getUuid().toString());
         }
         if (Objects.equals(name, "getMachine")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
-            if (retur.isError()) return Value.asError(retur.getMessage());
+            //TODO USE LANG
+            Optional<String> test = Parameters.empty().canCast(Args, null);
+            if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getConfiguration().modelName());
         }
         if (Objects.equals(name, "isOn")){
-            ParameterCheckReturn retur = ParameterRules.checkParameters(Args, blankRuleset, runtime);
-            if (retur.isError()) return Value.asError(retur.getMessage());
+            //TODO USE LANG
+            Optional<String> test = Parameters.empty().canCast(Args, null);
+            if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getStatus()== ComputerState.ON);
         }
         return Value.asError("Cant Find Function '"+name+"'");

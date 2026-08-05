@@ -6,13 +6,11 @@ import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Bytes;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.Table;
-import com.redtoast.simulation.value.VarType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -23,10 +21,7 @@ import java.net.UnknownHostException;
 import java.net.http.*;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -302,21 +297,25 @@ public class InternetManager {
         @Override
         public void onOpen(WebSocket webSocket) {
             eventManager.queueEvent(new EventGeneric("WebsocketOpened", Value.of(id),
-                    new Function(false, "send", new ParameterRules(VarType.BYTES).add(VarType.BOOLEAN)) {
+                    new Function(false, "send", Parameters.make(byte[].class, boolean.class)) {
                         @Override
-                        public Value call(FunctionInput parameters) {
+                        public Value call(Value<?>[] parameters) {
+                            //TODO FUCKING LANGUAGE
+                            Optional<String> check = getRules().canCast(parameters, null);
+                            if (check.isPresent()) return Value.asError(check.get());
                             if (!ready()) {
                                 eventManager.queueEvent(new EventGeneric("WebsocketSendFailure", Value.of("Outgoing buffer full, try again later")), EventLabel.NETWORK);
                                 return Value.NULL;
                             }
-                            byte[] data = Objects.requireNonNull(parameters.get(0).toBytes()).getData();
+                            Object[] args = getRules().cast(parameters);
+                            byte[] data = (byte[]) args[0];
                             queueRequest(new Request(data.length) {
                                 @Override
                                 void send() {
                                     if (webSocket.isInputClosed() || webSocket.isOutputClosed()) {
                                         eventManager.queueEvent(new EventGeneric("WebsocketSendFailure", Value.of(id), Value.of("Line closed")), EventLabel.NETWORK);
                                     }else{
-                                        (parameters.get(1).toBool() ? webSocket.sendBinary(ByteBuffer.wrap(data), true) : webSocket.sendText(parameters.get(0).toString(), true)).thenAccept(webSocket2 -> {
+                                        ((boolean) args[1] ? webSocket.sendBinary(ByteBuffer.wrap(data), true) : webSocket.sendText(new String(data), true)).thenAccept(webSocket2 -> {
                                             eventManager.queueEvent(new EventGeneric("WebsocketSendSuccess", Value.of(id)), EventLabel.NETWORK);
                                         }).exceptionally(error -> {
                                             eventManager.queueEvent(new EventGeneric("WebsocketSendFailure", Value.of(id), Value.of("Line busy, try again later")), EventLabel.NETWORK);
@@ -328,9 +327,12 @@ public class InternetManager {
                             return Value.NULL;
                         }
                     }.asValue(),
-                    new Function(false, "close", ParameterRules.NONE) {
+                    new Function(false, "close", Parameters.empty()) {
                         @Override
-                        public Value call(FunctionInput parameters) {
+                        public Value call(Value<?>[] parameters) {
+                            //TODO LANG
+                            Optional<String> check = getRules().canCast(parameters, null);
+                            if (check.isPresent()) return Value.asError(check.get());
                             if (webSocket.isInputClosed() || webSocket.isOutputClosed()) {
                                 throw new ExposedError("Already closed");
                             }

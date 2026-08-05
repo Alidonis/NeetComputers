@@ -6,8 +6,6 @@ import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.config.ComputerConfig;
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterHelper;
 import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
@@ -16,7 +14,6 @@ import com.redtoast.simulation.value.VarType;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,14 +29,11 @@ public class LuaMaster implements LanguageGeneric {
     }
 
     @Override
-    public boolean bumpIndexs() {
-        return true;
-    }
-
-    @Override
     public boolean canCast(Value<?> value, VarType castTo, Annotation[] annotations) {
         VarType type = value.getType();
         if (type==castTo) return true;
+        if (type!=VarType.NULL && castTo==VarType.ANY) return true;
+        if (castTo==VarType.PRIMITIVE) return value.instanceOf(VarType.PRIMITIVE);
         if (castTo==VarType.INT && (type==VarType.DOUBLE || type==VarType.FLOAT)) return true;
         if (castTo==VarType.DOUBLE && (type==VarType.INT || type==VarType.FLOAT)) return true;
         if (castTo==VarType.FLOAT && (type==VarType.INT || type==VarType.DOUBLE)) return true;
@@ -54,7 +48,7 @@ public class LuaMaster implements LanguageGeneric {
     @Override
     public Value<?> castValue(Value<?> value, VarType castTo, Annotation[] annotations) {
         if (castTo==VarType.INT) {
-            if (getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-index.offset()-1);
+            if (Parameters.getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-index.offset()-1);
             return Value.of(value.toInt());
         }
         if (value.getType()==castTo) {
@@ -69,7 +63,7 @@ public class LuaMaster implements LanguageGeneric {
     }
 
     @Override
-    public String generateError(Parameters.ParameterErrorType type, int position, VarType userType, ParameterHelper.ParameterType correctType) {
+    public String generateError(Parameters.ParameterErrorType type, int position, VarType userType, Parameters.ParameterType correctType) {
         return switch (type) {
             case ARGUMENT_OVERFLOW_ERROR -> "#"+(position+1)+" Expected nil, got "+getName(userType);
             case MISSING_ARGUMENT_ERROR -> "#"+(position+1)+" Expected "+getName(correctType)+", got nil";
@@ -81,16 +75,6 @@ public class LuaMaster implements LanguageGeneric {
 
     private String getName(Object obj) {
         return obj.toString().toLowerCase().replaceFirst("null", "nil");
-    }
-
-    private static boolean hasAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
-        for (Annotation anno : annotations) if (anno.getClass()==annotation) return true;
-        return false;
-    }
-
-    private static Annotation getAnnotation(Annotation[] annotations, Class<? extends Annotation> annotation) {
-        for (Annotation anno : annotations) if (anno.getClass()==annotation) return anno;
-        return null;
     }
 
     public Value<?> toValue(LuaValue var) {
@@ -173,9 +157,9 @@ public class LuaMaster implements LanguageGeneric {
 
         @Override
         public LuaValue[] call(LuaValue[] parameters) {
-            LinkedList<Value> args = new LinkedList<>();
-            for (LuaValue value : parameters) args.add(toValue(value));
-            Value<?> retrn = function.invoke(new FunctionInput(args));
+            Value<?>[] args = new Value[parameters.length];
+            for (int i = 0; i < parameters.length; i++) args[i] = toValue(parameters[i]);
+            Value<?> retrn = function.invoke(args);
             if (retrn.isNull()) return new LuaValue[0];
             if (retrn.instanceOf(VarType.TUPLE)) {
                 Tuple tuple = retrn.toTuple();

@@ -1,12 +1,12 @@
 package com.redtoast.simulation.cache;
 
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 
 import java.lang.reflect.Method;
 
 public record StaticFunctionCache(
         Method method,
-        ParameterRules ruleset,
+        Parameters ruleset,
         String functionName
 ) {
 

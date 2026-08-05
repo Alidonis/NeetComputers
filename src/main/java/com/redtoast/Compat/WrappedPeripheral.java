@@ -4,16 +4,13 @@ import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import dan200.computercraft.api.lua.LuaFunction;
-import dan200.computercraft.api.lua.MethodResult;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import dan200.computercraft.api.peripheral.IPeripheral;
 import net.minecraft.util.math.BlockPos;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +39,7 @@ public class WrappedPeripheral implements PeripheralProvider {
                 }else{
                     names.addAll(Arrays.asList(annotation.value()));
                 }
-                Function buffer = APILoader.sandboxFunction(method, peripheral, ParameterRules.ANY, runtime);
+                Function buffer = APILoader.sandboxFunction(method, peripheral, Parameters.any(), runtime);
                 //if (annotation.mainThread()) buffer.makeMainThread();
                 functionLookup.put(method, buffer);
             }
@@ -73,7 +70,7 @@ public class WrappedPeripheral implements PeripheralProvider {
                 }
                 for (String string : names){
                     if (string.equals(name)) {
-                        return functionLookup.get(method).invoke(FunctionInput.fromArray(Args));
+                        return functionLookup.get(method).invoke(Args);
                     }
                 }
             }

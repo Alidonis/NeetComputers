@@ -4,6 +4,7 @@ import com.redtoast.Computer;
 import com.redtoast.graphics.screens.BoilerplateScreen;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.Runtime;
 
@@ -49,16 +50,6 @@ public class ChipAPI implements API {
     @Exposed
     public String version(){
         return NeetComputersServer.version;
-    }
-
-    @Exposed
-    public int ToAsciiFromGLFW(int code, int mod){
-        return BoilerplateScreen.mapGlfwKeyToAsciiCode(code, mod);
-    }
-
-    @Exposed
-    public int ToAsciiFromGLFW(int code){
-        return BoilerplateScreen.mapGlfwKeyToAsciiCode(code, 0);
     }
 
     @Override

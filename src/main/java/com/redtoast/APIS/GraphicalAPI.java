@@ -9,7 +9,6 @@ import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.Exposable;
 import com.redtoast.simulation.base.ExposedError;
-import com.redtoast.simulation.parameter.FunctionInput;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Bytes;
 import com.redtoast.simulation.value.ValueTypes.Function;
@@ -21,7 +20,6 @@ import org.joml.Vector2i;
 import org.joml.Vector3i;
 
 import java.lang.reflect.Method;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GraphicalAPI implements Exposable {
@@ -319,7 +317,7 @@ public class GraphicalAPI implements Exposable {
         if (function.get().isUserGenerated() || !function.get().getName().equals("getAsArray")) throw new ExposedError("Invalid layer (invalid data)");
         Value value;
         try{
-            value = function.get().invoke(new FunctionInput(new LinkedList<>()));
+            value = function.get().invoke(new Value<?>[0]);
         }catch (Throwable ignored) {
             throw new ExposedError("Invalid layer (data retrieval failure)");
         }

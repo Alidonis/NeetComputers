@@ -3,15 +3,15 @@ package com.redtoast.APIS;
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.simulation.annotations.Exposed;
+import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
-import com.redtoast.simulation.value.VarType;
+import com.redtoast.simulation.value.ValueTypes.Tuple;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -24,17 +24,17 @@ public class IOAPI implements API {
         private final UUID uuid;
 
         public WrappedFunction(Computer computer, UUID uuid, String functionName){
-            super(false, functionName, ParameterRules.ANY);
+            super(false, functionName, Parameters.any());
             this.computer = computer;
             this.uuid = uuid;
         }
 
         @Override
-        public Value call(FunctionInput parameters) {
+        public Value call(Value<?>[] parameters) {
             if (!computer.isOn() || computer.isCrashed()) return Value.asError("Computer dead, how did you get here?");
             for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
                 if (Objects.equals(peripheralProvider.getUuid().toString(), uuid.toString())){
-                    return peripheralProvider.callFunction(computer.getRuntime(), getName(), parameters.toArray());
+                    return peripheralProvider.callFunction(computer.getRuntime(), getName(), parameters);
                 }
             }
             return Value.asError("Peripheral not found");
@@ -161,7 +161,7 @@ public class IOAPI implements API {
     }
 
     @Exposed
-    public Value callFunction(String uuidString, String functionName, Value... args){
+    public Value callFunction(String uuidString, String functionName, Tuple args){
         UUID uuid;
         try {
             uuid = UUID.fromString(uuidString);
@@ -171,23 +171,15 @@ public class IOAPI implements API {
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
             if (Objects.equals(peripheralProvider.getUuid(), uuid)){
                 for (String functionName2 : peripheralProvider.getFunctionNames()){
-                    if (functionName.equals(functionName2)) return peripheralProvider.callFunction(computer.getRuntime(), functionName, args);
+                    if (functionName.equals(functionName2)) return peripheralProvider.callFunction(computer.getRuntime(), functionName, args.toArray());
                 }
             }
         }
         throw new ExposedError("Peripheral not found");
     }
 
-    @Override
-    public Table postProcessing(Table self){
-        self.put("broadcastLocal", new Function(false, "broadcastLocal", ParameterRules.ANY) {
-            @Override
-            public Value call(FunctionInput parameters) {
-                for (int i = 0; i < parameters.getSize(); i++) if (parameters.get(i).instanceOf(VarType.PRIMITIVE)) return Value.asError("Argument #"+i+": Expected primitive, got "+parameters.get(i).typeName());
-                computer.sendNetworkMessage(parameters.toArray());
-                return Value.NULL;
-            }
-        }.asValue());
-        return self;
+    @Exposed
+    public void broadcastLocal(@Primative List args) {
+        computer.sendNetworkMessage(args.toArray());
     }
 }

@@ -7,16 +7,10 @@ import com.redtoast.simulation.base.*;
 import com.redtoast.simulation.cache.LoaderCache;
 import com.redtoast.simulation.cache.PackedFunctionCache;
 import com.redtoast.simulation.cache.StaticFunctionCache;
-import com.redtoast.simulation.parameter.FunctionInput;
-import com.redtoast.simulation.parameter.ParameterCheckReturn;
-import com.redtoast.simulation.parameter.ParameterRule;
-import com.redtoast.simulation.parameter.ParameterRules;
+import com.redtoast.simulation.parameter.*;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Exception;
-import com.redtoast.simulation.value.ValueTypes.List;
-import com.redtoast.simulation.value.VarType;
 import com.redtoast.simulation.value.ValueTypes.*;
-import dan200.computercraft.api.lua.Coerced;
 import net.minecraft.util.crash.CrashException;
 import net.minecraft.util.crash.CrashReport;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +52,7 @@ public class APILoader {
             Method[] buffer = clazz.getMethods();
             for (Method method : buffer){
                 if (method.isAnnotationPresent(Exposed.class)){
-                    ParameterRules ruleset = rulesFromMethod(method);
+                    Parameters ruleset = Parameters.deduceParameters(method.getParameters());
                     String funcname = method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride();
                     StaticFunctionCache function = new StaticFunctionCache(method, ruleset , funcname);
                     if (functions.containsKey(funcname)){
@@ -76,8 +69,8 @@ public class APILoader {
                 }
             }
             cache.put(clazz, new LoaderCache(functions.values(), packedFunctions.values()));
-        }catch (LoaderError loaderError){
-            throw new CrashException(new CrashReport(loaderError.message, loaderError));
+        }catch (IllegalArgumentException loaderError){
+            throw new CrashException(new CrashReport(loaderError.getMessage(), loaderError));
         }
         return true;
     }
@@ -129,202 +122,6 @@ public class APILoader {
         }
     }
 
-    public static VarType interoperateParameterType(Class<?> clazz, boolean packingBias){
-        if (packingBias){
-            clazz = clazz.componentType();
-            if (clazz==null) return VarType.NULL;
-        }
-        VarType type = VarType.NULL;
-        if (clazz==String.class){
-            type = VarType.STRING;
-        }else if (clazz==int.class){
-            type = VarType.NUMBER;
-        }else if (clazz==double.class){
-            type = VarType.NUMBER;
-        }else if (clazz==float.class){
-            type = VarType.NUMBER;
-        }else if (clazz==boolean.class){
-            type = VarType.BOOLEAN;
-        }else if (clazz==Table.class){
-            type = VarType.TABLE;
-        }else if (clazz==Tuple.class){
-            type = VarType.TUPLE;
-        }else if (clazz==List.class){
-            type = VarType.LIST;
-        }else if (clazz==Function.class){
-            type = VarType.FUNCTION;
-        }else if (clazz==Bytes.class){
-            type = VarType.BINARY;
-        }else if (clazz==Value.class){
-            type = VarType.ANY;
-        }else if (clazz==Object.class){
-            type = VarType.ANY;
-        }
-        return type;
-    }
-
-    //background methods used to process API's
-    private static ParameterRules rulesFromMethod(Method method) throws LoaderError{
-        boolean isPacked = method.isVarArgs();
-        Parameter[] parameters = method.getParameters();
-        ParameterRules rules = new ParameterRules();
-        for (int i = 0; i < parameters.length; i++){
-            if (i == parameters.length-1 && isPacked){
-                rules.allowPacking(interoperateParameterType(parameters[i].getType(), true));
-                if (parameters[i].isAnnotationPresent(Index.class)){
-                    rules.packRule.giveIndexOffset(parameters[i].getAnnotation(Index.class).offset(), parameters[i].getAnnotation(Index.class).strict());
-                }
-                if (parameters[i].isAnnotationPresent(Range.class)){
-                    rules.packRule.setRange(parameters[i].getAnnotation(Range.class).range());
-                }
-                rules.packRule.disName = parameters[i].getName();
-            }else{
-                rules.add(interoperateParameterType(parameters[i].getType(), false));
-                if (parameters[i].isAnnotationPresent(Index.class)){
-                    rules.rules.getLast().giveIndexOffset(parameters[i].getAnnotation(Index.class).offset(), parameters[i].getAnnotation(Index.class).strict());
-                }
-                if (parameters[i].isAnnotationPresent(Range.class)){
-                    rules.rules.getLast().setRange(parameters[i].getAnnotation(Range.class).range());
-                }
-                rules.rules.getLast().disName = parameters[i].getName();
-            }
-        }
-        for (ParameterRule rule : rules.rules){
-            if (rule.type==VarType.NULL) throw new LoaderError('"'+method.getName()+'"'+" java function has unsupported parameter types");
-        }
-        if (rules.packRule!=null && rules.packRule.type==VarType.NULL) throw new LoaderError('"'+method.getName()+'"'+" java function has unsupported parameter types");
-        return rules;
-    }
-
-    public static Object[] processArgs(Method method, FunctionInput input, @Nullable Context context){
-        Parameter[] parameters = method.getParameters();
-        Object[] args = new Object[parameters.length];
-        for (int i = 0; i < args.length; i++){
-            if (parameters[i].isVarArgs()){
-                if (parameters[i].getType()==String.class){
-                    List packed = input.getPacked();
-                    String[] pack = new String[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof String val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==int.class){
-                    List packed = input.getPacked();
-                    int[] pack = new int[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        int offset = parameters[i].isAnnotationPresent(Index.class) ? (context!=null ? (context.language.bumpIndexs() ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;
-                        if (input.get(i).getValue() instanceof Integer val) pack[d] = val - offset;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==double.class){
-                    List packed = input.getPacked();
-                    double[] pack = new double[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Double val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==float.class){
-                    List packed = input.getPacked();
-                    float[] pack = new float[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Float val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==boolean.class){
-                    List packed = input.getPacked();
-                    boolean[] pack = new boolean[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Boolean val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==Table.class){
-                    List packed = input.getPacked();
-                    Table[] pack = new Table[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Table val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==Tuple.class){
-                    List packed = input.getPacked();
-                    Tuple[] pack = new Tuple[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Tuple val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==List.class){
-                    List packed = input.getPacked();
-                    List[] pack = new List[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof List val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()==Function.class){
-                    List packed = input.getPacked();
-                    Function[] pack = new Function[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Function val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()== Bytes.class){
-                    List packed = input.getPacked();
-                    Bytes[] pack = new Bytes[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        if (input.get(i).getValue() instanceof Bytes val) pack[d] = val;
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()== Value.class){
-                    List packed = input.getPacked();
-                    Value[] pack = new Value[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        pack[d] = input.get(i);
-                    }
-                    args[i] = pack;
-                }else if (parameters[i].getType()== Object.class){
-                    List packed = input.getPacked();
-                    Object[] pack = new Object[packed.size()];
-                    for (int d = 0; d < packed.size(); d++){
-                        pack[d] = input.get(i).getValue();
-                    }
-                    args[i] = pack;
-                }
-            }else{
-                if (parameters[i].getType()==String.class){
-                    args[i] = input.get(i).toString();
-                } else if (parameters[i].getType().toString().contains("Coerced")) {
-                    if (input.get(i).toString() != null) { //make sure we dont try to turn wrong var into a string
-                        args[i] = new Coerced<>(input.get(i).toString());
-                    } else {
-                        args[i] = new Coerced<>(input.get(i).getValue());
-                    }
-                } else if (parameters[i].getType()==int.class){
-                    int offset = parameters[i].isAnnotationPresent(Index.class) ? (context!=null ? (context.language.bumpIndexs() ? 1 : 0) : 0) + parameters[i].getAnnotation(Index.class).offset() : 0;
-                    args[i] = input.get(i).toInt() - offset;
-                }else if (parameters[i].getType()==double.class){
-                    args[i] = input.get(i).toDouble();
-                }else if (parameters[i].getType()==float.class){
-                    args[i] = input.get(i).toFloat();
-                }else if (parameters[i].getType()==boolean.class){
-                    if (input.get(i).getValue() instanceof Boolean val) args[i] = val;
-                }else if (parameters[i].getType()==Table.class){
-                    if (input.get(i).getValue() instanceof Table val) args[i] = val;
-                }else if (parameters[i].getType()==Tuple.class){
-                    if (input.get(i).getValue() instanceof Tuple val) args[i] = val;
-                }else if (parameters[i].getType()==List.class){
-                    if (input.get(i).getValue() instanceof List val) args[i] = val;
-                }else if (parameters[i].getType()==Function.class){
-                    if (input.get(i).getValue() instanceof Function val) args[i] = val;
-                }else if (parameters[i].getType()==Bytes.class){
-                    args[i] = input.get(i).toBytes();
-                }else if (parameters[i].getType()==Value.class){
-                    args[i] = input.get(i);
-                }else if (parameters[i].getType()==Object.class){
-                    args[i] = input.get(i).getValue();
-                }
-            }
-        }
-        return args;
-    }
-
     public static void profilerFunction(long startTime, String function, @Nullable Context context){
         short timeSpent = (short) (System.currentTimeMillis() - startTime);
         if (timeSpent>100){
@@ -343,20 +140,23 @@ public class APILoader {
 
     public record Context(Runtime runtime, LanguageGeneric language){}
 
-    public static Function sandboxFunction(Method method, Object obj, ParameterRules ruleset, Runtime runtime){
+    public static Function sandboxFunction(Method method, Object obj, Parameters ruleset, Runtime runtime){
         String funcname = method.isAnnotationPresent(Exposed.class) ? method.getAnnotation(Exposed.class).nameOverride().isBlank() ? method.getName() : method.getAnnotation(Exposed.class).nameOverride() : null;
         Function temp = new Function(false, ruleset) {
             @Override
-            public Value call(FunctionInput parameters) {
+            public Value call(Value<?>[] parameters) {
                 try {
                     if (runtime!=null && obj instanceof Exposable exposable){
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
                         exposable.onCall(runtime, method);
                     }
+                    //TODO LANG
+                    Optional<String> check = getRules().canCast(parameters, null);
+                    if (check.isPresent()) return Value.asError(check.get());
                     long timeStarted = System.currentTimeMillis();
                     Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getThread().getLang())) : null;
-                    Object retun = method.invoke(obj, processArgs(method, parameters, context));
-                    if (context!=null) profilerFunction(timeStarted, funcname + ruleset.toString(context.runtime), context);
+                    Object retun = method.invoke(obj, ruleset.cast(parameters));
+                    if (context!=null) profilerFunction(timeStarted, funcname + ruleset, context);
                     if (retun==null){
                         return Value.NULL;
                     }else{
@@ -385,18 +185,20 @@ public class APILoader {
             if (values.size()==1){
                 output[i.get()] = values.getFirst();
             }else{
-                output[i.get()] = new Function(false, key, ParameterRules.ANY) {
+                output[i.get()] = new Function(false, key, Parameters.any()) {
                     @Override
-                    public Value call(FunctionInput parameters) {
+                    public Value call(Value<?>[] parameters) {
                         LinkedList<String> errors = new LinkedList<>();
                         LinkedList<String> names = new LinkedList<>();
+                        //TODO make packed algorithm less shit
                         for (Function function : values){
-                            ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), function.getRules(), runtime);
-                            if (!retur.isError()){
-                                return function.invoke(retur.getFunctionInput());
+                            //TODO replace language null with actual ref
+                            Optional<String> retur = function.getRules().canCast(parameters, null);
+                            if (retur.isEmpty()){
+                                return function.invoke(parameters);
                             }else{
-                                errors.add(retur.getMessage());
-                                names.add(key + function.getRules().toString(runtime));
+                                errors.add(retur.get());
+                                names.add(key + function.getRules().toString());
                             }
                         }
                         names.sort(String::compareTo);
@@ -468,19 +270,20 @@ public class APILoader {
     }
 
     private static Function packCachedFunction(PackedFunctionCache functionCache, Exposable obj, Runtime runtime){
-        return new Function(false, functionCache.name, ParameterRules.ANY) {
+        return new Function(false, functionCache.name, Parameters.any()) {
             @Override
-            public Value call(FunctionInput parameters) {
+            public Value call(Value<?>[] parameters) {
                 LinkedList<String> errors = new LinkedList<>();
                 LinkedList<String> names = new LinkedList<>();
                 for (StaticFunctionCache staticFunction : functionCache.functions){
-                    ParameterCheckReturn retur = ParameterRules.checkParameters(parameters.toArray(), staticFunction.ruleset(), runtime);
-                    if (retur.isError()){
-                        errors.add(retur.getMessage());
-                        names.add(staticFunction.functionName() + staticFunction.ruleset().toString(runtime));
+                    //TODO make use actual language
+                    Optional<String> retur = staticFunction.ruleset().canCast(parameters, null);
+                    if (!retur.isEmpty()){
+                        errors.add(retur.get());
+                        names.add(staticFunction.functionName() + staticFunction.ruleset());
                     }else{
                         Function function = sandboxFunction(staticFunction.method(), obj, staticFunction.ruleset(), runtime);
-                        return function.invoke(retur.getFunctionInput());
+                        return function.invoke(parameters);
                     }
                 }
                 names.sort(String::compareTo);
@@ -530,11 +333,12 @@ public class APILoader {
             LoaderCache cachedObject = cache.get(_class);
             for (StaticFunctionCache functionCache : cachedObject.functions()){
                 if (functionCache.functionName().equals(name)){
-                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
-                    if (!retur.isError()){
-                        return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                    //TODO make use language
+                    Optional<String> retur = functionCache.ruleset().canCast(args, null);
+                    if (retur.isEmpty()){
+                        return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(args);
                     }else{
-                        return Value.asError(retur.getMessage());
+                        return Value.asError(retur.get());
                     }
                 }
             }
@@ -543,12 +347,13 @@ public class APILoader {
             for (PackedFunctionCache pFunctionCache : cachedObject.packedFunctions()){
                 if (pFunctionCache.name.equals(name)){
                     for (StaticFunctionCache functionCache : pFunctionCache.functions){
-                        ParameterCheckReturn retur = ParameterRules.checkParameters(args, functionCache.ruleset(), runtime);
-                        if (!retur.isError()){
-                            return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(retur.getFunctionInput());
+                        //TODO make use language
+                        Optional<String> retur = functionCache.ruleset().canCast(args, null);
+                        if (retur.isEmpty()){
+                            return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(args);
                         }else{
-                            errors.add(retur.getMessage());
-                            names.add(name + functionCache.ruleset().toString(runtime));
+                            errors.add(retur.get());
+                            names.add(name + functionCache.ruleset());
                         }
                     }
                 }
@@ -570,13 +375,14 @@ public class APILoader {
             LinkedList<String> names = new LinkedList<>();
             for (Method method : buffer){
                 if (getName(method).equals(name)){
-                    ParameterRules rules = rulesFromMethod(method);
-                    ParameterCheckReturn retur = ParameterRules.checkParameters(args, rules, runtime);
-                    if (!retur.isError()){
-                        return sandboxFunction(method, obj, rules, runtime).invoke(retur.getFunctionInput());
+                    Parameters rules = Parameters.deduceParameters(method.getParameters());
+                    //TODO MAKE USE FUCKING LANGUAGE
+                    Optional<String> retur = rules.canCast(args, null);
+                    if (retur.isEmpty()){
+                        return sandboxFunction(method, obj, rules, runtime).invoke(args);
                     }else{
-                        errors.add(retur.getMessage());
-                        names.add(name + rules.toString(runtime));
+                        errors.add(retur.get());
+                        names.add(name + rules);
                     }
                 }
             }
@@ -603,7 +409,7 @@ public class APILoader {
             Method[] buffer = _class.getMethods();
             for (Method method : buffer) {
                 if (method.isAnnotationPresent(Exposed.class)) {
-                    ParameterRules ruleset = rulesFromMethod(method);
+                    Parameters ruleset = Parameters.deduceParameters(method.getParameters());
                     Function function = sandboxFunction(method, obj, ruleset, runtime);
                     if (functions.containsKey(function.getName())) {
                         functions.get(function.getName()).add(function);
