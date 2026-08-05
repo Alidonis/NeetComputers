@@ -6,8 +6,9 @@
 	"description": "N.E.E.T. computers is a Minecraft mod that adds cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
 	"authors": [
 		"Red Toast",
-		"WindClan/cyanideflavoraid",
-		"piguman3"
+		"WindClan",
+		"piguman3",
+		"SpSf"
 	],
 	"contact": {
 		"homepage": "https://red-toast.net/neetcomputers",
