@@ -1,4 +1,4 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation.parameterErrors;
 
 import com.redtoast.simulation.value.VarType;
 

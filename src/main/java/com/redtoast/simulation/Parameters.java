@@ -1,8 +1,9 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation;
 
 import com.google.gson.internal.Primitives;
 import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.LanguageGeneric;
+import com.redtoast.simulation.parameterErrors.*;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.VarType;
@@ -150,7 +151,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             }
             return array;
         }
-        throw new IllegalStateException("Attempted to cast unrecognized parameter type");
+        throw new IllegalStateException("Attempted to cast unrecognized parameterErrors type");
     }
 
     private static Optional<String> getError(LanguageGeneric language, ParameterException exception) {
@@ -158,7 +159,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
     }
 
     private static Object checkExists(Object value) {
-        if (value == null || value instanceof Null) throw new IllegalArgumentException("Attempted to cast unrecognized parameter type");
+        if (value == null || value instanceof Null) throw new IllegalArgumentException("Attempted to cast unrecognized parameterErrors type");
         return value;
     }
 
@@ -172,7 +173,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
                 classes[i] = parameters[i].getType();
                 if (i == parameters.length-1) varargs = parameters[i].isVarArgs() && parameterTypes[i].depth>0 || parameterTypes[i].type==VarType.TUPLE;
             } catch (IllegalStateException ignored){
-                throw new IllegalArgumentException("Failed to recognize parameter type "+parameters[i].getType().toString()+" at parameter #"+i);
+                throw new IllegalArgumentException("Failed to recognize parameterErrors type "+parameters[i].getType().toString()+" at parameterErrors #"+i);
             }
         }
         return new Parameters(parameterTypes, classes, varargs);
@@ -186,7 +187,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
                 parameterTypes[i] = configureList(inferType(casts[i], i == casts.length-1, 0, new Annotation[0]), false);
                 if (i == casts.length-1) varargs = parameterTypes[i].type==VarType.TUPLE;
             } catch (IllegalStateException ignored){
-                throw new IllegalArgumentException("Failed to recognize parameter type "+casts[i].toString()+" at parameter #"+i);
+                throw new IllegalArgumentException("Failed to recognize parameterErrors type "+casts[i].toString()+" at parameterErrors #"+i);
             }
         }
         return new Parameters(parameterTypes, casts, varargs);
@@ -245,7 +246,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             if (clazz.isArray()) {
                 return inferType(clazz.componentType(), allowTuple, depth + 1, annotations);
             }
-            throw new IllegalStateException("Attempted to parse unrecognized parameter type");
+            throw new IllegalStateException("Attempted to parse unrecognized parameterErrors type");
         }
         return new ParameterType(type, filter, depth, annotations);
     }

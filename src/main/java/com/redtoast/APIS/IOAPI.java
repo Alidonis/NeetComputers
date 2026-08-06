@@ -6,7 +6,7 @@ import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;

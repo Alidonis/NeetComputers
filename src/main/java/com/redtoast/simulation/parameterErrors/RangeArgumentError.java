@@ -1,4 +1,4 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation.parameterErrors;
 
 public class RangeArgumentError extends ParameterException{
     private final int min;

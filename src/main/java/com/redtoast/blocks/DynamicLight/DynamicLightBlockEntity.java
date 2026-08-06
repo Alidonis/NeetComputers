@@ -6,7 +6,7 @@ import com.redtoast.Connections.PipeRenderSource;
 import com.redtoast.Connections.PipeType;
 import com.redtoast.neet.BulkRegistry;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.Value;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

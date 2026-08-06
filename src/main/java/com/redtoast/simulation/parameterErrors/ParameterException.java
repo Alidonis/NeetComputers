@@ -1,4 +1,4 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation.parameterErrors;
 
 public class ParameterException extends RuntimeException {
     private int position;

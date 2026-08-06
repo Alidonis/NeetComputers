@@ -1,10 +1,10 @@
 package com.redtoast.simulation.value.ValueTypes;
 
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.Value;
 
 /**
- * represents an N.E.E.T. computers callable function, call implementation, parameter handling, and error handling not included
+ * represents an N.E.E.T. computers callable function, call implementation, parameterErrors handling, and error handling not included
  * @see Value
  * @see List
  * @see Tuple

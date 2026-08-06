@@ -17,7 +17,7 @@ import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.events.EventLabel;
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;

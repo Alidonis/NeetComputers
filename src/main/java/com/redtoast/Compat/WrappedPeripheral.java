@@ -4,7 +4,7 @@ import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
 import com.redtoast.simulation.APILoader;
 import com.redtoast.simulation.Runtime;
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Function;
 import dan200.computercraft.api.lua.LuaFunction;

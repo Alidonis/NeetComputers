@@ -1,5 +1,6 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation.parameterErrors;
 
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.value.VarType;
 
 public class MismatchedArgumentError extends ParameterException {

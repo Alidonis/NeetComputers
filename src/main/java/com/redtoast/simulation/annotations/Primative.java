@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a parameter to filter for only primitives, currently only supports list, tuple, and object parameter types
+ * Marks a parameterErrors to filter for only primitives, currently only supports list, tuple, and object parameterErrors types
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})

@@ -1,4 +1,6 @@
-package com.redtoast.simulation.parameter;
+package com.redtoast.simulation.parameterErrors;
+
+import com.redtoast.simulation.Parameters;
 
 public class MissingArgumentError extends ParameterException {
     private final Parameters.ParameterType type;

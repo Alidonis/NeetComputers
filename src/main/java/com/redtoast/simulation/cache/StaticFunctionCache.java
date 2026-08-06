@@ -1,6 +1,6 @@
 package com.redtoast.simulation.cache;
 
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.Parameters;
 
 import java.lang.reflect.Method;
 

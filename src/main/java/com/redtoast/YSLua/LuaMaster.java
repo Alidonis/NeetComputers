@@ -1,20 +1,20 @@
 package com.redtoast.YSLua;
 
 import com.redtoast.Computer;
+import com.redtoast.simulation.Parameters;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Index;
 import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.config.ComputerConfig;
-import com.redtoast.simulation.parameter.*;
+import com.redtoast.simulation.parameterErrors.*;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.VarType;
 
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
