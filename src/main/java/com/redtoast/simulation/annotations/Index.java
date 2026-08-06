@@ -8,6 +8,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface Index {
-    int offset() default  0;
-    boolean strict() default false;
 }

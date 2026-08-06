@@ -36,7 +36,7 @@ public abstract class LangThread {
         return uuid;
     }
     public boolean isAlive(){return !killed;}
-    public abstract String getLang();
+    public abstract LanguageGeneric getLang();
     public abstract void yield();
     public abstract void tick();
     public abstract String getSource();

@@ -78,7 +78,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //object that handles the computers events
     private final EventManager eventManager = new EventManager();
     //object that handles incoming and outgoing internet traffic
-    private final InternetManager internetManager = new InternetManager(eventManager);
+    private final InternetManager internetManager = new InternetManager(eventManager, this);
     //object representing the graphics render seen on some computer blocks/entity's
     private BinaryGraphicsArray BinGraphics;
     private final boolean doesBinaryGraphics;

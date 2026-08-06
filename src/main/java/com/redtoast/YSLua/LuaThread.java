@@ -4,6 +4,7 @@ import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.base.LangThread;
+import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.config.ComputerConfig;
 import com.redtoast.simulation.value.Value;
 import org.slf4j.Logger;
@@ -62,8 +63,8 @@ public class LuaThread extends LangThread {
     }
 
     @Override
-    public String getLang() {
-        return "Lua";
+    public LanguageGeneric getLang() {
+        return translater;
     }
 
     @Override

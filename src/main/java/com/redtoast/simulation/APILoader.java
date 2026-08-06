@@ -150,11 +150,10 @@ public class APILoader {
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
                         exposable.onCall(runtime, method);
                     }
-                    //TODO LANG
-                    Optional<String> check = getRules().canCast(parameters, null);
+                    Optional<String> check = getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
                     if (check.isPresent()) return Value.asError(check.get());
                     long timeStarted = System.currentTimeMillis();
-                    Context context = runtime!=null ? new Context(runtime, NeetComputersServer.getLanguage(runtime.getThread().getLang())) : null;
+                    Context context = runtime!=null ? new Context(runtime, runtime.getThread().getLang()) : null;
                     Object retun = method.invoke(obj, ruleset.cast(parameters));
                     if (context!=null) profilerFunction(timeStarted, funcname + ruleset, context);
                     if (retun==null){
@@ -192,8 +191,7 @@ public class APILoader {
                         LinkedList<String> names = new LinkedList<>();
                         //TODO make packed algorithm less shit
                         for (Function function : values){
-                            //TODO replace language null with actual ref
-                            Optional<String> retur = function.getRules().canCast(parameters, null);
+                            Optional<String> retur = function.getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
                             if (retur.isEmpty()){
                                 return function.invoke(parameters);
                             }else{
@@ -276,8 +274,7 @@ public class APILoader {
                 LinkedList<String> errors = new LinkedList<>();
                 LinkedList<String> names = new LinkedList<>();
                 for (StaticFunctionCache staticFunction : functionCache.functions){
-                    //TODO make use actual language
-                    Optional<String> retur = staticFunction.ruleset().canCast(parameters, null);
+                    Optional<String> retur = staticFunction.ruleset().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
                     if (!retur.isEmpty()){
                         errors.add(retur.get());
                         names.add(staticFunction.functionName() + staticFunction.ruleset());
@@ -333,8 +330,7 @@ public class APILoader {
             LoaderCache cachedObject = cache.get(_class);
             for (StaticFunctionCache functionCache : cachedObject.functions()){
                 if (functionCache.functionName().equals(name)){
-                    //TODO make use language
-                    Optional<String> retur = functionCache.ruleset().canCast(args, null);
+                    Optional<String> retur = functionCache.ruleset().canCast(args, runtime==null ? null : runtime.getThread().getLang());
                     if (retur.isEmpty()){
                         return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(args);
                     }else{
@@ -347,8 +343,7 @@ public class APILoader {
             for (PackedFunctionCache pFunctionCache : cachedObject.packedFunctions()){
                 if (pFunctionCache.name.equals(name)){
                     for (StaticFunctionCache functionCache : pFunctionCache.functions){
-                        //TODO make use language
-                        Optional<String> retur = functionCache.ruleset().canCast(args, null);
+                        Optional<String> retur = functionCache.ruleset().canCast(args, runtime==null ? null : runtime.getThread().getLang());
                         if (retur.isEmpty()){
                             return sandboxFunction(functionCache.method(), obj, functionCache.ruleset(), runtime).invoke(args);
                         }else{
@@ -376,8 +371,7 @@ public class APILoader {
             for (Method method : buffer){
                 if (getName(method).equals(name)){
                     Parameters rules = Parameters.deduceParameters(method.getParameters());
-                    //TODO MAKE USE FUCKING LANGUAGE
-                    Optional<String> retur = rules.canCast(args, null);
+                    Optional<String> retur = rules.canCast(args, runtime==null ? null : runtime.getThread().getLang());
                     if (retur.isEmpty()){
                         return sandboxFunction(method, obj, rules, runtime).invoke(args);
                     }else{

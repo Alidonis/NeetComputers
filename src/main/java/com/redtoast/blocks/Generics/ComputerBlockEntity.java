@@ -364,34 +364,29 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     public Value<?> callFunction(Runtime runtime, String name, Value<?>... Args) {
         if (computer==null) return Value.asError("computer not loaded");
         if (Objects.equals(name, "shutdown")){
-            //TODO USE LANG
-            Optional<String> test = Parameters.empty().canCast(Args, null);
+            Optional<String> test = Parameters.empty().canCast(Args, runtime==null ? null : runtime.getThread().getLang());
             if (!test.isEmpty()) return Value.asError(test.get());
             computer.stop();
             return Value.NULL;
         }
         if (Objects.equals(name, "startup")){
-            //TODO USE LANG
-            Optional<String> test = Parameters.empty().canCast(Args, null);
+            Optional<String> test = Parameters.empty().canCast(Args, runtime==null ? null : runtime.getThread().getLang());
             if (!test.isEmpty()) return Value.asError(test.get());
             computer.start();
             return Value.NULL;
         }
         if (Objects.equals(name, "getId")){
-            //TODO USE LANG
-            Optional<String> test = Parameters.empty().canCast(Args, null);
+            Optional<String> test = Parameters.empty().canCast(Args, runtime==null ? null : runtime.getThread().getLang());
             if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getUuid().toString());
         }
         if (Objects.equals(name, "getMachine")){
-            //TODO USE LANG
-            Optional<String> test = Parameters.empty().canCast(Args, null);
+            Optional<String> test = Parameters.empty().canCast(Args, runtime==null ? null : runtime.getThread().getLang());
             if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getConfiguration().modelName());
         }
         if (Objects.equals(name, "isOn")){
-            //TODO USE LANG
-            Optional<String> test = Parameters.empty().canCast(Args, null);
+            Optional<String> test = Parameters.empty().canCast(Args, runtime==null ? null : runtime.getThread().getLang());
             if (!test.isEmpty()) return Value.asError(test.get());
             return Value.of(computer.getStatus()== ComputerState.ON);
         }

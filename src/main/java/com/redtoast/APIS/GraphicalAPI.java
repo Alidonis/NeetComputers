@@ -30,7 +30,7 @@ public class GraphicalAPI implements Exposable {
     protected int alpha = 255;
     protected RGBGraphicsArray Graphics;
     protected RGBGraphicsArray GraphicsBuffer;
-    protected BadVector defualtColor = new BadVector(0, 0, 0);
+    protected BadVector defaultColor = new BadVector(0, 0, 0);
     protected double angle = 0;
     protected Vector2i rotatePos = null;
     protected boolean roobj = false;
@@ -164,33 +164,33 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public void setColor(@Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
-        defualtColor = new BadVector(R, G, B);
+    public void setColor(@Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
+        defaultColor = new BadVector(R, G, B);
     }
 
     @Exposed
-    public void setColor(@Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B,
-            @Index(strict = true, offset = -1) @Range(range = 256) int A) {
+    public void setColor(@Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B,
+            @Range(max = 255) int A) {
         setColor(R, G, B);
         alpha = A;
     }
 
     @Exposed
-    public void setColor(@Index(strict = true, offset = -1) @Range(range = 256) int A) {
+    public void setColor(@Range(max = 255) int A) {
         alpha = A;
     }
 
     @Exposed
-    public void substituteColor(@Index(strict = true, offset = -1) @Range(range = 256) int Rt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Gt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Bt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Rs,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Gs,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Bs) {
+    public void substituteColor(@Range(max = 255) int Rt,
+                                @Range(max = 255) int Gt,
+                                @Range(max = 255) int Bt,
+                                @Range(max = 255) int Rs,
+                                @Range(max = 255) int Gs,
+                                @Range(max = 255) int Bs) {
         int targetColor = (255<<24) | (Rt << 16) | (Gt << 8) | Bt;
         int substituteColor = (255<<24) | (Rs << 16) | (Gs << 8) | Bs;
         GraphicsBuffer.substituteColor(targetColor,substituteColor,true,true);
@@ -198,14 +198,14 @@ public class GraphicalAPI implements Exposable {
 
 
     @Exposed
-    public void substituteColor(@Index(strict = true, offset = -1) @Range(range = 256) int Rt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Gt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Bt,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int At,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Rs,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Gs,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int Bs,
-                                @Index(strict = true, offset = -1) @Range(range = 256) int As) {
+    public void substituteColor(@Range(max = 255) int Rt,
+                                @Range(max = 255) int Gt,
+                                @Range(max = 255) int Bt,
+                                @Range(max = 255) int At,
+                                @Range(max = 255) int Rs,
+                                @Range(max = 255) int Gs,
+                                @Range(max = 255) int Bs,
+                                @Range(max = 255) int As) {
         int targetColor = (At << 24) | (Rt << 16) | (Gt << 8) | Bt;
         int substituteColor = (As << 24) | (Rs << 16) | (Gs << 8) | Bs;
         GraphicsBuffer.substituteColor(targetColor,substituteColor,false,false);
@@ -217,7 +217,7 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawPixel(@Index int x, @Index int y) {
-        drawPixel(x, y, defualtColor);
+        drawPixel(x, y, defaultColor);
     }
 
     protected void rawDrawPixel(int x, int y, int R, int G, int B) {
@@ -227,9 +227,9 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawPixel(@Index int x, @Index int y,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         Vector2i pos = rotateLocal(x, y);
         rawDrawPixel(pos.x, pos.y, R, G, B);
     }
@@ -252,14 +252,14 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawLine(@Index int x1, @Index int y1, int x2, int y2) {
-        drawLine(x1, height - y1, x2, height - y2, defualtColor.x, defualtColor.y, defualtColor.z);
+        drawLine(x1, height - y1, x2, height - y2, defaultColor.x, defaultColor.y, defaultColor.z);
     }
 
     @Exposed
     public void drawLine(@Index int x0, @Index int y0, @Index int x1, @Index int y1,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         Vector2i p1 = rotateLocal(x0, y0);
         Vector2i p2 = rotateLocal(x1, y1);
         int dx = Math.abs(p2.x - p1.x);
@@ -400,10 +400,10 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public void floodFill(int x, int y, @Index(strict = true, offset = -1) @Range(range = 256) int tolerance,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+    public void floodFill(int x, int y, @Range(max = 255) int tolerance,
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         if (x < 0 || x >= width)
             throw new ExposedError("Argument #0: value not in range [0-" + width + ']');
         if (y < 0 || y >= height)
@@ -438,45 +438,45 @@ public class GraphicalAPI implements Exposable {
     }
 
     @Exposed
-    public void floodFill(int x, int y, @Index( strict = true, offset=-1 ) @Range( range = 256 ) int tolerance){
-        floodFill(x, y, tolerance, defualtColor.x, defualtColor.y, defualtColor.z);
+    public void floodFill(int x, int y, @Range(max = 255) int tolerance){
+        floodFill(x, y, tolerance, defaultColor.x, defaultColor.y, defaultColor.z);
     }
 
     @Exposed
     public void floodFill(int x, int y){
-        floodFill(x, y, 0, defualtColor.x, defualtColor.y, defualtColor.z);
+        floodFill(x, y, 0, defaultColor.x, defaultColor.y, defaultColor.z);
     }
 
     @Exposed
-    public void floodFill(int x, int y,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int R,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int G,@Index( strict = true, offset=-1 ) @Range( range = 256 ) int B){
+    public void floodFill(int x, int y, @Range(max = 255) int R, @Range(max = 255) int G, @Range(max = 255) int B){
         floodFill(x, y, 0, R, G, B);
     }
 
     @Exposed
-    public void fill(@Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+    public void fill(@Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         int color = (alpha << 24) | (R << 16) | (G << 8) | B;
         GraphicsBuffer.fillRect(0, 0, width, height, color);
     }
 
     @Exposed
     public void fill(@Index int x1, @Index int y1, int x2, int y2,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         int color = (alpha << 24) | (R << 16) | (G << 8) | B;
         GraphicsBuffer.fillRect(x1, y1, x2, y2, color);
     }
 
     @Exposed
     public void fill(@Index int x1, @Index int y1, int x2, int y2) {
-        fill(x1, y1, x2, y2, defualtColor.x, defualtColor.y, defualtColor.z);
+        fill(x1, y1, x2, y2, defaultColor.x, defaultColor.y, defaultColor.z);
     }
 
     @Exposed
     public void fill(){
-        fill(defualtColor.x, defualtColor.y, defualtColor.z);
+        fill(defaultColor.x, defaultColor.y, defaultColor.z);
     }
 
     public int average(int... nums){
@@ -509,9 +509,9 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawRectangle(@Index int x1, @Index int y1, int x2, int y2,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         startRotationSession(average(x1, x2), average(y1, y2));
         drawLine(x1, y1, x2, y1, R, G, B);
         drawLine(x2, y1, x2, y2, R, G, B);
@@ -567,7 +567,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     public void drawBezier(BadVector pointA, BadVector pointB, BadVector pointC) {
-        drawBezier(pointA, pointB, pointC, defualtColor);
+        drawBezier(pointA, pointB, pointC, defaultColor);
     }
 
     @Exposed
@@ -585,9 +585,9 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawBezier(@Index int x1, @Index int y1, @Index int x2, @Index int y2, @Index int x3, @Index int y3,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         drawBezier(new BadVector(x1, y1), new BadVector(x2, y2), new BadVector(x3, y3), new BadVector(R, G, B));
     }
 
@@ -623,7 +623,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     public void drawSpline(BadVector[] points) {
-        drawSpline(points, defualtColor);
+        drawSpline(points, defaultColor);
     }
 
     public void drawSpline(BadVector[] points, int R, int G, int B) {
@@ -647,14 +647,14 @@ public class GraphicalAPI implements Exposable {
         if (Xs.size() != Ys.size())
             throw new ExposedError("drawSpline called with balance of X and Y values");
         drawSpline(Xs.cast((val) -> val.toInt()).toArray(new Integer[] {}),
-                Ys.cast((val) -> val.toInt()).toArray(new Integer[] {}), defualtColor);
+                Ys.cast((val) -> val.toInt()).toArray(new Integer[] {}), defaultColor);
     }
 
     @Exposed
     public void drawSpline(List Xs, List Ys,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         if (!Xs.check((val) -> val.instanceOf(VarType.NUMBER)))
             throw new ExposedError("Argument #1: all vals in list must be numbers");
         if (!Ys.check((val) -> val.instanceOf(VarType.NUMBER)))
@@ -680,14 +680,14 @@ public class GraphicalAPI implements Exposable {
         if (cords.size() % 2 == 1)
             throw new ExposedError(
                     "Argument #1: list input contained a uneven amount of values (not valid list of coordinates)");
-        drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[] {}), defualtColor);
+        drawSpline(cords.cast((val) -> val.toInt()).toArray(new Integer[] {}), defaultColor);
     }
 
     @Exposed
     public void drawSpline(List cords,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         if (!cords.check((val) -> val.instanceOf(VarType.NUMBER)))
             throw new ExposedError("Argument #1: all vals in list must be numbers");
         if (cords.size() % 2 == 1)
@@ -732,14 +732,14 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawCircle(@Index int x1, @Index int y1, int x2, int y2) {
-        drawCircle(new BadVector(x1, y1), new BadVector(x2, y2), defualtColor);
+        drawCircle(new BadVector(x1, y1), new BadVector(x2, y2), defaultColor);
     }
 
     @Exposed
     public void drawCircle(@Index int x1, @Index int y1, int x2, int y2,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         drawCircle(new BadVector(x1, y1), new BadVector(x2, y2), new BadVector(R, G, B));
     }
 
@@ -778,7 +778,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     public void drawCircle(BadVector point, int radius) {
-        drawCircle(point, radius, defualtColor);
+        drawCircle(point, radius, defaultColor);
     }
 
     @Exposed
@@ -796,9 +796,9 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawCircle(@Index int x, @Index int y, int radius,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         drawCircle(new BadVector(x, y), radius, new BadVector(R, G, B));
     }
 
@@ -842,7 +842,7 @@ public class GraphicalAPI implements Exposable {
     }
 
     public void drawPolygon(BadVector point, int n, int size) {
-        drawPolygon(point, n, size, defualtColor);
+        drawPolygon(point, n, size, defaultColor);
     }
 
     public void drawPolygon(int x, int y, int n, int size, BadVector color) {
@@ -851,15 +851,15 @@ public class GraphicalAPI implements Exposable {
 
     @Exposed
     public void drawPolygon(@Index int x, @Index int y, int n, int size,
-            @Index(strict = true, offset = -1) @Range(range = 256) int R,
-            @Index(strict = true, offset = -1) @Range(range = 256) int G,
-            @Index(strict = true, offset = -1) @Range(range = 256) int B) {
+            @Range(max = 255) int R,
+            @Range(max = 255) int G,
+            @Range(max = 255) int B) {
         drawPolygon(new BadVector(x, y), n, size, new BadVector(R, G, B));
     }
 
     @Exposed
     public void drawPolygon(@Index int x, @Index int y, int n, int size) {
-        drawPolygon(new BadVector(x, y), n, size, defualtColor);
+        drawPolygon(new BadVector(x, y), n, size, defaultColor);
     }
 
     @Exposed

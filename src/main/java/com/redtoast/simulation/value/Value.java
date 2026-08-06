@@ -400,7 +400,7 @@ public class Value<Type> {
         if (comparison==VarType.ANY) return true;
         if (comparison==VarType.PRIMITIVE){
             switch (type){
-                case NULL, FLOAT, INT, DOUBLE, STRING, BOOLEAN: return true;
+                case NULL, FLOAT, INT, DOUBLE, STRING, BYTES, BOOLEAN: return true;
             }
         }
         if (comparison==VarType.STRING && type==VarType.BYTES) return true;

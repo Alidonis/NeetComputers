@@ -179,7 +179,8 @@ public class IOAPI implements API {
     }
 
     @Exposed
-    public void broadcastLocal(@Primative List args) {
+    public void broadcastLocal(@Primative Tuple args) throws NoSuchMethodException {
+        System.out.println(Parameters.deduceParameters(this.getClass().getMethod("broadcastLocal", Tuple.class).getParameters()));
         computer.sendNetworkMessage(args.toArray());
     }
 }

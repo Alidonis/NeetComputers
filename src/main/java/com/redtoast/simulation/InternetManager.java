@@ -1,5 +1,6 @@
 package com.redtoast.simulation;
 
+import com.redtoast.Computer;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.config.ConfigLoader;
 import com.redtoast.simulation.base.ExposedError;
@@ -31,6 +32,7 @@ public class InternetManager {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private double burden = 0;
     private final EventManager eventManager;
+    private final Computer computer;
     private static final Map<Integer, String> errorCodes = new HashMap<>();
     private long lastReset = 0;
 
@@ -47,8 +49,10 @@ public class InternetManager {
         errorCodes.put(505, "HTTP Version Not Supported".toUpperCase());
     }
 
-    public InternetManager(EventManager eventManager) {
+    public InternetManager(EventManager eventManager, Computer computer) {
         this.eventManager = eventManager;
+        this.computer = computer;
+
     }
 
     public void progress(double delta) {
@@ -296,12 +300,12 @@ public class InternetManager {
 
         @Override
         public void onOpen(WebSocket webSocket) {
+            Runtime runtime = computer.getRuntime();
             eventManager.queueEvent(new EventGeneric("WebsocketOpened", Value.of(id),
                     new Function(false, "send", Parameters.make(byte[].class, boolean.class)) {
                         @Override
                         public Value call(Value<?>[] parameters) {
-                            //TODO FUCKING LANGUAGE
-                            Optional<String> check = getRules().canCast(parameters, null);
+                            Optional<String> check = getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
                             if (check.isPresent()) return Value.asError(check.get());
                             if (!ready()) {
                                 eventManager.queueEvent(new EventGeneric("WebsocketSendFailure", Value.of("Outgoing buffer full, try again later")), EventLabel.NETWORK);
@@ -330,8 +334,7 @@ public class InternetManager {
                     new Function(false, "close", Parameters.empty()) {
                         @Override
                         public Value call(Value<?>[] parameters) {
-                            //TODO LANG
-                            Optional<String> check = getRules().canCast(parameters, null);
+                            Optional<String> check = getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
                             if (check.isPresent()) return Value.asError(check.get());
                             if (webSocket.isInputClosed() || webSocket.isOutputClosed()) {
                                 throw new ExposedError("Already closed");

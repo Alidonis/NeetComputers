@@ -3,16 +3,18 @@ package com.redtoast.YSLua;
 import com.redtoast.Computer;
 import com.redtoast.simulation.Runtime;
 import com.redtoast.simulation.annotations.Index;
+import com.redtoast.simulation.annotations.Range;
 import com.redtoast.simulation.base.LangThread;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.config.ComputerConfig;
-import com.redtoast.simulation.parameter.Parameters;
+import com.redtoast.simulation.parameter.*;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.VarType;
 
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Objects;
@@ -31,12 +33,19 @@ public class LuaMaster implements LanguageGeneric {
     @Override
     public boolean canCast(Value<?> value, VarType castTo, Annotation[] annotations) {
         VarType type = value.getType();
-        if (type==castTo) return true;
         if (type!=VarType.NULL && castTo==VarType.ANY) return true;
         if (castTo==VarType.PRIMITIVE) return value.instanceOf(VarType.PRIMITIVE);
-        if (castTo==VarType.INT && (type==VarType.DOUBLE || type==VarType.FLOAT)) return true;
-        if (castTo==VarType.DOUBLE && (type==VarType.INT || type==VarType.FLOAT)) return true;
-        if (castTo==VarType.FLOAT && (type==VarType.INT || type==VarType.DOUBLE)) return true;
+        if (castTo.isNumber() && value.getType().isNumber()){
+            if (Parameters.getAnnotation(annotations, Range.class) instanceof Range range) {
+                boolean indexed = castTo==VarType.INT && Parameters.hasAnnotation(annotations, Index.class);
+                int min = indexed ? range.min()+1 : range.min();
+                int max = indexed ? range.max()+1 : range.max();
+                double number = value.toDouble();
+                if (min > number || number > max) throw new RangeArgumentError(-1, min, max, number);
+            }
+            return true;
+        }
+        if (type==castTo) return true;
         if (castTo==VarType.STRING && type==VarType.BYTES) return true;
         if (castTo==VarType.BYTES && type==VarType.STRING) return true;
         if (castTo==VarType.LIST && type==VarType.TUPLE) return true;
@@ -48,7 +57,7 @@ public class LuaMaster implements LanguageGeneric {
     @Override
     public Value<?> castValue(Value<?> value, VarType castTo, Annotation[] annotations) {
         if (castTo==VarType.INT) {
-            if (Parameters.getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-index.offset()-1);
+            if (Parameters.getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-1);
             return Value.of(value.toInt());
         }
         if (value.getType()==castTo) {
@@ -63,18 +72,22 @@ public class LuaMaster implements LanguageGeneric {
     }
 
     @Override
-    public String generateError(Parameters.ParameterErrorType type, int position, VarType userType, Parameters.ParameterType correctType) {
-        return switch (type) {
-            case ARGUMENT_OVERFLOW_ERROR -> "#"+(position+1)+" Expected nil, got "+getName(userType);
-            case MISSING_ARGUMENT_ERROR -> "#"+(position+1)+" Expected "+getName(correctType)+", got nil";
-            case MISMATCHED_ARGUMENT_ERROR -> "#"+(position+1)+" Expected "+getName(correctType)+", got "+getName(userType);
-            case MISMATCHED_VARARGS_ERROR -> "#"+(position+1)+"... Expected "+getName(correctType).replaceFirst("\\[]$", "");
-            default -> "Unknown Parameter Error #" +(position+1);
-        };
+    public String generateError(ParameterException rule) {
+        if (rule instanceof ArgumentOverflowError error) return "#"+(rule.getPosition()+1)+" Expected nil, got "+getName(error.getUser());
+        if (rule instanceof MissingArgumentError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType())+", got nil";
+        if (rule instanceof MismatchedArgumentError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType())+", got "+getName(error.getUser());
+        if (rule instanceof MismatchedVarargsError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType()).replaceFirst("\\[]$", "")+", got "+getName(error.getUser());
+        if (rule instanceof RangeArgumentError error) return "#"+(rule.getPosition()+1)+" Number "+Double.toString(error.getValue()).replaceFirst("\\.0","")+" not in range of "+error.getMin()+'-'+error.getMax();
+        return "Unknown Parameter Error #" +(rule.getPosition()+1);
     }
 
     private String getName(Object obj) {
-        return obj.toString().toLowerCase().replaceFirst("null", "nil");
+        return obj.toString()
+                .replaceFirst("null", "nil")
+                .replaceFirst("int", "number")
+                .replaceFirst("float", "number")
+                .replaceFirst("double", "number")
+                .replaceFirst("any\\[]", "list");
     }
 
     public Value<?> toValue(LuaValue var) {
