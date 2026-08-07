@@ -194,6 +194,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
         if (loaded && state != ComputerState.OFF){
             state = ComputerState.OFF;
             maintainState();
+            this.yield();
         }
     }
 
@@ -215,6 +216,15 @@ public abstract class Computer implements BinaryGraphicsProvider {
                 crashMessage = runtime.getCurrentSource() == null ? message : runtime.getCurrentSource() + " " + message;
             }
             this.yield();
+            maintainState();
+        }
+    }
+
+    //re-initializes the runtime and sets the computer to be on
+    public void reboot(){
+        if (loaded && fileSystem!=null){
+            state = ComputerState.ON;
+            runtime = null;
             maintainState();
         }
     }
@@ -336,7 +346,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
         boolean save = false;
-        if (!(state == ComputerState.ON || state == ComputerState.PAUSED)) {
+        if (state != ComputerState.ON && state != ComputerState.PAUSED) {
             graphicsDirty = false;
             timeExecuted = 0;
         }

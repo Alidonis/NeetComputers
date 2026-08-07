@@ -155,11 +155,7 @@ public class APILoader {
                     Context context = runtime!=null ? new Context(runtime, runtime.getThread().getLang()) : null;
                     Object retun = method.invoke(obj, ruleset.cast(parameters));
                     if (context!=null) profilerFunction(timeStarted, funcname + ruleset, context);
-                    if (retun==null){
-                        return Value.NULL;
-                    }else{
-                        return Value.of(retun);
-                    }
+                    return processReturn(retun);
                 }catch (InvocationTargetException e){
                     if (e.getTargetException() instanceof ExposedError error) {
                         return Value.asError(error.getMessage());
@@ -174,6 +170,14 @@ public class APILoader {
         };
         temp.setName(funcname);
         return temp;
+    }
+
+    public static Value<?> processReturn(Object obj) {
+        if (obj==null){
+            return Value.NULL;
+        }else{
+            return Value.of(obj);
+        }
     }
 
     public static Function[] packFunctions(Hashtable<String, LinkedList<Function>> functions, Runtime runtime){

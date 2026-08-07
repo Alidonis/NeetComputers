@@ -41,7 +41,11 @@ public class ChipAPI implements API {
     @Exposed
     public void shutdown(){
         computer.stop();
-        computer.yield();
+    }
+
+    @Exposed
+    public void reboot(){
+        computer.reboot();
     }
 
     @Exposed

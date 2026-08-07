@@ -9,6 +9,7 @@ import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.List;
+import com.redtoast.simulation.value.ValueTypes.Tuple;
 
 public class EventAPI implements API {
     EventManager eventManager;
@@ -25,8 +26,8 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public void queueEvent(String category, String eventName, Value<?>... args){
-        eventManager.queueEvent(new EventGeneric(eventName, new List(args)), category.equalsIgnoreCase("all") ? EventLabel.UNLABELED : decodeEventLabel(category));
+    public void queueEvent(String category, String eventName, Tuple args){
+        eventManager.queueEvent(new EventGeneric(eventName, args), category.equalsIgnoreCase("all") ? EventLabel.UNLABELED : decodeEventLabel(category));
     }
 
     @Exposed
