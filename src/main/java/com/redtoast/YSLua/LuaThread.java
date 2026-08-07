@@ -51,7 +51,7 @@ public class LuaThread extends LangThread {
                     shutDown();
                     parentRuntime.getParent().stop();
                 }
-                return self.isAlive();
+                return self.isAlive() && parentRuntime.getParent().isOn();
             }
         };
         translater = (LuaMaster) NeetComputersServer.getLanguage("Lua");
