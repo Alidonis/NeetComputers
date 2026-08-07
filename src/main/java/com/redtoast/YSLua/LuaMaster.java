@@ -77,7 +77,7 @@ public class LuaMaster implements LanguageGeneric {
         if (rule instanceof MissingArgumentError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType())+", got nil";
         if (rule instanceof MismatchedArgumentError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType())+", got "+getName(error.getUser());
         if (rule instanceof MismatchedVarargsError error) return "#"+(rule.getPosition()+1)+" Expected "+getName(error.getType()).replaceFirst("\\[]$", "")+", got "+getName(error.getUser());
-        if (rule instanceof RangeArgumentError error) return "#"+(rule.getPosition()+1)+" Number "+Double.toString(error.getValue()).replaceFirst("\\.0","")+" not in range of "+error.getMin()+'-'+error.getMax();
+        if (rule instanceof RangeArgumentError error) return "#"+(rule.getPosition()+1)+" Number "+Double.toString(error.getValue()).replaceFirst("\\.0$","")+" not in range of "+error.getMin()+'-'+error.getMax();
         return "Unknown Parameter Error #" +(rule.getPosition()+1);
     }
 
