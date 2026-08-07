@@ -391,10 +391,7 @@ builtins["shutdown"] = function(shell)
 end
 
 builtins["reboot"] = function(shell)
-    shell.term:writeLine("NeetOS has no software reboot on this build; use startup() on the")
-    shell.term:writeLine("computer peripheral (or a Redstone Controller) to power back on.")
-    shell.term:redraw()
-    chip.shutdown()
+    chip.reboot()
 end
 
 builtins["exit"] = function(shell)

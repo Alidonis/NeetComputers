@@ -69,34 +69,9 @@ public class FileHelper {
     }
 
     public static boolean validatePathStatic(String path){
-        String[] parts = path.split(":\\\\");
-        if (parts.length>2) return false;
-        char[] chars = parts[0].toCharArray();
-        if (chars.length==0){
-            return false;
-        }
-        for (int x = 0; x < chars.length; x++){
-            char letter = chars[x];
-            if (!((int)letter>=(int)'a' && (int)letter<=(int)'z') || ((int)letter>=(int)'A' && (int)letter<=(int)'Z')){
-                return false;
-            }
-        }
-        parts = deAbsolutize(parts[parts.length-1]).split("\\\\");
-        for (int i = 0; i < parts.length; i++){
-            chars = parts[i].toCharArray();
-            if (chars.length==0 && i<parts.length-1){
-                return false;
-            }
-            for (int x = 0; x < chars.length; x++){
-                char letter = chars[x];
-                if (!((int)letter>=(int)'a' && (int)letter<=(int)'z') && !((int)letter>=(int)'A' && (int)letter<=(int)'Z') && !((int)letter>=(int)'0' && (int)letter<=(int)'9')){
-                    if (!(letter=='-' || letter=='_' || (letter==' ' && x< chars.length-1) || (i==parts.length-1 && letter=='.' && x!=0))){
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        path = path.replace('\\', '/');
+        if (path.charAt(path.length()-1)!='/') path += '/';
+        return path.matches("^([a-zA-Z]+\\:\\/?)([a-z_\\-\\s0-9\\.]*[a-z_\\-\\s0-9]\\/)*$");
     }
 
     public static boolean isSourceHardAddress(int source){
