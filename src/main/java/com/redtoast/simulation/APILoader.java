@@ -7,6 +7,7 @@ import com.redtoast.simulation.base.*;
 import com.redtoast.simulation.cache.LoaderCache;
 import com.redtoast.simulation.cache.PackedFunctionCache;
 import com.redtoast.simulation.cache.StaticFunctionCache;
+import com.redtoast.simulation.parameterErrors.ParameterException;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.Exception;
 import com.redtoast.simulation.value.ValueTypes.*;
@@ -159,6 +160,9 @@ public class APILoader {
                 }catch (InvocationTargetException e){
                     if (e.getTargetException() instanceof ExposedError error) {
                         return Value.asError(error.getMessage());
+                    }
+                    if (e.getTargetException() instanceof ParameterException parameterException) {
+                        return Value.of(runtime==null ? "Language Missing #"+parameterException.getPosition() : runtime.getThread().getLang().generateError(parameterException));
                     }
                     printJavaError(e.getTargetException());
                     return Value.asError(describeUnexpectedError(e.getTargetException()));
