@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 /**
  * represents the code execution of a computer, and ticks on the computer ticking thread
  */
-public abstract class Runtime {
+public class Runtime {
     //resources
     private final ComputerFileSystem fs;
     private final Computer parent;

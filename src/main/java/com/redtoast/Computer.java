@@ -73,6 +73,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
     private UUID uuid = null;
     //stores the default configuration for the file system
     private String template = "neetos";
+    //marks if the computer should attempt to restart
+    private boolean doReboot = false;
     //object representing the computers file interpreter
     private ComputerFileSystem fileSystem = null;
     //object that handles the computers events
@@ -185,6 +187,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public void start(){
         if (loaded && fileSystem!=null && (state == ComputerState.OFF || state == ComputerState.PAUSED)){
             state = ComputerState.ON;
+            doReboot = false;
             maintainState();
         }
     }
@@ -193,8 +196,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public void stop(){
         if (loaded && state != ComputerState.OFF){
             state = ComputerState.OFF;
-            maintainState();
             this.yield();
+            maintainState();
         }
     }
 
@@ -223,9 +226,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //re-initializes the runtime and sets the computer to be on
     public void reboot(){
         if (loaded && fileSystem!=null){
-            state = ComputerState.ON;
-            runtime = null;
-            maintainState();
+            stop();
+            doReboot = true;
         }
     }
 
@@ -346,6 +348,9 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //maintenance function that detects a difference in the computers state and its actual state and corrects it
     private void maintainState(){
         boolean save = false;
+        if (doReboot) {
+            start();
+        }
         if (state != ComputerState.ON && state != ComputerState.PAUSED) {
             graphicsDirty = false;
             timeExecuted = 0;
@@ -367,7 +372,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
             internetManager.reset();
             eventManager.reset();
 
-            runtime = new Runtime(this) {};
+            runtime = new Runtime(this);
 
             new APILoader(this);
             runtime.load();
@@ -389,14 +394,10 @@ public abstract class Computer implements BinaryGraphicsProvider {
             save = true;
         }
         if ((state == ComputerState.OFF || state == ComputerState.CRASHED) && runtime!=null) {
-            if (!runtime.isDead() && !runtime.isSafeToDrop()){
-                runtime.requestKill();
-            }else{
-                internetManager.reset();
-                eventManager.reset();
-                runtime=null;
-                save = true;
-            }
+            internetManager.reset();
+            eventManager.reset();
+            runtime=null;
+            save = true;
         }
         if (state == ComputerState.CRASHED && crashMessage == null) {
             crashMessage = "Unknown error [No Message Provided]";
