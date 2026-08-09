@@ -71,7 +71,7 @@ public class FileHelper {
     public static boolean validatePathStatic(String path){
         path = path.replace('\\', '/');
         if (path.charAt(path.length()-1)!='/') path += '/';
-        return path.matches("^([a-zA-Z]+\\:\\/?)([a-z_\\-\\s0-9\\.]*[a-z_\\-\\s0-9]\\/)*$");
+        return path.matches("^([a-zA-Z]+\\:\\/?)([a-zA-Z_\\-\\s0-9\\.]*[a-zA-Z_\\-\\s0-9]\\/)*$");
     }
 
     public static boolean isSourceHardAddress(int source){
