@@ -122,7 +122,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public boolean partitionExists(String path){
         for (Partition partition : build.partitions){
-            if (partition.path().equals(path)){
+            if (partition.path().equalsIgnoreCase(path)){
                 return true;
             }
         }
@@ -132,7 +132,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public @Nullable Partition getPartition(String path){
         for (Partition partition : build.partitions){
-            if (partition.path().equals(path)){
+            if (partition.path().equalsIgnoreCase(path)){
                 return partition;
             }
         }
@@ -143,7 +143,7 @@ public class DiskSystem implements GenericSystem {
     public boolean createPartition(String name){
         boolean marker = FileHelper.validatePathStatic(name+":\\");
         if (!marker) return false;
-        if (getPartition(name)!=null) return false;
+        if (partitionExists(name)) return false;
         basePath.resolve(name).toFile().mkdir();
         build.partitions.add(new Partition(name, false, false, 0));
         saveBuild();
@@ -153,7 +153,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public boolean setPartitionHidden(String name, boolean state){
         for (int i = 0; i < build.partitions.size(); i++){
-            if (build.partitions.get(i).path().equals(name)){
+            if (build.partitions.get(i).path().equalsIgnoreCase(name)){
                 build.partitions.set(i, new Partition(name, build.partitions.get(i).readOnly(), state, build.partitions.get(i).source()));
                 saveBuild();
                 return true;
@@ -165,7 +165,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public boolean setPartitionReadOnly(String name, boolean state){
         for (int i = 0; i < build.partitions.size(); i++){
-            if (build.partitions.get(i).path().equals(name)){
+            if (build.partitions.get(i).path().equalsIgnoreCase(name)){
                 build.partitions.set(i, new Partition(name, state, build.partitions.get(i).hidden(), build.partitions.get(i).source()));
                 saveBuild();
                 return true;
@@ -177,7 +177,7 @@ public class DiskSystem implements GenericSystem {
     @Override
     public boolean deletePartition(String name){
         for (int i = 0; i < build.partitions.size(); i++){
-            if (build.partitions.get(i).path().equals(name)){
+            if (build.partitions.get(i).path().equalsIgnoreCase(name)){
                 if (build.partitions.get(i).readOnly()) throw new ExposedError("Access denied");
                 build.partitions.remove(i);
                 FileUtils.deleteQuietly(basePath.resolve(name).toFile());
