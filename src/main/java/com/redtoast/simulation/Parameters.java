@@ -2,6 +2,7 @@ package com.redtoast.simulation;
 
 import com.google.gson.internal.Primitives;
 import com.redtoast.simulation.annotations.CanNull;
+import com.redtoast.simulation.annotations.Number;
 import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.parameterErrors.*;
@@ -236,16 +237,20 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
         if (clazz == List.class) {
             type = VarType.LIST;
             depth++;
-            filter = hasAnnotation(annotations, Primative.class) ? VarType.PRIMITIVE : VarType.ANY;
+            filter = VarType.ANY;
+            if (hasAnnotation(annotations, Primative.class)) filter = VarType.PRIMITIVE;
+            if (hasAnnotation(annotations, Number.class)) filter = VarType.NUMBER;
         }
         if (clazz == Tuple.class) {
             type = allowTuple ? VarType.TUPLE : VarType.LIST;
             depth++;
-            filter = hasAnnotation(annotations, Primative.class) ? VarType.PRIMITIVE : VarType.ANY;
+            filter = VarType.ANY;
+            if (hasAnnotation(annotations, Primative.class)) filter = VarType.PRIMITIVE;
+            if (hasAnnotation(annotations, Number.class)) filter = VarType.NUMBER;
         }
         if (clazz == Table.class) type = VarType.TABLE;
         if (clazz == Function.class) type = VarType.FUNCTION;
-        if (clazz == Object.class || clazz == Value.class) type = hasAnnotation(annotations, Primative.class) ? VarType.PRIMITIVE : VarType.ANY;;
+        if (clazz == Object.class || clazz == Value.class) type = hasAnnotation(annotations, Primative.class) ? VarType.PRIMITIVE : hasAnnotation(annotations, Number.class) ?  VarType.NUMBER : VarType.ANY;
         if (type == VarType.NULL) {
             if (clazz.isArray()) {
                 return inferType(clazz.componentType(), allowTuple, depth + 1, annotations);
