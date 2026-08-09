@@ -27,8 +27,8 @@ public class LuaThread extends LangThread {
 
             @Override
             public void error(String error) {
-                self.error(error.replaceFirst("^\\[String \"Lua\"]", "Lua"));
-                kill(error.replaceFirst("^\\[String \"Lua\"]", "Lua"));
+                self.error(error);
+                kill(error);
                 close();
             }
 
@@ -65,6 +65,11 @@ public class LuaThread extends LangThread {
     @Override
     public LanguageGeneric getLang() {
         return translater;
+    }
+
+    @Override
+    public String getErrorMessage() {
+        return super.getErrorMessage().replaceFirst("^\\[string \"Lua\"]", "Lua");
     }
 
     @Override
