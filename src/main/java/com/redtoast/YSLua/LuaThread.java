@@ -69,6 +69,7 @@ public class LuaThread extends LangThread {
 
     @Override
     public String getErrorMessage() {
+        if (super.getErrorMessage()==null) return super.getErrorMessage();
         return super.getErrorMessage().replaceFirst("^\\[string \"Lua\"]", "Lua");
     }
 
