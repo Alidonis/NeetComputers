@@ -94,6 +94,11 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
 
             @Override
+            public World getWorld() {
+                return be.getWorld();
+            }
+
+            @Override
             public int getLunarTime() {
                 return getWorld() == null ? 0 : (int) getWorld().getLunarTime();
             }

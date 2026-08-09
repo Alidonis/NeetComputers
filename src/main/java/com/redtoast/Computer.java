@@ -8,6 +8,7 @@ import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
 import com.redtoast.neet.NeetComputersServer;
+import com.redtoast.neet.Networking.CloseRGBPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
 import com.redtoast.neet.ProcessManager;
 import com.redtoast.simulation.*;
@@ -122,6 +123,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
      */
     public abstract @Nullable Object getParentEntity();
 
+    public abstract World getWorld();
+
     public abstract int getLunarTime();
 
     //constructor
@@ -198,6 +201,9 @@ public abstract class Computer implements BinaryGraphicsProvider {
             state = ComputerState.OFF;
             this.yield();
             maintainState();
+            for (PlayerEntity p : getWorld().getPlayers())
+                if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this)
+                    ServerPlayNetworking.send((ServerPlayerEntity) p, new CloseRGBPayload());
         }
     }
 
@@ -220,13 +226,18 @@ public abstract class Computer implements BinaryGraphicsProvider {
             }
             this.yield();
             maintainState();
+            for (PlayerEntity p : getWorld().getPlayers())
+                if (p.currentScreenHandler instanceof RGBScreenHandler g && g.comp == this)
+                    ServerPlayNetworking.send((ServerPlayerEntity) p, new CloseRGBPayload());
         }
     }
 
     //re-initializes the runtime and sets the computer to be on
     public void reboot(){
         if (loaded && fileSystem!=null){
-            stop();
+            state = ComputerState.OFF;
+            this.yield();
+            maintainState();
             doReboot = true;
         }
     }

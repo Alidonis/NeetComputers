@@ -118,6 +118,10 @@ public class NeetComputersClient implements ClientModInitializer {
 			});
 		});
 
+		ClientPlayNetworking.registerGlobalReceiver(CloseRGBPayload.ID, (payload, context) -> {
+			context.player().closeScreen();
+		});
+
 		ClientPlayNetworking.registerGlobalReceiver(ReturnMessagePayload.ID, (payload, context) -> {
 			if (context.client().player!=null && context.client().player.currentScreenHandler instanceof PeripheralToolScreenHandler handler) handler.setReturn(payload.message(), payload.type());
 		});
