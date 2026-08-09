@@ -112,7 +112,7 @@ public class Runtime {
                     }
                     if (!thread.isAlive()) {
                         errorMessage = thread.getErrorMessage();
-                        if (errorMessage != null) errorMessage = errorMessage.replaceFirst("\n\t\\[Java]: in \\?$", "").replaceAll("\t", "    ");
+                        if (errorMessage != null) errorMessage = errorMessage.replaceAll("\t", "    ");
                         thread = null;
                     }
                 }
