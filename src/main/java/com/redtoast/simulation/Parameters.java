@@ -1,6 +1,7 @@
 package com.redtoast.simulation;
 
 import com.google.gson.internal.Primitives;
+import com.redtoast.simulation.annotations.CanNull;
 import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.parameterErrors.*;
@@ -88,7 +89,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             array[x] = cast(varargs.asValue(), classes[x], true, types[x].annotations());
         }else{
             for (int i = 0; i < size(); i++) {
-                array[i] = cast(values[i], classes[i], false, types[i].annotations());
+                array[i] = cast(i >= values.length ? Value.NULL : values[i], classes[i], false, types[i].annotations());
             }
         }
         return array;
@@ -101,15 +102,17 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             int size = isPacked ? size()-1 : size();
             /*check if values can be cast*/
             for (; i < Math.min(values.length, size); i++) {
-                if (!types[i].canCast(values[i])) throw new MismatchedArgumentError(i, values[i].getType(),types[i]);
+                if (!types[i].canCast(values[i]) && !hasAnnotation(types[i].annotations, CanNull.class)) throw new MismatchedArgumentError(i, values[i].getType(),types[i]);
             }
             /*throw errors for values that are missing*/
-            if (i < size) throw new MissingArgumentError(i, types[i]);
+            for (; i < size; i++) {
+                if (!hasAnnotation(types[i].annotations, CanNull.class)) throw new MissingArgumentError(i, types[i]);
+            }
             if (isPacked) {
                 Tuple tuple = new Tuple();
                 for (; i < values.length; i++) tuple.add(values[i]);
                 try {
-                    types[size].canCast(tuple.asValue());
+                    if (!types[size].canCast(tuple.asValue())) throw new ParameterException(size);
                 }catch (MismatchedVarargsError error){
                     return getError(language, new MismatchedVarargsError(error.getPosition()+i-2, error.getUser(), types[size]));
                 }
@@ -124,6 +127,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
     public int size() {return types.length;}
 
     public static Object cast(Value<?> value, Class<?> clazz, boolean pack, Annotation[] annotations) {
+        if (value.isNull()) return null;
         if (clazz == int.class) return checkExists(value.castTo(VarType.INT, annotations).getValue());
         if (clazz == double.class) return checkExists(value.castTo(VarType.DOUBLE, annotations).getValue());
         if (clazz == float.class) return checkExists(value.castTo(VarType.FLOAT, annotations).getValue());
@@ -169,7 +173,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
         boolean varargs = false;
         for (int i = 0; i < parameters.length; i++) {
             try{
-                parameterTypes[i] = configureList(inferType(parameters[i].getType(), i == parameters.length-1, 0, parameters[i].getAnnotations()), parameters[i].isVarArgs());
+                parameterTypes[i] = configureList(inferType(parameters[i].getType(), i == parameters.length-1, 0, parameters[i].getDeclaredAnnotations()), parameters[i].isVarArgs());
                 classes[i] = parameters[i].getType();
                 if (i == parameters.length-1) varargs = parameters[i].isVarArgs() && parameterTypes[i].depth>0 || parameterTypes[i].type==VarType.TUPLE;
             } catch (IllegalStateException ignored){

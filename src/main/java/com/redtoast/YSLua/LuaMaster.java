@@ -57,7 +57,7 @@ public class LuaMaster implements LanguageGeneric {
     @Override
     public Value<?> castValue(Value<?> value, VarType castTo, Annotation[] annotations) {
         if (castTo==VarType.INT) {
-            if (Parameters.getAnnotation(annotations, Index.class) instanceof Index index) return Value.of(value.toInt()-1);
+            if (Parameters.hasAnnotation(annotations, Index.class)) return Value.of(value.toInt()-1);
             return Value.of(value.toInt());
         }
         if (value.getType()==castTo) {
