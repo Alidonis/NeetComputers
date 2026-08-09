@@ -199,6 +199,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             case GLFW_KEY_RIGHT_BRACKET -> shift ? '}' : ']';
             case GLFW_KEY_GRAVE_ACCENT -> shift ? '~' : '`';
             case GLFW_KEY_ENTER -> 13;
+            case GLFW_KEY_TAB -> 9;
             case GLFW_KEY_BACKSPACE, GLFW_KEY_DELETE -> 8;
             case GLFW_KEY_LEFT_SHIFT, GLFW_KEY_RIGHT_SHIFT -> 14;
             case GLFW_KEY_LEFT -> 128;
