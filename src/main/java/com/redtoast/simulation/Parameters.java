@@ -3,14 +3,17 @@ package com.redtoast.simulation;
 import com.google.gson.internal.Primitives;
 import com.redtoast.simulation.annotations.*;
 import com.redtoast.simulation.annotations.Number;
+import com.redtoast.simulation.base.ExposedError;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.parameterErrors.*;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.ValueTypes.*;
 import com.redtoast.simulation.value.VarType;
 
+import java.lang.Exception;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Objects;
@@ -121,7 +124,7 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
                 try {
                     if (!types[size].canCast(tuple.asValue())) throw new ParameterException(size);
                 }catch (MismatchedVarargsError error){
-                    return getError(language, new MismatchedVarargsError(error.getPosition()+i-2, error.getUser(), types[size]));
+                    throw new MismatchedVarargsError(error.getPosition()+i-2, error.getUser(), types[size]);
                 }
             }else if (values.length > size) throw new ArgumentOverflowError(i, values[size].getType());
         }catch (ParameterException parameterException){
@@ -188,6 +191,35 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             }
         }
         return new Parameters(parameterTypes, classes, varargs);
+    }
+
+    public static Function attachSelectiveErrors(java.util.List<Function> unpatchedFunctions, String name, Runtime runtime) {
+        return new Function(false, name, Parameters.any()) {
+            @Override
+            public Value call(Value<?>[] parameters) {
+                StringBuilder errorBuilder = new StringBuilder();
+                for (int i = 0; i < unpatchedFunctions.size(); i++){
+                    Optional<String> check = unpatchedFunctions.get(i).getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
+                    if (check.isEmpty()) {
+                        return unpatchedFunctions.get(i).invoke(parameters);
+                    }else{
+                        if (i!=0) errorBuilder.append('\n');
+                        errorBuilder.append(check.get());
+                    }
+                }
+                return Value.asError(errorBuilder.toString());
+            }
+        };
+    }
+
+    public static Function attachErrors(Function function, Runtime runtime) {
+        return new Function(false, function.getName(), function.getRules()) {
+            @Override
+            public Value call(Value<?>[] parameters) {
+                Optional<String> check = getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
+                return check.map(Value::asError).orElseGet(() -> function.invoke(parameters));
+            }
+        };
     }
 
     public static Parameters make(Class<?>... casts) {

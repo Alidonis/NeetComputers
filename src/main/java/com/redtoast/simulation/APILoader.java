@@ -150,8 +150,6 @@ public class APILoader {
                         if (runtime.isDead()) return Value.asError("Attempt to call function from killed runtime (how did you get here)");
                         exposable.onCall(runtime, method);
                     }
-                    Optional<String> check = getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
-                    if (check.isPresent()) return Value.asError(check.get());
                     long timeStarted = System.currentTimeMillis();
                     Context context = runtime!=null ? new Context(runtime, runtime.getThread().getLang()) : null;
                     Object retun = method.invoke(obj, ruleset.cast(parameters));
@@ -189,32 +187,9 @@ public class APILoader {
         AtomicInteger i = new AtomicInteger();
         functions.forEach((key, values) -> {
             if (values.size()==1){
-                output[i.get()] = values.getFirst();
+                output[i.get()] = Parameters.attachErrors(values.getFirst(), runtime);
             }else{
-                output[i.get()] = new Function(false, key, Parameters.any()) {
-                    @Override
-                    public Value call(Value<?>[] parameters) {
-                        LinkedList<String> errors = new LinkedList<>();
-                        LinkedList<String> names = new LinkedList<>();
-                        //TODO make packed algorithm less shit
-                        for (Function function : values){
-                            Optional<String> retur = function.getRules().canCast(parameters, runtime==null ? null : runtime.getThread().getLang());
-                            if (retur.isEmpty()){
-                                return function.invoke(parameters);
-                            }else{
-                                errors.add(retur.get());
-                                names.add(key + function.getRules().toString());
-                            }
-                        }
-                        names.sort(String::compareTo);
-                        StringBuilder error = new StringBuilder(errors.get(new Random().nextInt(errors.size())));
-                        for (String string : names){
-                            error.append('\n');
-                            error.append(string);
-                        }
-                        return new Exception(error.toString()).asValue();
-                    }
-                };
+                output[i.get()] = Parameters.attachSelectiveErrors(values, key, runtime);
             }
             i.getAndIncrement();
         });
