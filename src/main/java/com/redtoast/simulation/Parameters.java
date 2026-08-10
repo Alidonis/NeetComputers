@@ -1,9 +1,8 @@
 package com.redtoast.simulation;
 
 import com.google.gson.internal.Primitives;
-import com.redtoast.simulation.annotations.CanNull;
+import com.redtoast.simulation.annotations.*;
 import com.redtoast.simulation.annotations.Number;
-import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.LanguageGeneric;
 import com.redtoast.simulation.parameterErrors.*;
 import com.redtoast.simulation.value.Value;
@@ -53,13 +52,11 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> annotation) {
-            for (Annotation anno : annotations) if (anno.getClass()==annotation) return true;
-            return false;
+            return Parameters.hasAnnotation(annotations, annotation);
         }
 
         public Annotation getAnnotation(Class<? extends Annotation> annotation) {
-            for (Annotation anno : annotations) if (anno.getClass()==annotation) return anno;
-            return null;
+            return Parameters.getAnnotation(annotations, annotation);
         }
 
         @Override
@@ -70,6 +67,15 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
             }else{
                 name = new StringBuilder(filter.toString());
                 name.append("[]".repeat(depth));
+            }
+            if (hasAnnotation(Index.class)) name.insert(0, '#');
+            if (hasAnnotation(CanNull.class)) name.insert(0, '~');
+            if (getAnnotation(Range.class) instanceof Range range) {
+                name.append(new char[]{' ', '<'});
+                name.append(range.min());
+                name.append('-');
+                name.append(range.max());
+                name.append('>');
             }
             return name.toString();
         }
