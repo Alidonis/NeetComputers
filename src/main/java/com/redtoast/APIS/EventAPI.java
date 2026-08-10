@@ -1,6 +1,7 @@
 package com.redtoast.APIS;
 
 import com.redtoast.Computer;
+import com.redtoast.simulation.annotations.CanNull;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
@@ -31,33 +32,22 @@ public class EventAPI implements API {
     }
 
     @Exposed
-    public Value<List> getQueue(String category){
-        return Value.of(eventManager.getQueue(decodeEventLabel(category)));
+    public Value<List> getQueue(String category, @CanNull String filter) {
+        return filter==null ? Value.of(eventManager.getQueue(decodeEventLabel(category))) : Value.of(eventManager.getQueue(decodeEventLabel(category), filter));
     }
 
     @Exposed
-    public Value<List> getQueue(String category, String filter) {
-        return Value.of(eventManager.getQueue(decodeEventLabel(category), filter));
+    public Value<?> getFirst(String category, @CanNull String filter) {
+        return filter==null ? Value.of(eventManager.getFirst(decodeEventLabel(category))) : Value.of(eventManager.getFirst(decodeEventLabel(category), filter));
     }
 
     @Exposed
-    public Value<?> getFirst(String category){
-        return Value.of(eventManager.getFirst(decodeEventLabel(category)));
-    }
-
-    @Exposed
-    public Value<?> getFirst(String category, String filter) {
-        return Value.of(eventManager.getFirst(decodeEventLabel(category), filter));
-    }
-
-    @Exposed
-    public void clear(String category){
-        eventManager.clear(decodeEventLabel(category));
-    }
-
-    @Exposed
-    public void clear(){
-        eventManager.reset();
+    public void clear(@CanNull String category){
+        if (category==null){
+            eventManager.reset();
+        }else{
+            eventManager.clear(decodeEventLabel(category));
+        }
     }
 
     @Override

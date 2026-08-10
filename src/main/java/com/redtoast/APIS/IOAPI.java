@@ -2,6 +2,7 @@ package com.redtoast.APIS;
 
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
+import com.redtoast.simulation.annotations.CanNull;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.Primative;
 import com.redtoast.simulation.base.API;
@@ -86,12 +87,7 @@ public class IOAPI implements API {
     }
 
     @Exposed
-    public void setTag(String uuidString){
-        setTag(uuidString, "");
-    }
-
-    @Exposed
-    public void setTag(String uuidString, String tag){
+    public void setTag(String uuidString, @CanNull String tag){
         try {
             UUID.fromString(uuidString);
         }catch (IllegalArgumentException illegalArgumentException){
@@ -99,7 +95,7 @@ public class IOAPI implements API {
         }
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
             if (Objects.equals(peripheralProvider.getUuid().toString(), uuidString)) {
-                peripheralProvider.setTag(tag);
+                peripheralProvider.setTag(tag==null ? "" : tag);
                 return;
             }
         }

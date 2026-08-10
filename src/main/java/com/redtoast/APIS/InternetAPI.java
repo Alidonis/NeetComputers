@@ -2,6 +2,7 @@ package com.redtoast.APIS;
 
 import com.redtoast.Computer;
 import com.redtoast.simulation.InternetManager;
+import com.redtoast.simulation.annotations.CanNull;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.base.API;
 import com.redtoast.simulation.base.ExposedError;
@@ -23,10 +24,10 @@ public class InternetAPI implements API {
     }
 
     @Exposed
-    public int GET(String URL, Table headers) {
+    public int GET(String URL, @CanNull Table headers) {
         try {
             Map<String, String> table = new HashMap<>();
-            headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
+            if (headers!=null) headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
             return internetAccess.httpGet(new URI(URL), table);
         }catch (URISyntaxException exception){
             throw new ExposedError("Invalid URL");
@@ -36,20 +37,11 @@ public class InternetAPI implements API {
     }
 
     @Exposed
-    public int GET(String URL) {
-        try {
-            return internetAccess.httpGet(new URI(URL), Map.of());
-        }catch (URISyntaxException exception){
-            throw new ExposedError("Invalid URL");
-        }
-    }
-
-    @Exposed
-    public int POST(String URL, Table headers, Bytes body) {
+    public int POST(String URL, @CanNull Table headers, @CanNull byte[] body) {
         try {
             Map<String, String> table = new HashMap<>();
-            headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
-            return internetAccess.httpPost(new URI(URL), table, body.getData());
+            if (headers!=null) headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
+            return internetAccess.httpPost(new URI(URL), table, body==null ? new byte[0] : body);
         }catch (URISyntaxException exception){
             throw new ExposedError("Invalid URL");
         }catch (NullPointerException exception){
@@ -58,55 +50,15 @@ public class InternetAPI implements API {
     }
 
     @Exposed
-    public int POST(String URL, Table headers) {
+    public int CreateWebsocket(String URL, @CanNull Table headers) {
         try {
             Map<String, String> table = new HashMap<>();
-            headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
-            return internetAccess.httpPost(new URI(URL), table, new byte[0]);
-        }catch (URISyntaxException exception){
-            throw new ExposedError("Invalid URL");
-        }catch (NullPointerException exception){
-            throw new ExposedError("Invalid Header (All values must be strings)");
-        }
-    }
-
-    @Exposed
-    public int POST(String URL, Bytes body) {
-        try {
-            return internetAccess.httpPost(new URI(URL), Map.of(), body.getData());
-        }catch (URISyntaxException exception){
-            throw new ExposedError("Invalid URL");
-        }
-    }
-
-    @Exposed
-    public int POST(String URL) {
-        try {
-            return internetAccess.httpPost(new URI(URL), Map.of(), new byte[0]);
-        }catch (URISyntaxException exception){
-            throw new ExposedError("Invalid URL");
-        }
-    }
-
-    @Exposed
-    public int CreateWebsocket(String URL, Table headers) {
-        try {
-            Map<String, String> table = new HashMap<>();
-            headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
+            if (headers!=null) headers.foreach((key, value) -> table.put(Objects.requireNonNull(key.toString()), Objects.requireNonNull(value.toString())));
             return internetAccess.requestWebsocket(new URI(URL), table);
         }catch (URISyntaxException exception){
             throw new ExposedError("Invalid URL");
         }catch (NullPointerException exception){
             throw new ExposedError("Invalid Header (All values must be strings)");
-        }
-    }
-
-    @Exposed
-    public int CreateWebsocket(String URL) {
-        try {
-            return internetAccess.requestWebsocket(new URI(URL), Map.of());
-        }catch (URISyntaxException exception){
-            throw new ExposedError("Invalid URL");
         }
     }
 
