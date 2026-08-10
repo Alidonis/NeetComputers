@@ -165,8 +165,8 @@ public record Parameters(ParameterType[] types, Class<?>[] classes, boolean isPa
         throw new IllegalStateException("Attempted to cast unrecognized parameterErrors type");
     }
 
-    private static Optional<String> getError(LanguageGeneric language, ParameterException exception) {
-        return language==null ? Optional.of("Language Missing #"+exception.getPosition()) : Optional.of(language.generateError(exception));
+    private Optional<String> getError(LanguageGeneric language, ParameterException exception) {
+        return language==null ? Optional.of("Language Missing #"+exception.getPosition()+":\n"+ this) : Optional.of(language.generateError(exception)+":\n"+ this);
     }
 
     private static Object checkExists(Object value) {

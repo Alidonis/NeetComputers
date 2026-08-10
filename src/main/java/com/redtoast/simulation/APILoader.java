@@ -162,7 +162,7 @@ public class APILoader {
                         return Value.asError(error.getMessage());
                     }
                     if (e.getTargetException() instanceof ParameterException parameterException) {
-                        return Value.of(runtime==null ? "Language Missing #"+parameterException.getPosition() : runtime.getThread().getLang().generateError(parameterException));
+                        return Value.of(runtime==null ? "Language Missing #"+parameterException.getPosition()+":\n"+getRules() : runtime.getThread().getLang().generateError(parameterException)+":\n"+getRules());
                     }
                     printJavaError(e.getTargetException());
                     return Value.asError(describeUnexpectedError(e.getTargetException()));
