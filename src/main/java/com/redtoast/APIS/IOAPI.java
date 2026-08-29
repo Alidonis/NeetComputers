@@ -129,7 +129,7 @@ public class IOAPI implements API {
     @Exposed
     public List queryType(String type){
         List buffer = new List();
-        if (type.contains(":")) type = "neetcomputers:" + type;
+        if (!type.contains(":")) type = "neetcomputers:" + type;
         for (PeripheralProvider peripheralProvider : computer.getPeripheralProviders()){
             if (Objects.equals(peripheralProvider.getTypeName(), type)) buffer.add(Value.of(peripheralProvider.getUuid().toString()));
         }
