@@ -113,6 +113,7 @@ public class Runtime {
      * ticks the process forward once and performs state maintenance
      */
     public void tick(){
+        if (management==null) renewManagementThread();
         String errorMessage = null;
         if (!kill) {
             if (thread == null) {
