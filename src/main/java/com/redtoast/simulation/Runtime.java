@@ -14,7 +14,7 @@ public class Runtime {
     private final ComputerFileSystem fs;
     private final Computer parent;
     private LangThread thread = null;
-    private final RuntimeThread management;
+    private RuntimeThread management;
     public APILoader loader = null;
 
     //state info
@@ -86,10 +86,6 @@ public class Runtime {
     public void instructTick(boolean state) {
         wantaTick = state;
         if (state) {
-//            synchronized(management.getLock()) {
-//                System.out.println(3);
-//                management.getLock().notify();
-//            }
             management.signal();
         }
     }
@@ -99,7 +95,17 @@ public class Runtime {
         return wantaTick;
     }
 
-    public RuntimeThread getManagementThread() {
+    public void releaseManagementThread() {
+        management.kill();
+        management = null;
+    }
+
+    public void renewManagementThread() {
+        if (management != null) management.kill();
+        management = new RuntimeThread(this);
+    }
+
+    public @Nullable RuntimeThread getManagementThread() {
         return management;
     }
 

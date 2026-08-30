@@ -363,6 +363,12 @@ public abstract class Computer implements BinaryGraphicsProvider {
             crashMessage = null;
             save = true;
         }
+        if (state == ComputerState.PAUSED && runtime != null && runtime.getManagementThread()!=null) {
+            runtime.releaseManagementThread();
+        }
+        if (state == ComputerState.ON && runtime != null && runtime.getManagementThread()==null) {
+            runtime.renewManagementThread();
+        }
         if (state == ComputerState.ON && runtime==null && fileSystem!=null) {
             if (doesBinaryGraphics){
                 for (int x = 0; x < BinGraphics.getSize().x; x++){
@@ -400,7 +406,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
         if ((state == ComputerState.OFF || state == ComputerState.CRASHED) && runtime!=null) {
             internetManager.reset();
             eventManager.reset();
-            runtime.getManagementThread().kill();
+            if (runtime.getManagementThread()!=null) runtime.getManagementThread().kill();
             runtime=null;
             save = true;
         }
