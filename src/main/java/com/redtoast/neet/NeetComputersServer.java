@@ -1,5 +1,8 @@
 package com.redtoast.neet;
 
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.serialization.Codec;
 import com.redtoast.APIS.Cryptography.CryptoAPI;
 import com.redtoast.APIS.graphics.ScreenAPI;
@@ -45,6 +48,7 @@ import com.redtoast.simulation.events.EventLabel;
 import com.redtoast.simulation.value.Value;
 import com.redtoast.simulation.value.VarType;
 import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -54,6 +58,7 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.minecraft.block.Block;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.component.ComponentType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -70,6 +75,8 @@ import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundEvents;
@@ -110,6 +117,31 @@ public class NeetComputersServer implements ModInitializer {
     static {
 		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transitive_single"), new RecipeType<TransitiveSingleRecipe>(){});
 		Registry.register(Registries.RECIPE_TYPE, Identifier.of("neetcomputers", "transfer_disk"), new RecipeType<FromDiskRecipe>(){});
+
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			dispatcher.register(CommandManager.literal("neet")
+					.then(CommandManager.literal("pause")
+							.then(CommandManager.literal("all")
+									.requires(source -> source.hasPermissionLevel(1))
+									.executes(Commands::pauseAll))
+							.then(CommandManager.literal("block")
+									.then(CommandManager.argument("position", BlockPosArgumentType.blockPos())
+											.requires(source -> source.hasPermissionLevel(1))
+											.executes(Commands::pauseBlock)
+									)
+							)
+					).then(CommandManager.literal("stop")
+							.then(CommandManager.literal("all")
+									.requires(source -> source.hasPermissionLevel(1))
+									.executes(Commands::stopAll))
+							.then(CommandManager.literal("block")
+									.then(CommandManager.argument("position", BlockPosArgumentType.blockPos())
+											.requires(source -> source.hasPermissionLevel(1))
+											.executes(Commands::stopBlock)
+									)
+							)
+					));
+		});
 	}
 
 	//internal config

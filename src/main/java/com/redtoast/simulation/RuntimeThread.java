@@ -1,5 +1,6 @@
 package com.redtoast.simulation;
 
+import com.redtoast.Computer;
 import com.redtoast.simulation.base.LangThread;
 
 import java.util.LinkedList;
@@ -40,6 +41,14 @@ public class RuntimeThread extends Thread {
         }
     }
 
+    public Runtime getRuntime() {
+        return runtime;
+    }
+
+    public Computer getComputer() {
+        return runtime.getParent();
+    }
+
     public void signal() {
         block.complete(0);
     }
@@ -53,8 +62,14 @@ public class RuntimeThread extends Thread {
         return threads.stream().filter(thread -> thread.equals(runtime)).findFirst().orElse(null);
     }
 
-    public static void interatate(Consumer<RuntimeThread> consumer){
-        threads.forEach(consumer);
+    public static void forEach(Consumer<RuntimeThread> consumer){
+        for (RuntimeThread thread : threads.toArray(new RuntimeThread[]{})) {
+            consumer.accept(thread);
+        }
+    }
+
+    public static int size() {
+        return threads.size();
     }
 
     @Override
