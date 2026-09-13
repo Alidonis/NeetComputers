@@ -20,7 +20,7 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
     protected static Map<DimensionType, BlockPos[]> CURRENT_STACK = new Hashtable<>();
     protected static Map<DimensionType, LinkedList<BlockPos>> REPORTING_STACK = new Hashtable<>();
 
-    private int range = 150;
+    private int range = 500;
     private final LinkedList<Runnable> positions = new LinkedList<>();
 
     public AccessPointBlockEntity(BlockPos pos, BlockState state) {
@@ -48,7 +48,7 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
     }
 
     @Exposed
-    public void setRange(@Range(max = 250) int range) {
+    public void setRange(@Range(max = 500) int range) {
         this.range = range;
     }
 
