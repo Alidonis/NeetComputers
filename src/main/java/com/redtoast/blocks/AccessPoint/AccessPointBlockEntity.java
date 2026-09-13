@@ -10,11 +10,12 @@ import com.redtoast.simulation.value.ValueTypes.Tuple;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionType;
-
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
+import net.minecraft.util.math.Vec3d;
+import dev.ryanhcode.sable.companion.SableCompanion;
 
 public class AccessPointBlockEntity extends PeripheralBlockEntity {
     protected static Map<DimensionType, BlockPos[]> CURRENT_STACK = new Hashtable<>();
@@ -33,9 +34,10 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
         DimensionType dimensionType = getWorld().getDimension();
         if (CURRENT_STACK.containsKey(dimensionType)) {
             Arrays.stream(CURRENT_STACK.get(dimensionType)).forEach((otherPos) -> {
-                if (!otherPos.equals(pos) && otherPos.isWithinDistance(pos, range)) {
+                if (!otherPos.equals(pos) && SableCompanion.INSTANCE.distanceSquaredWithSubLevels(getWorld(), Vec3d.ofCenter(pos), Vec3d.ofCenter(otherPos)) <= range * range) {
                     positions.add(() -> {
-                        if (getWorld().getBlockEntity(otherPos) instanceof AccessPointBlockEntity accessPointBlockEntity) accessPointBlockEntity.receive(Math.sqrt(otherPos.getSquaredDistance(pos)), args);
+                        if (getWorld().getBlockEntity(otherPos) instanceof AccessPointBlockEntity accessPointBlockEntity) accessPointBlockEntity.receive(
+                                Math.sqrt(SableCompanion.INSTANCE.distanceSquaredWithSubLevels(getWorld(), Vec3d.ofCenter(pos), Vec3d.ofCenter(otherPos))), args);
                     });
                 }
             });
@@ -53,7 +55,13 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
     }
 
     public void receive(double distance, Tuple args) {
-        args.addFirst(Value.of(distance));
+        Object[] argsArray = new Object[args.size() + 1];
+        int i = 0;
+        argsArray[i] = distance;
+        for (Object arg : args) {
+            i += 1;
+            argsArray[i] = arg;
+        }
         queueEvent("received", (Object[]) args.toArray());
     }
 
