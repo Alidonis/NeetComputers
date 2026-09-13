@@ -16,7 +16,7 @@ public class KeyboardScreen extends HandledScreen<KeyboardScreenHandler> {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         drawForeground(context, mouseX, mouseY);
-        context.drawText(MinecraftClient.getInstance().textRenderer, "dummy", 5, 5, 0xFFFFFFFF, true);
+        context.drawText(MinecraftClient.getInstance().textRenderer, "Esc to close keyboard:", 5, 5, 0xFFFFFFFF, true);
         context.draw();
     }
 
