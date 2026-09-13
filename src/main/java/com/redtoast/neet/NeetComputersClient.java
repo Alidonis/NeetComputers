@@ -2,6 +2,7 @@ package com.redtoast.neet;
 
 import com.redtoast.Connections.CableRenderer;
 import com.redtoast.Connections.PipeType;
+import com.redtoast.blocks.AccessPoint.AccessPointBlockEntity;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayRenderer;
 import com.redtoast.blocks.DesktopComputer.DesktopComputerRenderer;
@@ -71,6 +72,9 @@ public class NeetComputersClient implements ClientModInitializer {
 
 		BlockEntityType<DriveBayBlockEntity> driveBayType = (BlockEntityType<DriveBayBlockEntity>) BulkRegistry.fetchBlockEntityType("drive_bay");
 		BulkRegistry.register(driveBayType, PipeSourceBlockRenderer::new);
+
+		BlockEntityType<AccessPointBlockEntity> accessPointType = (BlockEntityType<AccessPointBlockEntity>) BulkRegistry.fetchBlockEntityType("access_point");
+		BulkRegistry.register(accessPointType, PipeSourceBlockRenderer::new);
 
 		BlockEntityType<SimpleDisplayBlockEntity> simpleDisplayType = (BlockEntityType<SimpleDisplayBlockEntity>) BulkRegistry.fetchBlockEntityType("simple_display");
 		BulkRegistry.register(simpleDisplayType, SimpleDisplayRenderer::new);

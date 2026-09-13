@@ -9,6 +9,8 @@ import com.redtoast.APIS.graphics.ScreenAPI;
 import com.redtoast.Computer;
 import com.redtoast.Connections.Connections;
 import com.redtoast.Connections.PipeType;
+import com.redtoast.blocks.AccessPoint.AccessPointBlock;
+import com.redtoast.blocks.AccessPoint.AccessPointBlockEntity;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlock;
 import com.redtoast.blocks.ColorDisplay.ColorDisplayBlockEntity;
 import com.redtoast.blocks.ComputerDataComponent;
@@ -173,6 +175,7 @@ public class NeetComputersServer implements ModInitializer {
 				updateClientPipes();
 				timeBenchMark = System.currentTimeMillis();
 			}
+			AccessPointBlockEntity.moveStacks();
 		});
 		ServerLifecycleEvents.AFTER_SAVE.register((server,a,b) -> {
 			File file = worldPath.resolve("neetcomputers/pipes.bin").toFile();
@@ -249,6 +252,10 @@ public class NeetComputersServer implements ModInitializer {
 		Block diskBay = new DriveBayBlock(Block.Settings.create().strength(1.0f).hardness(0.2f).sounds(BlockSoundGroup.METAL));
 		BulkRegistry.register("drive_bay",diskBay, DriveBayBlockEntity::new,true);
 		BulkRegistry.register(BulkRegistry.fetchItemObject("drive_bay"), group);
+
+		Block accessPoint = new AccessPointBlock(Block.Settings.create().strength(1.0f).hardness(1f).sounds(BlockSoundGroup.METAL));
+		BulkRegistry.register("access_point",accessPoint, AccessPointBlockEntity::new,true);
+		BulkRegistry.register(BulkRegistry.fetchItemObject("access_point"), group);
 
 		Item disk = new Disk(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "blank").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, false), "item.neetcomputers.disk");
 		BulkRegistry.register("disk", disk);
