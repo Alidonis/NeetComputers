@@ -17,8 +17,9 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.joml.Matrix4f;
-
 import java.util.Hashtable;
+import dev.ryanhcode.sable.companion.*;
+import dev.ryanhcode.sable.companion.math.Pose3dc;
 
 @Environment(EnvType.CLIENT)
 public class CableRenderer {
@@ -48,19 +49,30 @@ public class CableRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             Vec3d cameraPos,
-            BlockPos targetPos,
+            BlockPos pos,
             World world,
             Identifier texture,
             PipeType pipe
     ) {
-        double x = targetPos.getX() - cameraPos.x;
-        double y = targetPos.getY() - cameraPos.y;
-        double z = targetPos.getZ() - cameraPos.z;
+        SubLevelAccess subLevel = SableCompanion.INSTANCE.getContaining(world, pos);
+
+        Vec3d targetPos;
+
+        if (subLevel != null) {
+            Pose3dc pose = subLevel.logicalPose();
+            targetPos = pose.transformPosition(Vec3d.ofCenter(pos).add(-0.5, -0.5, -0.5));
+        } else {
+            targetPos = Vec3d.ofCenter(pos).add(-0.5, -0.5, -0.5);
+        }
+
+        double x = targetPos.x - cameraPos.x;
+        double y = targetPos.y - cameraPos.y;
+        double z = targetPos.z - cameraPos.z;
         matrices.push();
 
         Hashtable<Direction, Boolean> neighborMap = new Hashtable<>();
         for (Direction direction : Direction.values()) {
-            BlockPos check = targetPos.offset(direction);
+            BlockPos check = pos.offset(direction);
             boolean isSource = world.getBlockEntity(check)!=null && world.getBlockEntity(check) instanceof PipeRenderSource source && source.shouldRenderPipeType(pipe);
             neighborMap.put(direction, (!doesBlockExist(check) && !isSource));
         }
