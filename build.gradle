@@ -20,6 +20,18 @@ repositories {
 	flatDir {
 		dirs 'lib'
 	}
+
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "RyanHCode"
+				url = "https://maven.ryanhcode.dev/releases"
+			}
+		}
+		filter {
+			includeGroup "dev.ryanhcode.sable-companion"
+		}
+	}
 }
 
 loom {
@@ -40,6 +52,10 @@ dependencies {
 	//modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:14.0.699"
 	//modRuntimeOnly "me.shedaniel:RoughlyEnoughItems-fabric:14.0.699"
 	//modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:14.0.699"
+
+	include(modApi(
+		"dev.ryanhcode.sable-companion:sable-companion-fabric-${project.minecraft_version}:${sable_companion_version}"
+	))
 }
 
 processResources {

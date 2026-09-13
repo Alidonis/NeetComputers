@@ -16,9 +16,10 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.joml.Matrix4f;
-
+import org.joml.*;
 import java.util.Hashtable;
+import dev.ryanhcode.sable.companion.*;
+import dev.ryanhcode.sable.companion.math.Pose3dc;
 
 @Environment(EnvType.CLIENT)
 public class CableRenderer {
@@ -48,24 +49,50 @@ public class CableRenderer {
             MatrixStack matrices,
             VertexConsumerProvider vertexConsumers,
             Vec3d cameraPos,
-            BlockPos targetPos,
+            BlockPos pos,
             World world,
             Identifier texture,
             PipeType pipe
     ) {
-        double x = targetPos.getX() - cameraPos.x;
-        double y = targetPos.getY() - cameraPos.y;
-        double z = targetPos.getZ() - cameraPos.z;
-        matrices.push();
+        SubLevelAccess subLevel = SableCompanion.INSTANCE.getContaining(world, pos);
+
+        Vec3d targetPos;
 
         Hashtable<Direction, Boolean> neighborMap = new Hashtable<>();
         for (Direction direction : Direction.values()) {
-            BlockPos check = targetPos.offset(direction);
+            BlockPos check = pos.offset(direction);
             boolean isSource = world.getBlockEntity(check)!=null && world.getBlockEntity(check) instanceof PipeRenderSource source && source.shouldRenderPipeType(pipe);
             neighborMap.put(direction, (!doesBlockExist(check) && !isSource));
         }
 
-        matrices.translate(x, y, z);
+        if (subLevel != null) {
+            Pose3dc pose = subLevel.logicalPose();
+
+            Vector3dc rotationPoint = pose.rotationPoint();
+            Quaterniondc orientation = pose.orientation();
+            Vector3dc scale = pose.scale();
+
+            Vec3d worldPos = pose.transformPosition(Vec3d.ofCenter(pos).add(-0.5, -0.5, -0.5));
+
+            double x = worldPos.x - cameraPos.x;
+            double y = worldPos.y - cameraPos.y;
+            double z = worldPos.z - cameraPos.z;
+
+            matrices.push();
+
+            matrices.translate(x, y, z);
+            matrices.multiply(new Quaternionf(orientation));
+            matrices.scale((float) scale.x(), (float) scale.y(), (float) scale.z());
+        } else {
+            double x = pos.getX() - cameraPos.x;
+            double y = pos.getY() - cameraPos.y;
+            double z = pos.getZ() - cameraPos.z;
+
+            matrices.push();
+
+            matrices.translate(x, y, z);
+        }
+
 
         renderPipe(matrices, vertexConsumers, texture, neighborMap);
         matrices.pop();

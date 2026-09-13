@@ -1,6 +1,8 @@
 package com.redtoast.neet;
 
+import dev.ryanhcode.sable.companion.SableCompanion;
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.util.math.Vec3d;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.serialization.Codec;
@@ -410,7 +412,9 @@ public class NeetComputersServer implements ModInitializer {
 				return z;
 			}
 		};
-		BlockPos[] buffer = cableManager.getPipesForRendering(player.getWorld(), type, (blockpos) -> BlockPos.fromLong(blockpos).isWithinDistance(pos, 40));
+		BlockPos[] buffer = cableManager.getPipesForRendering(player.getWorld(), type,
+				(blockpos) -> SableCompanion.INSTANCE.distanceSquaredWithSubLevels(
+					player.getWorld(), Vec3d.ofCenter(BlockPos.fromLong(blockpos)), pos) <= 40 * 40);
 		CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(new PipeBufferPayload(type, buffer));
 		player.networkHandler.sendPacket(packet);
 	}
