@@ -35,7 +35,7 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
             Arrays.stream(CURRENT_STACK.get(dimensionType)).forEach((otherPos) -> {
                 if (!otherPos.equals(pos) && otherPos.isWithinDistance(pos, range)) {
                     positions.add(() -> {
-                        if (getWorld().getBlockEntity(otherPos) instanceof AccessPointBlockEntity accessPointBlockEntity) accessPointBlockEntity.receive(otherPos.getSquaredDistance(pos), args);
+                        if (getWorld().getBlockEntity(otherPos) instanceof AccessPointBlockEntity accessPointBlockEntity) accessPointBlockEntity.receive(Math.sqrt(otherPos.getSquaredDistance(pos)), args);
                     });
                 }
             });
