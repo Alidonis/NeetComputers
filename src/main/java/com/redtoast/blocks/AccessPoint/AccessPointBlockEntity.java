@@ -62,7 +62,7 @@ public class AccessPointBlockEntity extends PeripheralBlockEntity {
             i += 1;
             argsArray[i] = arg;
         }
-        queueEvent("received", (Object[]) args.toArray());
+        queueEvent("received", argsArray);
     }
 
     public void sendall() {
