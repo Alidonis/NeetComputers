@@ -1,40 +1,34 @@
 {
-	"schemaVersion": 1,
-	"id": "neetcomputers",
-	"version": "${version}",
-	"name": "Neet Computers",
-	"description": "N.E.E.T. computers is a Minecraft mod that adds cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
-	"authors": [
-		"Red Toast",
-		"WindClan",
-		"piguman3",
-		"SpSf"
-	],
-	"contact": {
-		"homepage": "https://red-toast.net/neetcomputers",
-		"sources": "https://github.com/redtoast/NeetComputers"
-	},
-	"license": "MIT",
-	"icon": "assets/neetcomputers/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-          "com.redtoast.neet.NeetComputersServer"
-		],
-		"client": [
-          "com.redtoast.neet.NeetComputersClient"
-		]
-	},
-	"mixins": [
-		"neetcomputers.mixins.json",
-		{
-			"config": "neetcomputers.client.mixins.json",
-			"environment": "client"
-		}
-	],
-	"depends": {
-		"fabricloader": ">=${fabricLoader}",
-		"minecraft": "~${minecraft}",
-		"fabric-api": ">=${fabricApi}"
-	}
+  "schemaVersion": 1,
+  "id": "neetcomputers",
+  "version": "${version}",
+  "name": "Neet Computers",
+  "description": "N.E.E.T. computers is a Minecraft mod that adds cleverly implemented computers into the Minecraft world capable of running custom scripts and interacting with the world around them",
+  "authors": ["Red Toast", "WindClan", "piguman3", "SpSf"],
+  "contact": {
+    "homepage": "https://red-toast.net/neetcomputers",
+    "sources": "https://github.com/redtoast/NeetComputers"
+  },
+  "license": "MIT",
+  "icon": "assets/neetcomputers/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.redtoast.neet.NeetComputersServer"],
+    "client": ["com.redtoast.neet.NeetComputersClient"]
+  },
+  "mixins": [
+    "neetcomputers.mixins.json",
+    {
+      "config": "neetcomputers.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${fabricLoader}",
+    "minecraft": "~${minecraft}",
+    "fabric-api": ">=${fabricApi}"
+  },
+  "suggests": {
+    "sable": ">=2.0.5"
+  }
 }
