@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.IntBinaryOperator;
+import java.util.stream.IntStream;
 
 public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Iterable<SectoredGraphics.Sector> {
     public record Sector(int x1, int y1, int x2, int y2, int color) {
@@ -61,93 +62,103 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
         return Arrays.stream(sectors).iterator();
     }
 
-    private static List<Sector> scanGraphics(Vector2i size, IntBinaryOperator getColor, @Nullable List<Integer> colorOutput) {
-        ArrayList<Sector> sectors = new ArrayList<>();
-        int targetVolume = size.x * size.y;
-        int currentVolume = 0;
-        boolean[] map = new boolean[size.x*size.y];
-        int lastColor = -1;
-        Vector2i start = null;
-        for (int x = 0; x < size.x; x++){
-            for (int y = 0; y < size.y; y++) {
-                int color = getColor.applyAsInt(x, y);
-                boolean mapped = map[x * size.y + y];
-                if (color!=lastColor && !mapped) {
-                    if (start!=null) {
-                        Vector2i end = new Vector2i(start.x, y-1);
-                        for (int c = start.x; c < size.x; c++) {
-                            for (int v = start.y; v < y; v++) {
-                                if (getColor.applyAsInt(c, v) != lastColor) {
-                                    c = size.x;
-                                    v = size.y;
-                                }
-                            }
-                            if (c!=size.x) {
-                                end = new Vector2i(c, y - 1);
-                                for (int v = start.y; v < y; v++) map[c * size.y + v] = true;
-                            }
-                        }
-                        Sector sector = new Sector(start.x, start.y, end.x, end.y, lastColor);
-                        currentVolume += (sector.x2 - sector.x1 + 1) * (sector.y2 - sector.y1 + 1);
-                        if (colorOutput!=null && colorOutput.size()<257 && !colorOutput.contains(sector.color)) colorOutput.add(sector.color());
-                        sectors.add(sector);
-                        if (currentVolume==targetVolume) return sectors;
-                    }
-                    start = new Vector2i(x, y);
-                    lastColor = color;
-                }else{
-                    if (mapped && start!=null) {
-                        Vector2i end = new Vector2i(start.x, y-1);
-                        for (int c = start.x; c < size.x; c++) {
-                            for (int v = start.y; v < y; v++) {
-                                if (getColor.applyAsInt(c, v) != lastColor) {
-                                    c = size.x;
-                                    v = size.y;
-                                }
-                            }
-                            if (c!=size.x) {
-                                end = new Vector2i(c, y - 1);
-                                for (int v = start.y; v < y; v++) map[c * size.y + v] = true;
-                            }
-                        }
-                        Sector sector = new Sector(start.x, start.y, end.x, end.y, lastColor);
-                        currentVolume += (sector.x2 - sector.x1 + 1) * (sector.y2 - sector.y1 + 1);
-                        if (colorOutput!=null && colorOutput.size()<257 && !colorOutput.contains(sector.color)) colorOutput.add(sector.color());
-                        sectors.add(sector);
-                        if (currentVolume==targetVolume) return sectors;
-                        start = null;
-                        lastColor = -1;
-                    }else if(!mapped && start==null) {
-                        start = new Vector2i(x, y);
-                    }else {
-                        lastColor = color;
-                    }
-                }
-            }
-            if (start!=null) {
-                Vector2i end = new Vector2i(start.x, size.y-1);
-                for (int c = start.x; c < size.x; c++) {
-                    for (int v = start.y; v < size.y; v++) {
-                        if (getColor.applyAsInt(c, v) != lastColor) {
-                            c = size.x;
-                            v = size.y;
-                        }
-                    }
-                    if (c!=size.x) {
-                        end = new Vector2i(c, size.y - 1);
-                        for (int v = start.y; v < size.y; v++) map[c * size.y + v] = true;
-                    }
-                }
-                Sector sector = new Sector(start.x, start.y, end.x, end.y, lastColor);
-                currentVolume += (sector.x2 - sector.x1 + 1) * (sector.y2 - sector.y1 + 1);
-                if (colorOutput!=null && colorOutput.size()<257 && !colorOutput.contains(sector.color)) colorOutput.add(sector.color());
-                sectors.add(sector);
-                if (currentVolume==targetVolume) return sectors;
-            }
-            start = null;
-            lastColor = -1;
+    //internal class for scanGraphics that allows sectors to be dynamically adjusted before being locked in
+    private static class LiquidSector {
+        public final int x;
+        public final int y;
+        public int width = 1;
+        public int height = 1;
+        public final int color;
 
+        public LiquidSector(int x, int y, int color){
+            this.x = x;
+            this.y = y;
+            this.color = color;
         }
+
+        public Sector solidify(){
+            return new Sector(x, y, x + width - 1, y + height - 1, color);
+        }
+    }
+
+    private static List<Sector> scanGraphics(Vector2i size, IntBinaryOperator getColor, @Nullable List<Integer> colorOutput) {
+        //current position on the frame
+        int x = 0, y = 0;
+        //volume of the frame
+        final int volume = size.x * size.y;
+        //stores the pushed sectors, should only be appended
+        final LinkedList<Sector> sectors = new LinkedList<>();
+        //marks the pixels that have already been counted, so they won't be counted again
+        boolean[] marks = new boolean[volume];
+        //the current sector being worked on, if one is being worked on
+        @Nullable LiquidSector currentSector = null;
+
+        //start searching the frame left to right, top to bottom
+        while (true) {
+            int i = y * size.x + x;
+            if (i==volume) break;
+            boolean marked = marks[i];
+            boolean overbounds = x == size.x;
+            if (currentSector==null && !overbounds && !marked) {
+                currentSector = new LiquidSector(x, y, getColor.applyAsInt(x, y));
+                x++;
+            }else{
+                if (!overbounds && !marked) {
+                    //test if the current pixel matches the sector and extend the sector if so
+                    int color = getColor.applyAsInt(x, y);
+                    if (color == currentSector.color) {
+                        currentSector.width++;
+                        x++;
+                        continue;//move to next pixel
+                    }else
+                        x--;
+                    //if the colors don't match, move to scan and push the sector
+                }
+                //scan and push the current sector to the stack
+                if (currentSector==null) {
+                    if (overbounds) {//current coordinates if over bounds
+                        x = 0;
+                        y++;
+                    }else
+                        x++;
+                    continue;
+                }
+
+                //if there's a sector present, push it to the stack
+                int subY = y+1;
+                final int farX = currentSector.x + currentSector.width - 1;
+                while (subY<size.y) {
+                    //scan under the sector and fail if not all the pixels under it match the color
+                    boolean kill = false;
+                    for (int c = currentSector.x; c <= farX; c++) {
+                        if (getColor.applyAsInt(c, subY) != currentSector.color) {
+                            kill = true;
+                            break;
+                        }
+                    }
+                    if (kill) break;
+
+                    //if nothing failed, mark the spaces and move down
+                    for (int c = subY * size.x + currentSector.x; c <= (subY * size.x + farX); c++)
+                        marks[c] = true;
+                    currentSector.height++;
+                    subY++;
+                }
+
+                if (overbounds) {//current coordinates if over bounds
+                    x = 0;
+                    y++;
+                }else if (!marked)
+                    x++;
+
+                if (colorOutput!=null && colorOutput.size()<257 && !colorOutput.contains(currentSector.color)) colorOutput.add(currentSector.color);
+                sectors.add(currentSector.solidify());
+                currentSector=null;
+            }
+        }
+        //push the current sector
+        if (currentSector!=null)
+            sectors.add(currentSector.solidify());
         return sectors;
     }
 
@@ -322,14 +333,16 @@ public record SectoredGraphics(Sector[] sectors, Vector2i size) implements Itera
             for (int i = 0; i < sectors.length; i++) {
                 sectors[i] = doPalletization ? Sector.readFromPacket(packet, colorPallet) : Sector.readFromPacket(packet);
             }
-            return new SectoredGraphics(sectors, size);
+            SectoredGraphics sectors1 = new SectoredGraphics(sectors, size);
+            return sectors1;
         }else if (control==0b1000000 || control==0b1010000) {
             int[] pixelBuffer = new int[size.x * size.y];
             for (int i = 0; i < pixelBuffer.length; i++){
                 pixelBuffer[i] = doPalletization ? colorPallet[packet.readByte() & 0xFF] : readColor(packet);
             }
             List<Sector> sectors = scanGraphics(size, (x, y) -> pixelBuffer[x * size.y + y], null);
-            return new SectoredGraphics(sectors.toArray(new Sector[]{}), size);
+            SectoredGraphics sectors1 = new SectoredGraphics(sectors.toArray(new Sector[]{}), size);
+            return sectors1;
         }
         throw new IllegalArgumentException("Illegal control byte");
     }
