@@ -1,7 +1,9 @@
 package com.redtoast.graphics.screens;
 
 import com.redtoast.graphics.SectoredGraphics;
-import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.graphics.client.ScreenShaders;
+import com.redtoast.graphics.client.ScreenTexture;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.*;
@@ -9,7 +11,6 @@ import net.minecraft.client.util.Window;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import org.joml.Matrix4f;
-import org.joml.Random;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 
@@ -31,6 +32,9 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
 
     /*stores the last recorded size of the window*/
     Vector2i lastWindowSize;
+
+    private ScreenTexture screenTexture;
+    private SectoredGraphics uploadedGraphics;
 
     public RGBGraphicsScreen(RGBScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -144,40 +148,40 @@ public class RGBGraphicsScreen extends BoilerplateScreen {
         adjustBounding();
         renderBackground(context, mouseX, mouseY, delta);
 
-        Canvas canvas = Canvas.getCanvas(context);
         SectoredGraphics graphics = handler.getGraphics();
+        if (graphics == null) return;
 
-        for (SectoredGraphics.Sector sector : graphics) {
-            Vector2d pos1 = graphicsToScreen(sector.x1(), sector.y1());
-            Vector2d pos2 = graphicsToScreen(sector.x2() + 1, sector.y2() + 1);
-            canvas.placeRec(pos1.x, pos1.y, pos2.x, pos2.y, sector.color());
+        if (graphics != uploadedGraphics) {
+            if (screenTexture == null) screenTexture = new ScreenTexture("gui");
+            if (!screenTexture.upload(graphics)) return;
+            uploadedGraphics = graphics;
         }
 
-        canvas.draw();
+        Matrix4f matrix = context.getMatrices().peek().getPositionMatrix();
+        var program = ScreenShaders.getDisplayProgram();
+        RenderSystem.setShader(program != null ? () -> program : GameRenderer::getPositionTexColorProgram);
+        RenderSystem.setShaderTexture(0, screenTexture.getId());
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
+        float x1 = screenPos1.x, y1 = screenPos1.y, x2 = screenPos2.x, y2 = screenPos2.y;
+        buffer.vertex(matrix, x1, y1, 0).texture(0, 0).color(255, 255, 255, 255);
+        buffer.vertex(matrix, x1, y2, 0).texture(0, 1).color(255, 255, 255, 255);
+        buffer.vertex(matrix, x2, y2, 0).texture(1, 1).color(255, 255, 255, 255);
+        buffer.vertex(matrix, x2, y1, 0).texture(1, 0).color(255, 255, 255, 255);
+        BufferRenderer.drawWithGlobalProgram(buffer.end());
+        context.draw();
     }
 
-    public record Canvas(DrawContext context, Matrix4f matrix, Tessellator tessellator, BufferBuilder buffer){
-        public static Canvas getCanvas(DrawContext context){
-            Matrix4f transformationMatrix = context.getMatrices().peek().getPositionMatrix();
-            Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder buffer = tessellator.begin(VertexFormat.DrawMode.TRIANGLES, VertexFormats.POSITION_COLOR);
-            return new Canvas(context, transformationMatrix, tessellator, buffer);
+    @Override
+    public void removed() {
+        super.removed();
+        if (screenTexture != null) {
+            screenTexture.close();
+            screenTexture = null;
         }
-
-        public void placeRec(double x1, double y1, double x2, double y2, int color){
-            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(color);
-            buffer.vertex(matrix, (float) x2, (float) y1, 0).color(color);
-            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(color);
-
-            buffer.vertex(matrix, (float) x1, (float) y1, 0).color(color);
-            buffer.vertex(matrix, (float) x1, (float) y2, 0).color(color);
-            buffer.vertex(matrix, (float) x2, (float) y2, 0).color(color);
-        }
-
-        public void draw(){
-            BufferRenderer.drawWithGlobalProgram(buffer.end());
-            context.draw();
-        }
+        uploadedGraphics = null;
     }
 
     @Override
