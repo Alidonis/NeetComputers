@@ -15,6 +15,7 @@ import java.util.UUID;
 
 public class RGBScreenHandler extends ScreenHandler {
     private SectoredGraphics graphics;
+    public UUID playerID;
     public Computer comp;
     public UUID uuid;
 
@@ -22,12 +23,14 @@ public class RGBScreenHandler extends ScreenHandler {
         super(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, syncId);
         graphics = (SectoredGraphics) payload.graphics();
         uuid = payload.uuid();
+        playerID = payload.playerId();
     }
 
-    public RGBScreenHandler(int syncId, RGBGraphicsArray arr, Computer a) {
+    public RGBScreenHandler(int syncId, RGBGraphicsArray arr, Computer a, UUID playerId) {
         super(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, syncId);
         comp = a;
         uuid = a.getUuid();
+        playerID = playerId;
     }
 
     public void updateGraphics(SectoredGraphics graphics) {

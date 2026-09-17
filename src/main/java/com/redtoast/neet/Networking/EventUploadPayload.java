@@ -6,22 +6,36 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
 
+import java.util.UUID;
+
 /**Networking payload to transfer events registered on client side computers to their server side equivalent **/
-public record EventUploadPayload(EventGeneric event, int syncId) implements CustomPayload {
+public record EventUploadPayload(EventGeneric event, int syncId, UUID playerID) implements CustomPayload {
     public static final Id<EventUploadPayload> ID = new Id<>(Identifier.of("neetcomputers", "eventpploadpayload"));
     public static final PacketCodec<RegistryByteBuf, EventUploadPayload> CODEC = PacketCodec.of((value, buf) -> {
         value.event.writeToPacket(buf);
         buf.writeInt(value.syncId);
+        if (value.playerID==null) {
+            buf.writeBoolean(false);
+        }else{
+            buf.writeBoolean(true);
+            buf.writeUuid(value.playerID);
+        }
     }, new PacketCodec<>() {
         @Override
         public EventUploadPayload decode(RegistryByteBuf buf) {
-            return new EventUploadPayload(EventGeneric.fromPacket(buf), buf.readInt());
+            return new EventUploadPayload(EventGeneric.fromPacket(buf), buf.readInt(), buf.readBoolean() ? buf.readUuid() : null);
         }
 
         @Override
         public void encode(RegistryByteBuf buf, EventUploadPayload value) {
             value.event.writeToPacket(buf);
             buf.writeInt(value.syncId);
+            if (value.playerID==null) {
+                buf.writeBoolean(false);
+            }else{
+                buf.writeBoolean(true);
+                buf.writeUuid(value.playerID);
+            }
         }
     });
 

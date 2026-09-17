@@ -12,6 +12,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 
+import java.util.UUID;
+
 public class EventGeneric implements ValueConvertible<List> {
     private final String Name;
     private final List args;
@@ -90,8 +92,8 @@ public class EventGeneric implements ValueConvertible<List> {
         return new EventGeneric(name, values);
     }
 
-    public void send(ScreenHandler handler){
-        ClientPlayNetworking.send(new EventUploadPayload(this, handler.syncId));
+    public void send(ScreenHandler handler, UUID playerID){
+        ClientPlayNetworking.send(new EventUploadPayload(this, handler.syncId, playerID));
     }
 
     @Override

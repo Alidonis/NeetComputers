@@ -1,7 +1,9 @@
 package com.redtoast.graphics.screens;
 
+import com.redtoast.neet.Networking.OnClosePayload;
 import com.redtoast.simulation.events.EventGeneric;
 import com.redtoast.simulation.value.Value;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
@@ -37,7 +39,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                     Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
-            event.send(handler);
+            event.send(handler, handler.playerID);
         }
         if (client.options.inventoryKey.matchesKey(keycode, scancode)) return true;
         return super.keyPressed(keycode, scancode, modifiers);
@@ -51,7 +53,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                     Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
-            event.send(handler);
+            event.send(handler, handler.playerID);
         }
         return super.keyReleased(keycode, scancode, modifiers);
     }
@@ -64,7 +66,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                         Value.of(pos.x),
                         Value.of(pos.y)
                 );
-                event.send(handler);
+                event.send(handler, handler.playerID);
             }
             dragTable.put(-1, pos);
         }
@@ -80,7 +82,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                     Value.of(pos.y),
                     Value.of(key)
             );
-            event.send(handler);
+            event.send(handler, handler.playerID);
             repeatTable.put(key, true);
         }else{
             dragTable.remove(key);
@@ -97,7 +99,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                         Value.of(pos.x),
                         Value.of(pos.y),
                         Value.of(key)
-                ).send(handler);
+                ).send(handler, handler.playerID);
                 repeatTable.put(key, true);
             }
             if (!dragTable.containsKey(key) || !dragTable.get(key).equals(pos)){
@@ -106,7 +108,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                         Value.of(pos.y),
                         Value.of(key)
                 );
-                event.send(handler);
+                event.send(handler, handler.playerID);
             }
             dragTable.put(key, pos);
         }else{
@@ -117,7 +119,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                         Value.of(pos.x),
                         Value.of(pos.y),
                         Value.of(key)
-                ).send(handler);
+                ).send(handler, handler.playerID);
             }
             dragTable.remove(key);
         }
@@ -133,7 +135,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                     Value.of(pos.y),
                     Value.of(key)
             );
-            event.send(handler);
+            event.send(handler, handler.playerID);
         }else{
             dragTable.remove(key);
         }
@@ -149,7 +151,7 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
                     Value.of(horizontalAmount),
                     Value.of(verticalAmount)
             );
-            event.send(handler);
+            event.send(handler, handler.playerID);
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
@@ -210,5 +212,11 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
             case GLFW_KEY_LEFT_ALT, GLFW_KEY_RIGHT_ALT -> 133;
             default -> 0;
         };
+    }
+
+    @Override
+    public void close() {
+        ClientPlayNetworking.send(new OnClosePayload(handler.syncId, handler.playerID));
+        super.close();
     }
 }

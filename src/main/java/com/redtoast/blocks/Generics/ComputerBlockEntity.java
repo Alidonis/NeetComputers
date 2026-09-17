@@ -164,7 +164,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
         if (!computer.getConfiguration().doesColorGraphics()) return null;
-        return new RGBScreenHandler(syncId,graphics,computer);
+        return new RGBScreenHandler(syncId,graphics,computer, player.getUuid());
     }
 
     public void handlePeripheralScan() {
@@ -306,7 +306,7 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
 
     @Override
     public ComputerScreenInitPayload getScreenOpeningData(ServerPlayerEntity player) {
-        return new ComputerScreenInitPayload(graphics, computer.getUuid());
+        return new ComputerScreenInitPayload(graphics, computer.getUuid(), player.getUuid());
     }
 
     @Override

@@ -46,7 +46,7 @@ public class KeyboardScreen extends HandledScreen<KeyboardScreenHandler> {
                     Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
-            event.send(handler);
+            event.send(handler, null);
         }
         if (client.options.inventoryKey.matchesKey(keycode, scancode)) return true;
         return super.keyPressed(keycode, scancode, modifiers);
@@ -61,7 +61,7 @@ public class KeyboardScreen extends HandledScreen<KeyboardScreenHandler> {
                     Value.of(code>31 && code<128 ? (char) code : ""),
                     Value.of(modifiers)
             );
-            event.send(handler);
+            event.send(handler, null);
         }
         return super.keyReleased(keycode, scancode, modifiers);
     }

@@ -92,6 +92,8 @@ public abstract class Computer implements BinaryGraphicsProvider {
     private final ComputerConfig computerConfig;
     //list of cc computer accesses to remove later if needed (computer breaks, etc) (CC COMPAT)
     public final ArrayList<ComputerWrapper> computerAccesses;
+    //keeps track of the players using the computer
+    private final LinkedList<UUID> playerTracker = new LinkedList<>();
     //value holding last time computer ticked
     private long tickTime;
 
@@ -272,6 +274,16 @@ public abstract class Computer implements BinaryGraphicsProvider {
     }
     public @Nullable BinaryGraphicsArray getBinaryGraphics() {
         return !doesBinaryGraphics ? null : BinGraphics;
+    }
+    public void removePlayer(UUID playerId) {
+        playerTracker.remove(playerId);
+    }
+    public void appendPlayer(UUID playerId) {
+        if (!playerTracker.contains(playerId)) playerTracker.add(playerId);
+    }
+    public boolean isPrioritizedPlayer(UUID playerId) {
+        if (playerTracker.isEmpty()) return false;
+        return playerTracker.getFirst()==playerId;
     }
 
     public void renderColorGraphics(){graphicsDirty = true;}

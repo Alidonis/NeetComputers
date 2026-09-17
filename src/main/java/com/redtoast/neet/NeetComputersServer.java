@@ -298,6 +298,7 @@ public class NeetComputersServer implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(EventUploadPayload.ID, EventUploadPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SetPeripheralTagPayload.ID, SetPeripheralTagPayload.CODEC);
 		PayloadTypeRegistry.playC2S().register(SubmitCommandPayload.ID, SubmitCommandPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(OnClosePayload.ID, OnClosePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ReturnMessagePayload.ID, ReturnMessagePayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ColorDisplayGraphicsPayload.ID, ColorDisplayGraphicsPayload.CODEC);
@@ -308,7 +309,8 @@ public class NeetComputersServer implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(EventUploadPayload.ID, (payload, context) -> {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
 				Computer computer = handler.comp;
-				computer.queueEvent(payload.event(), EventLabel.USER);
+				computer.appendPlayer(handler.playerID);
+				if (computer.isPrioritizedPlayer(handler.playerID)) computer.queueEvent(payload.event(), EventLabel.USER);
 			}
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof KeyboardScreenHandler handler)){
 				handler.keyboard.queueEvent(payload.event().getName(), (Object[]) payload.event().getValues().toArray());
@@ -318,6 +320,13 @@ public class NeetComputersServer implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(SetPeripheralTagPayload.ID, (payload, context) -> {
 			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncId() && context.player().currentScreenHandler instanceof PeripheralToolScreenHandler handler)){
 				handler.setTag(payload.tag());
+			}
+		});
+
+		ServerPlayNetworking.registerGlobalReceiver(OnClosePayload.ID, (payload, context) -> {
+			if ((context.player().currentScreenHandler!=null && context.player().currentScreenHandler.syncId == payload.syncID() && context.player().currentScreenHandler instanceof RGBScreenHandler handler)){
+				Computer computer = handler.comp;
+				computer.removePlayer(handler.playerID);
 			}
 		});
 
