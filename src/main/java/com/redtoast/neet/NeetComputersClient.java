@@ -33,6 +33,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.util.math.BlockPos;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.util.Objects;
 
 public class NeetComputersClient implements ClientModInitializer {
@@ -48,6 +51,9 @@ public class NeetComputersClient implements ClientModInitializer {
 		// Setup pipe renderer
 		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
 		ClientLifecycleEvents.CLIENT_STARTED.register(NeetComputersClient::updateClient);
+//		Clipboard clipboard2 = Toolkit.getDefaultToolkit().getSystemClipboard();
+//		StringSelection section2 = new StringSelection("payload.message()");
+//		clipboard2.setContents(section2, section2);
 
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
 		HandledScreens.register(NeetComputersServer.GRAPHICS_SCREEN_HANDLER, RGBGraphicsScreen::new);
@@ -124,6 +130,16 @@ public class NeetComputersClient implements ClientModInitializer {
 
 		ClientPlayNetworking.registerGlobalReceiver(CloseRGBPayload.ID, (payload, context) -> {
 			context.player().closeScreen();
+		});
+
+		ClientPlayNetworking.registerGlobalReceiver(ClipboardRequest.ID, (payload, context) -> {
+//			try {
+//				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+//				StringSelection section = new StringSelection(payload.message());
+//				clipboard.setContents(section, section);
+//			}catch (Throwable ignored) {
+//				throw ignored;
+//			}
 		});
 
 		ClientPlayNetworking.registerGlobalReceiver(ReturnMessagePayload.ID, (payload, context) -> {

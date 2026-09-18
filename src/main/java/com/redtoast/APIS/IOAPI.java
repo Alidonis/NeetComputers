@@ -2,6 +2,7 @@ package com.redtoast.APIS;
 
 import com.redtoast.Computer;
 import com.redtoast.Connections.PeripheralProvider;
+import com.redtoast.neet.Networking.ClipboardRequest;
 import com.redtoast.simulation.annotations.CanBeNull;
 import com.redtoast.simulation.annotations.Exposed;
 import com.redtoast.simulation.annotations.Primative;
@@ -13,6 +14,8 @@ import com.redtoast.simulation.value.ValueTypes.Function;
 import com.redtoast.simulation.value.ValueTypes.List;
 import com.redtoast.simulation.value.ValueTypes.Table;
 import com.redtoast.simulation.value.ValueTypes.Tuple;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -172,6 +175,16 @@ public class IOAPI implements API {
             }
         }
         throw new ExposedError("Peripheral not found");
+    }
+
+//    @Exposed
+//    public void setClipboard(String text) {
+//        if (computer.isBeingViewed()) ServerPlayNetworking.send(computer.getPrioritizedPlayer(), new ClipboardRequest(text));
+//    }
+
+    @Exposed
+    public boolean isViewed() {
+        return computer.isBeingViewed();
     }
 
     @Exposed

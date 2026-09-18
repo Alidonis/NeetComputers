@@ -285,6 +285,13 @@ public abstract class Computer implements BinaryGraphicsProvider {
         if (playerTracker.isEmpty()) return false;
         return playerTracker.getFirst()==playerId;
     }
+    public ServerPlayerEntity getPrioritizedPlayer() {
+        if (playerTracker.isEmpty()) return null;
+        return (ServerPlayerEntity) getWorld().getPlayerByUuid(playerTracker.getFirst());
+    }
+    public boolean isBeingViewed() {
+        return !playerTracker.isEmpty();
+    }
 
     public void renderColorGraphics(){graphicsDirty = true;}
 

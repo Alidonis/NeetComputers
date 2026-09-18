@@ -303,6 +303,7 @@ public class NeetComputersServer implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(BinaryGraphicsPayload.ID, BinaryGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(ColorDisplayGraphicsPayload.ID, ColorDisplayGraphicsPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(RGBComputerPayload.ID, RGBComputerPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ClipboardRequest.ID, ClipboardRequest.CODEC);
 		PayloadTypeRegistry.playS2C().register(CloseRGBPayload.ID, CloseRGBPayload.CODEC);
 		PayloadTypeRegistry.playS2C().register(PipeBufferPayload.ID, PipeBufferPayload.CODEC);
 

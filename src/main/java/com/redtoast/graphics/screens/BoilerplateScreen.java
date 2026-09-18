@@ -10,6 +10,9 @@ import net.minecraft.text.Text;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.util.Hashtable;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -32,6 +35,17 @@ public abstract class BoilerplateScreen extends HandledScreen<RGBScreenHandler> 
     //i am boilerplate, destroyer of file size
     @Override
     public boolean keyPressed(int keycode, int scancode, int modifiers){
+//        if (keycode==GLFW_KEY_V && (modifiers & GLFW_MOD_CONTROL) != 0) {
+//            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+//            if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+//                try {
+//                    EventGeneric event = new EventGeneric("clipboard",
+//                            Value.of(clipboard.getData(DataFlavor.stringFlavor).toString())
+//                    );
+//                    event.send(handler, handler.playerID);
+//                }catch (Throwable ignored){}
+//            }
+//        }
         int code = mapGlfwKeyToAsciiCode(keycode, modifiers);
         if (code!=0){
             EventGeneric event = new EventGeneric("keyPressed",
