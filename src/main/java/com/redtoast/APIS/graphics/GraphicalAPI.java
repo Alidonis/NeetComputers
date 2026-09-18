@@ -86,7 +86,7 @@ public class GraphicalAPI implements Exposable {
         float x = x1;
         float y = y1;
 
-        for (int i = 0; i < step; i++) {
+        for (int i = 0; i <= step; i++) {
             writePixel(round(x), round(y), red, green, blue, alpha);
             x += x_incr;
             y += y_incr;
@@ -123,7 +123,7 @@ public class GraphicalAPI implements Exposable {
         if (x2 >= width) throw new RangeArgumentError(2, 0, width-1, x2);
         if (y2 >= height) throw new RangeArgumentError(3, 0, height-1, y2);
         /*copy area into new layer*/
-        GraphicalAPI layer = new GraphicalAPI(x2 - x1, y2 - y1, runtime);
+        GraphicalAPI layer = new GraphicalAPI(x2 - x1 + 1, y2 - y1 + 1, runtime);
         layer.buffer = readSector(x1, y1, x2, y2);
         return APILoader.TableizeAPI(layer, runtime);
     }
@@ -205,7 +205,7 @@ public class GraphicalAPI implements Exposable {
             /*Create a row and copy it into the buffer*/
             int[] row = new int[width];
             Arrays.fill(row, RGBA>>8);
-            for (int i = y1; i < y2; i++) {
+            for (int i = y1; i <= y2; i++) {
                 System.arraycopy(row, 0, buffer, i * this.width + x1, width);
             }
         }else{

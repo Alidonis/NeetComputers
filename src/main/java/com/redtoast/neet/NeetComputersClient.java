@@ -21,10 +21,13 @@ import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayRenderer;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.SectoredGraphics;
+import com.redtoast.graphics.client.DisplayTextureManager;
+import com.redtoast.graphics.client.ScreenShaders;
 import com.redtoast.graphics.screens.*;
 import com.redtoast.neet.Networking.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.block.entity.BlockEntity;
@@ -48,6 +51,10 @@ public class NeetComputersClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		ScreenShaders.register();
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (client.world != null && client.world.getTime() % 200 == 0) DisplayTextureManager.purge();
+		});
 		// Setup pipe renderer
 		WorldRenderEvents.AFTER_ENTITIES.register(CableRenderer::eventCallback);
 		ClientLifecycleEvents.CLIENT_STARTED.register(NeetComputersClient::updateClient);
