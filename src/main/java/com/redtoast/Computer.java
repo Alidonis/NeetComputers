@@ -7,6 +7,8 @@ import com.redtoast.blocks.Generics.Displays.BinaryGraphicsProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.items.HardDrive;
+import com.redtoast.neet.BulkRegistry;
 import com.redtoast.neet.NeetComputersServer;
 import com.redtoast.neet.Networking.CloseRGBPayload;
 import com.redtoast.neet.Networking.RGBComputerPayload;
@@ -22,6 +24,7 @@ import com.redtoast.simulation.events.EventManager;
 import com.redtoast.simulation.value.Value;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -60,8 +63,12 @@ import java.util.*;
 public abstract class Computer implements BinaryGraphicsProvider {
     //the instance representing a computers runtime, cycles with computer restarts
     private Runtime runtime;
+    //does the computer think it has a file system
+    private boolean hasFiles = false;
     //pointer for the folder that contains this computer's files
     private int pointer = 0;
+    //stores the default configuration for the file system
+    private String template = "";
     //determines if a 'load' function has been called, providing important information to computer, most methods won't run if this is false
     private boolean loaded = false;
     //stores the computers state
@@ -69,8 +76,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     private String crashMessage = null;
     //uuid representing the computer, acquired by chip.getUUID() in runtime. generated during loading
     private UUID uuid = null;
-    //stores the default configuration for the file system
-    private String template = "neetos";
     //marks if the computer should attempt to restart
     private boolean doReboot = false;
     //object representing the computers file interpreter
@@ -146,7 +151,6 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //loads computer from NBT data
     public void load(NbtCompound nbt){
         if (!loaded){
-            pointer = nbt.getInt("Address");
             state = ComputerState.OFF;
             if (nbt.contains("State")){
                 state = ComputerState.values()[nbt.getShort("State")];
@@ -156,8 +160,14 @@ public abstract class Computer implements BinaryGraphicsProvider {
             }else{
                 uuid = UUID.randomUUID();
             }
-            if (nbt.contains("Template")) {
-                template = nbt.getString("Template");
+            if (nbt.contains("Address")) {
+                pointer = nbt.getInt("Address");
+                if (nbt.contains("Template")) {
+                    template = nbt.getString("Template");
+                }
+                hasFiles = true;
+            }else{
+                hasFiles = false;
             }
             if (nbt.contains("crashMessage") && state == ComputerState.CRASHED) crashMessage = nbt.getString("crashMessage");
             load();
@@ -166,6 +176,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //loads computer from data component
     public void load(ComputerDataComponent dataComponent){
         if (!loaded){
+            hasFiles = dataComponent.hasFiles();
             pointer = dataComponent.address();
             state = dataComponent.isOn() ? ComputerState.ON : ComputerState.OFF;
             uuid = dataComponent.id();
@@ -177,10 +188,23 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public void load(MinecraftServer GameServer){
         if (!loaded){
             assert GameServer != null;
-            pointer = NeetComputersServer.getNextPointer();
+            pointer = 0;
             state = ComputerState.OFF;
             load();
         }
+    }
+
+    public ItemStack ejectFS() {
+        HardDrive item = (HardDrive) BulkRegistry.fetchItemObject("hard_drive");
+        assert item != null;
+        ItemStack stack = new ItemStack(item, 1);
+        stack.set(NeetComputersServer.BOOTABLE_COMPONENT, true);
+        stack.set(NeetComputersServer.POINTER_COMPONENT, pointer);
+        stack.set(NeetComputersServer.TEMPLATE_COMPONENT, template);
+        stack.set(NeetComputersServer.UUID_COMPONENT, getUuid().toString());
+        hasFiles = false;
+        fileSystem = null;
+        return stack;
     }
 
     /*'starts' the computer if its off, does nothing if its on
@@ -253,9 +277,10 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public boolean isPaused(){return state == ComputerState.PAUSED;}
     public String getCrashMessage(){return isCrashed() ? crashMessage : null;}
     public boolean isLoaded(){return loaded;}
+    public boolean hasFiles(){return hasFiles;}
     public boolean hasBinaryGraphics() {return doesBinaryGraphics;}
     public DiskSystem getHomeDiskSystem() {return fileSystem.getHomeDisk();}
-    public ComputerFileSystem getFileSystem() {return fileSystem;}
+    public @Nullable ComputerFileSystem getFileSystem() {return fileSystem;}
     public EventManager getEventManager() {return eventManager;}
     public InternetManager getInternetManager() {return internetManager;}
     public RGBGraphicsArray getGraphics() {
@@ -292,6 +317,11 @@ public abstract class Computer implements BinaryGraphicsProvider {
     public boolean isBeingViewed() {
         return !playerTracker.isEmpty();
     }
+    public void setFileSystem(int pointer, String template) {
+        this.pointer = pointer;
+        this.template = template;
+        hasFiles = true;
+    }
 
     public void renderColorGraphics(){graphicsDirty = true;}
 
@@ -307,7 +337,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
         short delta = (short) (System.currentTimeMillis() - tickTime);
         tickTime = System.currentTimeMillis();
         if (loaded){
-            if (NeetComputersServer.worldPath!=null && fileSystem==null){
+            if (NeetComputersServer.worldPath!=null && fileSystem==null && hasFiles){
                 try {
                     fileSystem = new ComputerFileSystem(pointer, template, getUuid());
                 }catch (DiskError e) {
@@ -350,9 +380,11 @@ public abstract class Computer implements BinaryGraphicsProvider {
 
     //writes current state to NBT tag
     public NbtCompound saveNBT(NbtCompound nbt){
-        nbt.putInt("Address", pointer);
         nbt.putShort("State", (short) state.ordinal());
-        nbt.putString("Template", template);
+        if (hasFiles) {
+            nbt.putInt("Address", pointer);
+            nbt.putString("Template", template);
+        }
         if (uuid!=null) nbt.putUuid("ComputerID",uuid);
         if (isCrashed() && crashMessage!=null) nbt.putString("crashMessage", crashMessage);
         return nbt;
@@ -361,6 +393,7 @@ public abstract class Computer implements BinaryGraphicsProvider {
     //writes current state to item
     public ComputerDataComponent saveToItem(){
         return new ComputerDataComponent(
+                hasFiles,
                 pointer,
                 isOn(),
                 uuid,

@@ -10,6 +10,7 @@ import com.redtoast.blocks.Generics.Displays.BinaryGraphicsRenderProvider;
 import com.redtoast.graphics.BinaryGraphicsArray;
 import com.redtoast.graphics.screens.RGBScreenHandler;
 import com.redtoast.graphics.RGBGraphicsArray;
+import com.redtoast.items.Disk;
 import com.redtoast.neet.Networking.BinaryGraphicsPayload;
 import com.redtoast.neet.Networking.ComputerScreenInitPayload;
 import com.redtoast.neet.config.ConfigLoader;
@@ -148,10 +149,25 @@ public class ComputerBlockEntity extends BlockEntity implements ExtendedScreenHa
             }
         }
         if (player.isSneaking()){
-            computer.stop();
-        }else{
+            if (computer.isDead() && computer.hasFiles() && player.getMainHandStack().isEmpty()) {
+                player.setStackInHand(player.getActiveHand(), computer.ejectFS());
+            }else{
+                computer.stop();
+            }
+        }else if(computer.hasFiles()){
             if (computer.isCrashed()) player.sendMessage(Text.literal(computer.getCrashMessage()));
             computer.start();
+        }else{
+            if (computer.isDead() && !computer.hasFiles() && player.getMainHandStack().getItem() instanceof Disk disk) {
+                ItemStack stack = player.getMainHandStack();
+                computer.setFileSystem(disk.getAddress(stack, null), disk.getTemplate(stack));
+                if (!player.isCreative() && !disk.isDefault(stack))
+                    player.setStackInHand(player.getActiveHand(), ItemStack.EMPTY);
+                else
+                    disk.nullify(stack);
+                player.sendMessage(Text.literal("Disk inserted"));
+            }else
+                player.sendMessage(Text.literal("Please insert bootable disk"));
         }
         return ActionResult.SUCCESS;
     }

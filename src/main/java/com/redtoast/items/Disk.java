@@ -38,6 +38,24 @@ public class Disk extends Item implements DiskItem {
     }
 
     @Override
+    public String getTemplate(ItemStack stack) {
+        if (stack.get(NeetComputersServer.TEMPLATE_COMPONENT)==null){
+            stack.set(NeetComputersServer.TEMPLATE_COMPONENT, "blank");
+            return stack.get(NeetComputersServer.TEMPLATE_COMPONENT);
+        }
+        return stack.get(NeetComputersServer.TEMPLATE_COMPONENT);
+    }
+
+    @Override
+    public boolean isDefault(ItemStack stack) {
+        return stack.get(NeetComputersServer.POINTER_COMPONENT)==null || stack.get(NeetComputersServer.POINTER_COMPONENT)==0;
+    }
+
+    public void nullify(ItemStack stack) {
+        stack.set(NeetComputersServer.POINTER_COMPONENT, 0);
+    }
+
+    @Override
     public DiskSystem generateSystem(ItemStack stack, UUID uuid, BlockEntity caller) throws DiskError {
         return new DiskSystem(getAddress(stack, caller.getWorld()), stack.get(NeetComputersServer.TEMPLATE_COMPONENT), uuid);
     }

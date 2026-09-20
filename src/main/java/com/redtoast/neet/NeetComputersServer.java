@@ -1,7 +1,9 @@
 package com.redtoast.neet;
 
+import com.redtoast.items.*;
 import dev.ryanhcode.sable.companion.SableCompanion;
 import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -34,11 +36,7 @@ import com.redtoast.blocks.RedstoneController.RedstoneControllerBlockEntity;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlock;
 import com.redtoast.blocks.SimpleDisplay.SimpleDisplayBlockEntity;
 import com.redtoast.graphics.screens.*;
-import com.redtoast.items.Disk;
-import com.redtoast.items.PeripheralTool;
 import com.redtoast.items.generics.DisplayPipes;
-import com.redtoast.items.networkingCable;
-import com.redtoast.items.peripheralCable;
 import com.redtoast.APIS.*;
 import com.redtoast.Connections.CableManager;
 import com.redtoast.neet.Networking.*;
@@ -111,6 +109,7 @@ public class NeetComputersServer implements ModInitializer {
 	public static CableManager cableManager = null;
 	public static MinecraftServer server = null;
 	public static final ComponentType<String> TEMPLATE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "template"), ComponentType.<String>builder().codec(Codec.string(0,15)).build());
+	public static final ComponentType<String> UUID_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "sourceid"), ComponentType.<String>builder().codec(Codec.string(0,36)).build());
 	public static final ComponentType<Integer> POINTER_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "pointer"), ComponentType.<Integer>builder().codec(Codec.INT).build());
 	public static final ComponentType<Boolean> BOOTABLE_COMPONENT = Registry.register(Registries.DATA_COMPONENT_TYPE, Identifier.of("neetcomputers", "bootable"), ComponentType.<Boolean>builder().codec(Codec.BOOL).build());
 	public static final TransitiveSingleRecipe.Serializer TRANSITIVE_SINGLE_SERIALIZER = Registry.register(Registries.RECIPE_SERIALIZER, Identifier.of("neetcomputers", "transitive_single"), new TransitiveSingleRecipe.Serializer());
@@ -145,7 +144,19 @@ public class NeetComputersServer implements ModInitializer {
 											.executes(Commands::stopBlock)
 									)
 							)
-					));
+					)
+					.then(CommandManager.literal("get")
+							.then(CommandManager.literal("next")
+									.then(CommandManager.literal("pointer")
+											.requires(source -> source.hasPermissionLevel(1))
+											.executes(context -> {
+												context.getSource().sendFeedback(() -> Text.literal("Next pointer is " + nextPointer), false);
+												return 1;
+											})
+									)
+							)
+					)
+			);
 		});
 	}
 
@@ -262,6 +273,9 @@ public class NeetComputersServer implements ModInitializer {
 		Item disk = new Disk(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "blank").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, false), "item.neetcomputers.disk");
 		BulkRegistry.register("disk", disk);
 		BulkRegistry.register(disk, group);
+
+		Item hard_drive = new HardDrive(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "blank").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, false).component(UUID_COMPONENT, "NULL"), "item.neetcomputers.hard_drive");
+		BulkRegistry.register("hard_drive", hard_drive);
 
 		Item neetosdisk = new Disk(new Item.Settings().maxCount(1).component(TEMPLATE_COMPONENT, "neetos").component(POINTER_COMPONENT, 0).component(BOOTABLE_COMPONENT, true), "item.neetcomputers.neetos_disk");
 		BulkRegistry.register("neetos_disk", neetosdisk);
